@@ -2,7 +2,12 @@
 
 set -ex
 
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    BRANCH=$(git rev-parse --abbrev-ref HEAD)
+else
+    BRANCH="main"
+    echo "Not a Git repo — defaulting BRANCH=$BRANCH"
+fi
 
 DIR=$(dirname "$0")
 
