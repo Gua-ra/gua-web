@@ -11,7 +11,8 @@ ARG JS_SDK_BRANCH="master"
 WORKDIR /src
 
 COPY --exclude=docker . /src
-RUN /src/scripts/docker-link-repos.sh
+ARG SKIP_LINK_REPOS=false
+RUN if [ "$SKIP_LINK_REPOS" != "true" ]; then /src/scripts/docker-link-repos.sh; else echo "Skipping docker-link-repos.sh"; fi
 RUN yarn --network-timeout=200000 install
 RUN /src/scripts/docker-package.sh
 
