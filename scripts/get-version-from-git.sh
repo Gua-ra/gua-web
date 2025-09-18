@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
-# Echoes a version based on the git hashes of the element-web, react-sdk & js-sdk checkouts, for the case where
-# these dependencies are git checkouts.
+# Echoes a version based on the git hashes of the element-web and js-sdk checkouts,
+# or falls back to a default when not inside a git repo (e.g., GitHub tarball builds).
 
 set -e
 
-# Since the deps are fetched from git, we can rev-parse
-JSSDK_SHA=$(git -C node_modules/matrix-js-sdk rev-parse --short=12 HEAD)
-VECTOR_SHA=$(git rev-parse --short=12 HEAD) # use the ACTUAL SHA rather than assume develop
-echo $VECTOR_SHA-js-$JSSDK_SHA
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    JSSDK_SHA=$(git -C node_modules/matrix-js-sdk rev-parse --short=12 HEAD || echo "unknownjs")
+    VECTOR_SHA=$(git rev-parse --short=12 HEAD || echo "unknownvector")
+    echo "${VECTOR_SHA}-js-${JSSDK_SHA}"
+else
+    echo "0.0.0"
+fi
