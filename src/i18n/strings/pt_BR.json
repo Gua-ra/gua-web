@@ -15,6 +15,17 @@
             "resend_in": "Reenviar código em %(seconds)ss",
             "change_phone": "Alterar número de telefone"
         },
+        "profile": {
+            "title": "Crie seu perfil",
+            "subtitle": "Escolha um nome de usuário e um nome de exibição.",
+            "username_label": "Nome de usuário",
+            "display_name_label": "Nome de exibição",
+            "username_available": "Nome de usuário disponível",
+            "username_taken": "Esse nome de usuário já está em uso",
+            "username_invalid": "Use 3–30 letras, números, pontos, traços ou sublinhados",
+            "username_checking": "Verificando…",
+            "create_account": "Criar conta"
+        },
         "errors": {
             "not_configured": "O login não está configurado. Entre em contato com o suporte.",
             "rate_limited": "Muitas tentativas. Aguarde um momento e tente novamente.",

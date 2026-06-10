@@ -15,6 +15,17 @@
             "resend_in": "Resend code in %(seconds)ss",
             "change_phone": "Change phone number"
         },
+        "profile": {
+            "title": "Create your profile",
+            "subtitle": "Pick a username and a display name.",
+            "username_label": "Username",
+            "display_name_label": "Display name",
+            "username_available": "Username available",
+            "username_taken": "That username is taken",
+            "username_invalid": "Use 3–30 letters, numbers, dots, dashes or underscores",
+            "username_checking": "Checking…",
+            "create_account": "Create account"
+        },
         "errors": {
             "not_configured": "Sign-in is not configured. Please contact support.",
             "rate_limited": "Too many attempts. Please wait a moment and try again.",

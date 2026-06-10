@@ -19,6 +19,7 @@ import { translateIdentityError } from "../../../identity/identityErrors";
 import { ErrorMessage } from "../ErrorMessage";
 import GuaPhoneEntry from "./GuaPhoneEntry";
 import GuaOtpEntry from "./GuaOtpEntry";
+import GuaProfileSetup from "./GuaProfileSetup";
 
 interface Props {
     onLoggedIn: (creds: IMatrixClientCreds) => void;
@@ -110,6 +111,26 @@ export default function GuaAuthFlow({ onLoggedIn }: Props): JSX.Element {
         setStep({ kind: "phone" });
     };
 
+    const handleProfileSubmit = async (username: string, displayName: string): Promise<void> => {
+        if (!client || step.kind !== "newUser") return;
+        setBusy(true);
+        setError(undefined);
+        try {
+            const session = await client.completeSignup(
+                step.signupToken,
+                username,
+                displayName,
+                undefined,
+                currentDeviceInfo(),
+            );
+            setStep({ kind: "finishing" });
+            onLoggedIn(credsFromIdentitySession(session));
+        } catch (e) {
+            setError(translateIdentityError(e));
+            setBusy(false);
+        }
+    };
+
     let title: string;
     let body: React.ReactNode;
     if (!client) {
@@ -132,6 +153,17 @@ export default function GuaAuthFlow({ onLoggedIn }: Props): JSX.Element {
                         onVerify={handleVerify}
                         onResend={handleResend}
                         onChangePhone={handleChangePhone}
+                    />
+                );
+                break;
+            case "newUser":
+                title = _t("gua|profile|title");
+                body = (
+                    <GuaProfileSetup
+                        busy={busy}
+                        errorMessage={error}
+                        checkUsername={(u) => client.checkUsernameAvailability(u)}
+                        onSubmit={handleProfileSubmit}
                     />
                 );
                 break;
