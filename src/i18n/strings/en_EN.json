@@ -61,6 +61,14 @@
             "action": "Set up",
             "dismiss": "Dismiss"
         },
+        "deactivate": {
+            "intro": "Deactivating your account is permanent. To confirm it's you, we'll send a verification code to your phone.",
+            "erase": "Also erase all messages I have sent",
+            "send_code": "Send verification code",
+            "otp_label": "Verification code",
+            "confirm": "Deactivate account",
+            "cancel": "Cancel"
+        },
         "errors": {
             "not_configured": "Sign-in is not configured. Please contact support.",
             "rate_limited": "Too many attempts. Please wait a moment and try again.",

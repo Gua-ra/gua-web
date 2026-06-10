@@ -61,6 +61,14 @@
             "action": "Configurar",
             "dismiss": "Dispensar"
         },
+        "deactivate": {
+            "intro": "Desativar sua conta é permanente. Para confirmar que é você, enviaremos um código de verificação para seu telefone.",
+            "erase": "Também apagar todas as mensagens que enviei",
+            "send_code": "Enviar código de verificação",
+            "otp_label": "Código de verificação",
+            "confirm": "Desativar conta",
+            "cancel": "Cancelar"
+        },
         "errors": {
             "not_configured": "O login não está configurado. Entre em contato com o suporte.",
             "rate_limited": "Muitas tentativas. Aguarde um momento e tente novamente.",
