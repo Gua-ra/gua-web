@@ -40,6 +40,22 @@
             "skip": "Pular por enquanto",
             "continue": "Continuar"
         },
+        "two_step": {
+            "title": "Verificação em duas etapas",
+            "status_on": "A verificação em duas etapas está ativada. Seu PIN será solicitado ao entrar em um novo dispositivo.",
+            "status_off": "Adicione um PIN para mais segurança ao entrar em um novo dispositivo.",
+            "set_up": "Configurar verificação em duas etapas",
+            "change_pin": "Alterar PIN",
+            "cancel": "Cancelar",
+            "current_pin": "PIN atual",
+            "new_pin": "Novo PIN",
+            "phone_label": "Número de telefone",
+            "send_code": "Enviar código",
+            "otp_label": "Código de verificação",
+            "done": "Concluído",
+            "set_success": "Verificação em duas etapas ativada.",
+            "change_success": "Seu PIN foi alterado."
+        },
         "errors": {
             "not_configured": "O login não está configurado. Entre em contato com o suporte.",
             "rate_limited": "Muitas tentativas. Aguarde um momento e tente novamente.",

@@ -27,6 +27,8 @@ import { PosthogAnalytics } from "../../../../../PosthogAnalytics";
 import { showDialog as showAnalyticsLearnMoreDialog } from "../../../dialogs/AnalyticsLearnMoreDialog";
 import { privateShouldBeEncrypted } from "../../../../../utils/rooms";
 import SettingsTab from "../SettingsTab";
+import SdkConfig from "../../../../../SdkConfig";
+import GuaTwoStepVerificationSettings from "../../GuaTwoStepVerificationSettings";
 import { SettingsSection } from "../../shared/SettingsSection";
 import { SettingsSubsection, SettingsSubsectionText } from "../../shared/SettingsSubsection";
 import { useOwnDevices } from "../../devices/useOwnDevices";
@@ -361,6 +363,11 @@ export default class SecurityUserSettingsTab extends React.Component<IProps, ISt
                     {secureBackup}
                     {eventIndex}
                 </SettingsSection>
+                {SdkConfig.get("identity_service")?.base_url ? (
+                    <SettingsSection heading={_t("gua|two_step|title")}>
+                        <GuaTwoStepVerificationSettings />
+                    </SettingsSection>
+                ) : null}
                 <SettingsSection heading={_t("common|privacy")}>
                     <DiscoverySettings />
                     {posthogSection}

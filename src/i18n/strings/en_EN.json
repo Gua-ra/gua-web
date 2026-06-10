@@ -40,6 +40,22 @@
             "skip": "Skip for now",
             "continue": "Continue"
         },
+        "two_step": {
+            "title": "Two-step verification",
+            "status_on": "Two-step verification is on. You'll be asked for your PIN when signing in on a new device.",
+            "status_off": "Add a PIN for extra security when signing in on a new device.",
+            "set_up": "Set up two-step verification",
+            "change_pin": "Change PIN",
+            "cancel": "Cancel",
+            "current_pin": "Current PIN",
+            "new_pin": "New PIN",
+            "phone_label": "Phone number",
+            "send_code": "Send code",
+            "otp_label": "Verification code",
+            "done": "Done",
+            "set_success": "Two-step verification enabled.",
+            "change_success": "Your PIN has been changed."
+        },
         "errors": {
             "not_configured": "Sign-in is not configured. Please contact support.",
             "rate_limited": "Too many attempts. Please wait a moment and try again.",
