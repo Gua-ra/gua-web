@@ -56,6 +56,11 @@
             "set_success": "Two-step verification enabled.",
             "change_success": "Your PIN has been changed."
         },
+        "reminder": {
+            "text": "Add a PIN to protect your account with two-step verification.",
+            "action": "Set up",
+            "dismiss": "Dismiss"
+        },
         "errors": {
             "not_configured": "Sign-in is not configured. Please contact support.",
             "rate_limited": "Too many attempts. Please wait a moment and try again.",

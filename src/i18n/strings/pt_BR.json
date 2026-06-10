@@ -56,6 +56,11 @@
             "set_success": "Verificação em duas etapas ativada.",
             "change_success": "Seu PIN foi alterado."
         },
+        "reminder": {
+            "text": "Adicione um PIN para proteger sua conta com verificação em duas etapas.",
+            "action": "Configurar",
+            "dismiss": "Dispensar"
+        },
         "errors": {
             "not_configured": "O login não está configurado. Entre em contato com o suporte.",
             "rate_limited": "Muitas tentativas. Aguarde um momento e tente novamente.",
