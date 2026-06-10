@@ -1,4 +1,35 @@
 {
+    "gua": {
+        "phone": {
+            "title": "Digite seu número de telefone",
+            "subtitle": "Enviaremos um código de verificação por SMS.",
+            "number_label": "Número de telefone",
+            "invalid": "Digite um número de telefone válido."
+        },
+        "otp": {
+            "title": "Digite o código",
+            "subtitle": "Enviamos um código de 6 dígitos para %(phone)s.",
+            "code_label": "Código de verificação",
+            "verify": "Verificar",
+            "resend": "Reenviar código",
+            "resend_in": "Reenviar código em %(seconds)ss",
+            "change_phone": "Alterar número de telefone"
+        },
+        "errors": {
+            "not_configured": "O login não está configurado. Entre em contato com o suporte.",
+            "rate_limited": "Muitas tentativas. Aguarde um momento e tente novamente.",
+            "invalid_otp": "O código digitado é inválido ou expirou.",
+            "invalid_pin": "Esse PIN está incorreto. Tente novamente.",
+            "pin_locked": "PIN bloqueado por excesso de tentativas. Tente novamente mais tarde.",
+            "pin_change_cooldown": "Por segurança, você só pode alterar seu PIN uma vez por dia.",
+            "pin_challenge_expired": "Sua sessão de login expirou. Verifique seu telefone novamente.",
+            "invalid_signup_token": "Sua sessão de cadastro expirou. Verifique seu telefone novamente.",
+            "username_taken": "Esse nome de usuário já está em uso. Escolha outro.",
+            "phone_already_linked": "Este número de telefone já está vinculado a outra conta.",
+            "invalid_reauth_token": "Sua verificação expirou. Solicite um novo código.",
+            "generic": "Algo deu errado. Tente novamente."
+        }
+    },
     "a11y": {
         "emoji_picker": "Seletor de emojis",
         "jump_first_invite": "Ir para o primeiro convite.",

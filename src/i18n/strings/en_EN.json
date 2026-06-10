@@ -1,4 +1,35 @@
 {
+    "gua": {
+        "phone": {
+            "title": "Enter your phone number",
+            "subtitle": "We'll send you a verification code by SMS.",
+            "number_label": "Phone number",
+            "invalid": "Enter a valid phone number."
+        },
+        "otp": {
+            "title": "Enter the code",
+            "subtitle": "We sent a 6-digit code to %(phone)s.",
+            "code_label": "Verification code",
+            "verify": "Verify",
+            "resend": "Resend code",
+            "resend_in": "Resend code in %(seconds)ss",
+            "change_phone": "Change phone number"
+        },
+        "errors": {
+            "not_configured": "Sign-in is not configured. Please contact support.",
+            "rate_limited": "Too many attempts. Please wait a moment and try again.",
+            "invalid_otp": "The code you entered is invalid or has expired.",
+            "invalid_pin": "That PIN is incorrect. Please try again.",
+            "pin_locked": "PIN locked due to too many wrong attempts. Try again later.",
+            "pin_change_cooldown": "For security, you can only change your PIN once per day.",
+            "pin_challenge_expired": "Your sign-in session expired. Please verify your phone again.",
+            "invalid_signup_token": "Your signup session has expired. Please verify your phone again.",
+            "username_taken": "That username is already taken. Please pick another.",
+            "phone_already_linked": "This phone number is already linked to another account.",
+            "invalid_reauth_token": "Your verification expired. Please request a new code.",
+            "generic": "Something went wrong. Please try again."
+        }
+    },
     "a11y": {
         "emoji_picker": "Emoji picker",
         "jump_first_invite": "Jump to first invite.",
