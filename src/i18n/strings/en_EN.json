@@ -26,6 +26,20 @@
             "username_checking": "Checking…",
             "create_account": "Create account"
         },
+        "pin": {
+            "challenge_title": "Enter your PIN",
+            "challenge_subtitle": "Two-step verification is on for this account.",
+            "label": "PIN",
+            "verify": "Verify",
+            "forgot": "Forgot PIN?",
+            "setup_create_title": "Create a PIN",
+            "setup_create_subtitle": "Choose a 6-digit PIN for two-step verification.",
+            "setup_confirm_title": "Confirm your PIN",
+            "setup_confirm_subtitle": "Re-enter your PIN to confirm.",
+            "mismatch": "PINs didn't match. Please try again.",
+            "skip": "Skip for now",
+            "continue": "Continue"
+        },
         "errors": {
             "not_configured": "Sign-in is not configured. Please contact support.",
             "rate_limited": "Too many attempts. Please wait a moment and try again.",

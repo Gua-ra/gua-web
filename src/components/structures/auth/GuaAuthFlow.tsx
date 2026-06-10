@@ -20,6 +20,7 @@ import { ErrorMessage } from "../ErrorMessage";
 import GuaPhoneEntry from "./GuaPhoneEntry";
 import GuaOtpEntry from "./GuaOtpEntry";
 import GuaProfileSetup from "./GuaProfileSetup";
+import GuaPinChallenge from "./GuaPinChallenge";
 
 interface Props {
     onLoggedIn: (creds: IMatrixClientCreds) => void;
@@ -46,6 +47,7 @@ export default function GuaAuthFlow({ onLoggedIn }: Props): JSX.Element {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
     const [resendNonce, setResendNonce] = useState(0);
+    const [pinResetNonce, setPinResetNonce] = useState(0);
 
     const applyOutcome = (outcome: IdentityServiceVerifyOutcome, phone: string): void => {
         switch (outcome.kind) {
@@ -131,6 +133,21 @@ export default function GuaAuthFlow({ onLoggedIn }: Props): JSX.Element {
         }
     };
 
+    const handlePinVerify = async (pin: string): Promise<void> => {
+        if (!client || step.kind !== "pinRequired") return;
+        setBusy(true);
+        setError(undefined);
+        try {
+            const session = await client.verifyPinChallenge(step.challengeToken, pin, currentDeviceInfo());
+            setStep({ kind: "finishing" });
+            onLoggedIn(credsFromIdentitySession(session));
+        } catch (e) {
+            setError(translateIdentityError(e));
+            setBusy(false);
+            setPinResetNonce((n) => n + 1);
+        }
+    };
+
     let title: string;
     let body: React.ReactNode;
     if (!client) {
@@ -164,6 +181,18 @@ export default function GuaAuthFlow({ onLoggedIn }: Props): JSX.Element {
                         errorMessage={error}
                         checkUsername={(u) => client.checkUsernameAvailability(u)}
                         onSubmit={handleProfileSubmit}
+                    />
+                );
+                break;
+            case "pinRequired":
+                title = _t("gua|pin|challenge_title");
+                body = (
+                    <GuaPinChallenge
+                        busy={busy}
+                        errorMessage={error}
+                        resetNonce={pinResetNonce}
+                        onVerify={handlePinVerify}
+                        onCancel={handleChangePhone}
                     />
                 );
                 break;

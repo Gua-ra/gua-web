@@ -26,6 +26,20 @@
             "username_checking": "Verificando…",
             "create_account": "Criar conta"
         },
+        "pin": {
+            "challenge_title": "Digite seu PIN",
+            "challenge_subtitle": "A verificação em duas etapas está ativada nesta conta.",
+            "label": "PIN",
+            "verify": "Verificar",
+            "forgot": "Esqueceu o PIN?",
+            "setup_create_title": "Crie um PIN",
+            "setup_create_subtitle": "Escolha um PIN de 6 dígitos para a verificação em duas etapas.",
+            "setup_confirm_title": "Confirme seu PIN",
+            "setup_confirm_subtitle": "Digite seu PIN novamente para confirmar.",
+            "mismatch": "Os PINs não coincidem. Tente novamente.",
+            "skip": "Pular por enquanto",
+            "continue": "Continuar"
+        },
         "errors": {
             "not_configured": "O login não está configurado. Entre em contato com o suporte.",
             "rate_limited": "Muitas tentativas. Aguarde um momento e tente novamente.",
