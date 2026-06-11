@@ -51,6 +51,9 @@ export interface IConfigOptions {
     identity_service?: {
         base_url: string;
     };
+    gua_auth?: {
+        phone_oidc_login?: boolean;
+    };
 
     brand: string;
     branding?: {

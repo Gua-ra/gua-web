@@ -25,6 +25,8 @@ import { type ResetIdentityBodyVariant } from "../../encryption/ResetIdentityBod
 import { RecoveryPanelOutOfSync } from "../../encryption/RecoveryPanelOutOfSync";
 import { useTypedEventEmitter } from "../../../../../hooks/useEventEmitter";
 import { KeyStoragePanel } from "../../encryption/KeyStoragePanel";
+import SettingsStore from "../../../../../settings/SettingsStore";
+import { UIFeature } from "../../../../../settings/UIFeature";
 import { DeleteKeyStoragePanel } from "../../encryption/DeleteKeyStoragePanel";
 
 /**
@@ -107,7 +109,14 @@ export function EncryptionUserSettingsTab({ initialState = "loading" }: Props): 
                             <Separator kind="section" />
                         </>
                     )}
-                    <AdvancedPanel onResetIdentityClick={() => setState("reset_identity_compromised")} />
+                    {/* GUA FORK: The advanced encryption panel (session ID/key, export/import
+                        keys, reset cryptographic identity, and the "only send to verified users"
+                        toggle) exposes cryptographic footguns that can confuse or harm
+                        non-technical users. Hidden unless UIFeature.advancedEncryption is enabled.
+                        E2EE itself stays fully on with safe defaults (key storage + recovery). */}
+                    {SettingsStore.getValue(UIFeature.AdvancedEncryption) && (
+                        <AdvancedPanel onResetIdentityClick={() => setState("reset_identity_compromised")} />
+                    )}
                 </>
             );
             break;

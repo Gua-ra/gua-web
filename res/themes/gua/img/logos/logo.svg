@@ -1,0 +1,8 @@
+<svg width="148" height="40" viewBox="0 0 148 40" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
+  <title id="title">Gua</title>
+  <rect width="148" height="40" rx="20" fill="#101828"/>
+  <circle cx="24" cy="20" r="12" fill="#7C3AED"/>
+  <path d="M18 20c0-4.418 3.582-8 8-8h3v16h-3c-4.418 0-8-3.582-8-8Z" fill="#F8FAFC" fill-opacity="0.92"/>
+  <path d="M29 12c4.418 0 8 3.582 8 8s-3.582 8-8 8V12Z" fill="#22C55E"/>
+  <text x="50" y="26" fill="#F8FAFC" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="-0.04em">Gua</text>
+</svg>

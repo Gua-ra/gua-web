@@ -9,6 +9,10 @@ import React, { type JSX, useMemo, useState } from "react";
 
 import { _t, getUserLanguage } from "../../../languageHandler";
 import { type IMatrixClientCreds } from "../../../MatrixClientPeg";
+import SdkConfig from "../../../SdkConfig";
+import { type ValidatedServerConfig } from "../../../utils/ValidatedServerConfig";
+import { getOidcClientId } from "../../../utils/oidc/registerClient";
+import { startGuaPhoneOidcLogin } from "../../../gua/oidc/startPhoneOidcLogin";
 import AuthPage from "../../views/auth/AuthPage";
 import AuthBody from "../../views/auth/AuthBody";
 import AuthHeader from "../../views/auth/AuthHeader";
@@ -24,6 +28,7 @@ import GuaPinChallenge from "./GuaPinChallenge";
 
 interface Props {
     onLoggedIn: (creds: IMatrixClientCreds) => void;
+    serverConfig: ValidatedServerConfig;
 }
 
 type Step =
@@ -41,8 +46,9 @@ type Step =
  * The `newUser` (profile setup) and `pinRequired` (two-step sign-in) branches are wired in by
  * subsequent steps of the flow.
  */
-export default function GuaAuthFlow({ onLoggedIn }: Props): JSX.Element {
+export default function GuaAuthFlow({ onLoggedIn, serverConfig }: Props): JSX.Element {
     const client = useMemo(() => IdentityServiceClient.fromConfig(), []);
+    const hasDelegatedOidc = !!serverConfig.delegatedAuthentication;
     const [step, setStep] = useState<Step>({ kind: "phone" });
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
@@ -67,10 +73,25 @@ export default function GuaAuthFlow({ onLoggedIn }: Props): JSX.Element {
     };
 
     const handlePhoneSubmit = async (e164: string): Promise<void> => {
-        if (!client) return;
         setBusy(true);
         setError(undefined);
         try {
+            if (serverConfig.delegatedAuthentication) {
+                const clientId = await getOidcClientId(
+                    serverConfig.delegatedAuthentication,
+                    SdkConfig.get().oidc_static_clients,
+                );
+                await startGuaPhoneOidcLogin(
+                    serverConfig.delegatedAuthentication,
+                    clientId,
+                    serverConfig.hsUrl,
+                    serverConfig.isUrl,
+                    e164,
+                );
+                return;
+            }
+
+            if (!client) return;
             await client.sendOTP(e164, getUserLanguage());
             setStep({ kind: "otp", phone: e164 });
         } catch (e) {
@@ -150,7 +171,7 @@ export default function GuaAuthFlow({ onLoggedIn }: Props): JSX.Element {
 
     let title: string;
     let body: React.ReactNode;
-    if (!client) {
+    if (!client && !hasDelegatedOidc) {
         title = _t("action|sign_in");
         body = <ErrorMessage message={_t("gua|errors|not_configured")} />;
     } else {
@@ -175,6 +196,10 @@ export default function GuaAuthFlow({ onLoggedIn }: Props): JSX.Element {
                 break;
             case "newUser":
                 title = _t("gua|profile|title");
+                if (!client) {
+                    body = <ErrorMessage message={_t("gua|errors|not_configured")} />;
+                    break;
+                }
                 body = (
                     <GuaProfileSetup
                         busy={busy}

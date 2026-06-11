@@ -2138,10 +2138,10 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             view = <Welcome />;
         } else if (
             (this.state.view === Views.REGISTER || this.state.view === Views.LOGIN) &&
-            SdkConfig.get("identity_service")?.base_url
+            (SdkConfig.get("gua_auth")?.phone_oidc_login || SdkConfig.get("identity_service")?.base_url)
         ) {
             // Gua uses a single phone/OTP onboarding flow for both sign-in and registration.
-            view = <GuaAuthFlow onLoggedIn={this.onUserCompletedLoginFlow} />;
+            view = <GuaAuthFlow onLoggedIn={this.onUserCompletedLoginFlow} {...this.getServerProperties()} />;
         } else if (this.state.view === Views.REGISTER && SettingsStore.getValue(UIFeature.Registration)) {
             const email = ThreepidInviteStore.instance.pickBestInvite()?.toEmail;
             view = (
