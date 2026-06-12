@@ -2939,7 +2939,7 @@
             "time_heading": "Exibindo tempo",
             "user_timezone": "Definir fuso horário"
         },
-        "prompt_invite": "Avisar antes de enviar convites para IDs da Matrix potencialmente inválidas",
+        "prompt_invite": "Avisar antes de enviar convites para nomes de usuário potencialmente inválidos",
         "replace_plain_emoji": "Substituir automaticamente os emojis em texto",
         "security": {
             "analytics_description": "Compartilhe dados anônimos para nos ajudar a identificar problemas. Nada pessoal. Sem terceiros.",

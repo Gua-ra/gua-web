@@ -97,6 +97,10 @@ function titleForTabID(tabId: UserTab): React.ReactNode {
 
 export default function UserSettingsDialog(props: IProps): JSX.Element {
     const voipEnabled = useSettingValue(UIFeature.Voip);
+    // GUA FORK: When advanced encryption is disabled, hide the whole Encryption
+    // ("Criptografia") tab. E2EE stays on with safe defaults (key storage +
+    // recovery managed automatically); only the advanced controls are hidden.
+    const advancedEncryptionEnabled = useSettingValue(UIFeature.AdvancedEncryption);
     const mjolnirEnabled = useSettingValue("feature_mjolnir");
     // store these props in state as changing tabs back and forth should clear them
     const [showMsc4108QrCode, setShowMsc4108QrCode] = useState(props.showMsc4108QrCode);
@@ -211,16 +215,18 @@ export default function UserSettingsDialog(props: IProps): JSX.Element {
             ),
         );
 
-        tabs.push(
-            new Tab(
-                UserTab.Encryption,
-                _td("settings|encryption|title"),
-                <KeyIcon />,
-                <EncryptionUserSettingsTab initialState={initialEncryptionState} />,
-                "UserSettingsEncryption",
-                showSetupRecoveryIndicator ? "mx_SettingsDialog_tabLabelsAlert" : undefined,
-            ),
-        );
+        if (advancedEncryptionEnabled) {
+            tabs.push(
+                new Tab(
+                    UserTab.Encryption,
+                    _td("settings|encryption|title"),
+                    <KeyIcon />,
+                    <EncryptionUserSettingsTab initialState={initialEncryptionState} />,
+                    "UserSettingsEncryption",
+                    showSetupRecoveryIndicator ? "mx_SettingsDialog_tabLabelsAlert" : undefined,
+                ),
+            );
+        }
 
         if (showLabsFlags() || SettingsStore.getFeatureSettingNames().some((k) => SettingsStore.getBetaInfo(k))) {
             tabs.push(

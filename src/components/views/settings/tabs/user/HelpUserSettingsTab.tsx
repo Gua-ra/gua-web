@@ -274,18 +274,23 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
                     {this.renderLegal()}
                     {this.renderCredits()}
                     <SettingsSubsection heading={_t("common|advanced")}>
-                        <SettingsSubsectionText>
-                            {_t(
-                                "setting|help_about|homeserver",
-                                {
-                                    homeserverUrl: this.context.getHomeserverUrl(),
-                                },
-                                {
-                                    code: (sub) => <code>{sub}</code>,
-                                },
-                            )}
-                        </SettingsSubsectionText>
-                        {this.context.getIdentityServerUrl() && (
+                        {/* GUA FORK: Hide the homeserver / identity-server URLs from
+                            non-technical users (off-brand and confusing). Shown only when
+                            advanced settings are explicitly enabled. */}
+                        {SettingsStore.getValue(UIFeature.AdvancedSettings) && (
+                            <SettingsSubsectionText>
+                                {_t(
+                                    "setting|help_about|homeserver",
+                                    {
+                                        homeserverUrl: this.context.getHomeserverUrl(),
+                                    },
+                                    {
+                                        code: (sub) => <code>{sub}</code>,
+                                    },
+                                )}
+                            </SettingsSubsectionText>
+                        )}
+                        {SettingsStore.getValue(UIFeature.AdvancedSettings) && this.context.getIdentityServerUrl() && (
                             <SettingsSubsectionText>
                                 {_t(
                                     "setting|help_about|identity_server",

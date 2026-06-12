@@ -2969,7 +2969,7 @@
             "time_heading": "Displaying time",
             "user_timezone": "Set timezone"
         },
-        "prompt_invite": "Prompt before sending invites to potentially invalid matrix IDs",
+        "prompt_invite": "Prompt before sending invites to potentially invalid usernames",
         "replace_plain_emoji": "Automatically replace plain text Emoji",
         "security": {
             "analytics_description": "Share anonymous data to help us identify issues. Nothing personal. No third parties.",

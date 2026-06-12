@@ -2747,7 +2747,7 @@
             "time_heading": "Mostra a hora",
             "user_timezone": "Define o fuso horário"
         },
-        "prompt_invite": "Avisa antes de enviar convites para IDs de matrix potencialmente inválidos",
+        "prompt_invite": "Avisa antes de enviar convites para nomes de usuário potencialmente inválidos",
         "replace_plain_emoji": "Substituir Emoji de texto automaticamente",
         "security": {
             "analytics_description": "Partilha dados anónimos para nos ajudar a identificar problemas. Nada de pessoal. Sem terceiros.",
