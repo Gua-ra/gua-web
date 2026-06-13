@@ -1,4 +1,89 @@
 {
+    "gua": {
+        "phone": {
+            "title": "Enter your phone number",
+            "subtitle": "We'll send you a verification code by SMS.",
+            "number_label": "Phone number",
+            "invalid": "Enter a valid phone number."
+        },
+        "otp": {
+            "title": "Enter the code",
+            "subtitle": "We sent a 6-digit code to %(phone)s.",
+            "code_label": "Verification code",
+            "verify": "Verify",
+            "resend": "Resend code",
+            "resend_in": "Resend code in %(seconds)ss",
+            "change_phone": "Change phone number"
+        },
+        "profile": {
+            "title": "Create your profile",
+            "subtitle": "Pick a username and a display name.",
+            "username_label": "Username",
+            "display_name_label": "Display name",
+            "username_available": "Username available",
+            "username_taken": "That username is taken",
+            "username_invalid": "Use 3–30 letters, numbers, dots, dashes or underscores",
+            "username_checking": "Checking…",
+            "create_account": "Create account"
+        },
+        "pin": {
+            "challenge_title": "Enter your PIN",
+            "challenge_subtitle": "Two-step verification is on for this account.",
+            "label": "PIN",
+            "verify": "Verify",
+            "forgot": "Forgot PIN?",
+            "setup_create_title": "Create a PIN",
+            "setup_create_subtitle": "Choose a 6-digit PIN for two-step verification.",
+            "setup_confirm_title": "Confirm your PIN",
+            "setup_confirm_subtitle": "Re-enter your PIN to confirm.",
+            "mismatch": "PINs didn't match. Please try again.",
+            "skip": "Skip for now",
+            "continue": "Continue"
+        },
+        "two_step": {
+            "title": "Two-step verification",
+            "status_on": "Two-step verification is on. You'll be asked for your PIN when signing in on a new device.",
+            "status_off": "Add a PIN for extra security when signing in on a new device.",
+            "set_up": "Set up two-step verification",
+            "change_pin": "Change PIN",
+            "cancel": "Cancel",
+            "current_pin": "Current PIN",
+            "new_pin": "New PIN",
+            "phone_label": "Phone number",
+            "send_code": "Send code",
+            "otp_label": "Verification code",
+            "done": "Done",
+            "set_success": "Two-step verification enabled.",
+            "change_success": "Your PIN has been changed."
+        },
+        "reminder": {
+            "text": "Add a PIN to protect your account with two-step verification.",
+            "action": "Set up",
+            "dismiss": "Dismiss"
+        },
+        "deactivate": {
+            "intro": "Deactivating your account is permanent. To confirm it's you, we'll send a verification code to your phone.",
+            "erase": "Also erase all messages I have sent",
+            "send_code": "Send verification code",
+            "otp_label": "Verification code",
+            "confirm": "Deactivate account",
+            "cancel": "Cancel"
+        },
+        "errors": {
+            "not_configured": "Sign-in is not configured. Please contact support.",
+            "rate_limited": "Too many attempts. Please wait a moment and try again.",
+            "invalid_otp": "The code you entered is invalid or has expired.",
+            "invalid_pin": "That PIN is incorrect. Please try again.",
+            "pin_locked": "PIN locked due to too many wrong attempts. Try again later.",
+            "pin_change_cooldown": "For security, you can only change your PIN once per day.",
+            "pin_challenge_expired": "Your sign-in session expired. Please verify your phone again.",
+            "invalid_signup_token": "Your signup session has expired. Please verify your phone again.",
+            "username_taken": "That username is already taken. Please pick another.",
+            "phone_already_linked": "This phone number is already linked to another account.",
+            "invalid_reauth_token": "Your verification expired. Please request a new code.",
+            "generic": "Something went wrong. Please try again."
+        }
+    },
     "a11y": {
         "emoji_picker": "Emoji picker",
         "jump_first_invite": "Jump to first invite.",
@@ -1777,7 +1862,7 @@
         "restricted": "Restricted"
     },
     "powered_by_matrix": "Powered by Matrix",
-    "powered_by_matrix_with_logo": "Decentralised, encrypted chat &amp; collaboration powered by $matrixLogo",
+    "powered_by_matrix_with_logo": "Free, secure messaging for everyone.",
     "presence": {
         "away": "Away",
         "busy": "Busy",
@@ -2884,7 +2969,7 @@
             "time_heading": "Displaying time",
             "user_timezone": "Set timezone"
         },
-        "prompt_invite": "Prompt before sending invites to potentially invalid matrix IDs",
+        "prompt_invite": "Prompt before sending invites to potentially invalid usernames",
         "replace_plain_emoji": "Automatically replace plain text Emoji",
         "security": {
             "analytics_description": "Share anonymous data to help us identify issues. Nothing personal. No third parties.",
@@ -2913,6 +2998,7 @@
             "message_search_indexing_idle": "Not currently indexing messages for any room.",
             "message_search_intro": "%(brand)s is securely caching encrypted messages locally for them to appear in search results:",
             "message_search_room_progress": "%(doneRooms)s out of %(totalRooms)s",
+            "gua_encryption_description": "Messages on Gua are protected with end-to-end encryption. They are locked on your device before being sent and can only be unlocked by the people in the conversation.",
             "message_search_section": "Message search",
             "message_search_sleep_time": "How fast should messages be downloaded.",
             "message_search_space_used": "Space used:",
@@ -4059,7 +4145,7 @@
         "you_are_presenting": "You are presenting"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s on %(osName)s",
-    "welcome_to_element": "Welcome to Element",
+    "welcome_to_element": "Welcome to Gua",
     "widget": {
         "added_by": "Widget added by",
         "capabilities_dialog": {

@@ -1777,7 +1777,7 @@
         "restricted": "Piiratud õigustega kasutaja"
     },
     "powered_by_matrix": "Põhineb Matrix'il",
-    "powered_by_matrix_with_logo": "Hajutatud ja krüpteeritud suhtlus- ning ühistöörakendus, mille aluseks on $matrixLogo",
+    "powered_by_matrix_with_logo": "Vaba, tasuta ja turvaline sõnumivahetus kõigile.",
     "presence": {
         "away": "Eemal",
         "busy": "Hõivatud",
@@ -2913,6 +2913,7 @@
             "message_search_indexing_idle": "Mitte ainsamagi jututoa sõnumeid hetkel ei indekseerita.",
             "message_search_intro": "Otsingus kasutamiseks %(brand)s puhverdab turvaliselt kohalikku arvutisse krüptitud sõnumeid:",
             "message_search_room_progress": "%(doneRooms)s / %(totalRooms)s",
+            "gua_encryption_description": "Gua sõnumid on kaitstud läbiva krüptimisega. Need lukustatakse sinu seadmes enne saatmist ja neid saavad avada ainult vestluses osalevad inimesed.",
             "message_search_section": "Otsing sõnumite seast",
             "message_search_sleep_time": "Kui kiiresti peaksime sõnumeid alla laadima.",
             "message_search_space_used": "Kasutatud andmeruum:",
@@ -4059,7 +4060,7 @@
         "you_are_presenting": "Sina esitad"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s operatsioonisüsteemis %(osName)s",
-    "welcome_to_element": "Tere tulemast kasutama suhtlusrakendust Element",
+    "welcome_to_element": "Tere tulemast kasutama Gua",
     "widget": {
         "added_by": "Vidina lisaja",
         "capabilities_dialog": {

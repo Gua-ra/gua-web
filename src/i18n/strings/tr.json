@@ -1710,7 +1710,7 @@
         "restricted": "Sınırlı"
     },
     "powered_by_matrix": "Matrix tarafından desteklenmektedir",
-    "powered_by_matrix_with_logo": "Merkezi olmayan, şifreli sohbet ve işbirliği $matrixLogo tarafından desteklenmektedir.",
+    "powered_by_matrix_with_logo": "Herkes için özgür, ücretsiz ve güvenli mesajlaşma.",
     "presence": {
         "away": "Uzakta",
         "busy": "Meşgul",
@@ -2746,6 +2746,7 @@
             "message_search_indexing_idle": "Şu an hiç bir odada mesaj indeksleme yapılmıyor.",
             "message_search_intro": "%(brand)s, şifreli mesajları arama sonuçlarında görünebilmesi için yerel olarak güvenli bir şekilde önbelleğe alıyor.",
             "message_search_room_progress": "%(totalRooms)s odadan %(doneRooms)s tamamlandı",
+            "gua_encryption_description": "Gua'daki mesajlar uçtan uca şifreleme ile korunur. Gönderilmeden önce cihazınızda kilitlenir ve yalnızca konuşmadaki kişiler tarafından açılabilir.",
             "message_search_section": "Mesaj arama",
             "message_search_sleep_time": "Mesajlar ne kadar hızlı indirilmeli.",
             "message_search_space_used": "Kullanılan alan:",
@@ -3880,7 +3881,7 @@
         "you_are_presenting": "Sunum yapıyorsunuz"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s %(osName)s",
-    "welcome_to_element": "Element'e Hoş Geldiniz",
+    "welcome_to_element": "Gua'ya Hoş Geldiniz",
     "widget": {
         "added_by": "Widget ekleyen",
         "capabilities_dialog": {

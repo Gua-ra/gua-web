@@ -935,7 +935,7 @@
         "restricted": "Apribotas"
     },
     "powered_by_matrix": "Veikia su Matrix",
-    "powered_by_matrix_with_logo": "Decentralizuotas, užšifruotų pokalbių &amp; bendradarbiavimas, paremtas $matrixLogo",
+    "powered_by_matrix_with_logo": "Laisvi, nemokami ir saugūs pranešimai visiems.",
     "presence": {
         "busy": "Užsiėmęs",
         "idle": "Neveiklus",
@@ -1569,6 +1569,7 @@
                 "other": "Saugiai talpinkite užšifruotas žinutes vietoje, kad jos būtų rodomos paieškos rezultatuose, naudojant %(size)s žinutėms iš %(rooms)s kambarių saugoti."
             },
             "message_search_failed": "Nepavyko inicializuoti žinučių paieškos",
+            "gua_encryption_description": "Žinutės Gua yra apsaugotos galiniu šifravimu. Prieš išsiunčiant jos užrakinamos jūsų įrenginyje ir jas atrakinti gali tik pokalbio dalyviai.",
             "message_search_section": "Žinučių paieška",
             "message_search_sleep_time": "Kaip greitai žinutės turi būti parsiųstos.",
             "message_search_unsupported": "%(brand)s trūksta kai kurių komponentų, reikalingų saugiai talpinti šifruotas žinutes lokaliai. Jei norite eksperimentuoti su šia funkcija, sukurkite pasirinktinį %(brand)s Desktop (darbastalio versiją), su <nativeLink>pridėtais paieškos komponentais</nativeLink>.",
@@ -2315,7 +2316,7 @@
         "voice_call": "Balso skambutis",
         "you_are_presenting": "Jūs pristatote"
     },
-    "welcome_to_element": "Sveiki atvykę į Element",
+    "welcome_to_element": "Sveiki atvykę į Gua",
     "widget": {
         "added_by": "Valdiklį pridėjo",
         "capabilities_dialog": {

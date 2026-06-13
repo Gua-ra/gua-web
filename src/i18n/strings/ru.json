@@ -1768,7 +1768,7 @@
         "restricted": "Ограниченный пользователь"
     },
     "powered_by_matrix": "На технологии Matrix",
-    "powered_by_matrix_with_logo": "Децентрализованное, зашифрованное общение и сотрудничество на основе $matrixLogo",
+    "powered_by_matrix_with_logo": "Свободный, бесплатный и безопасный обмен сообщениями для всех.",
     "presence": {
         "away": "Отошёл(ла)",
         "busy": "Занят(а)",
@@ -2865,6 +2865,7 @@
             "message_search_indexing_idle": "В настоящее время не индексируются сообщения ни для одной комнаты.",
             "message_search_intro": "%(brand)s надежно кэширует зашифрованные сообщения локально, чтобы они появлялись в результатах поиска:",
             "message_search_room_progress": "%(doneRooms)s из %(totalRooms)s",
+            "gua_encryption_description": "Сообщения в Gua защищены сквозным шифрованием. Они блокируются на вашем устройстве перед отправкой, и открыть их могут только участники разговора.",
             "message_search_section": "Поиск по сообщениям",
             "message_search_sleep_time": "Как быстро сообщения должны быть загружены.",
             "message_search_space_used": "Занято места:",
@@ -4017,7 +4018,7 @@
         "you_are_presenting": "Вы представляете"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s на %(osName)s",
-    "welcome_to_element": "Добро пожаловать в Element",
+    "welcome_to_element": "Добро пожаловать в Gua",
     "widget": {
         "added_by": "Виджет добавлен",
         "capabilities_dialog": {

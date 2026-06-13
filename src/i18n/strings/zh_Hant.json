@@ -1532,7 +1532,7 @@
         "restricted": "已限制"
     },
     "powered_by_matrix": "由Matrix支持",
-    "powered_by_matrix_with_logo": "由 $matrixLogo 驅動的去中心化、加密的聊天與協作工具",
+    "powered_by_matrix_with_logo": "面向所有人的自由、免費且安全的訊息服務。",
     "presence": {
         "away": "離開",
         "busy": "忙碌",
@@ -2387,6 +2387,7 @@
             "message_search_indexing_idle": "目前未為任何聊天室編寫索引。",
             "message_search_intro": "%(brand)s 正在安全地快取本機已加密的訊息以讓它們顯示在搜尋結果中：",
             "message_search_room_progress": "%(totalRooms)s 中的 %(doneRooms)s",
+            "gua_encryption_description": "Gua 上的訊息受端對端加密保護。它們會在傳送前於你的裝置上鎖定，只有對話中的成員才能解鎖。",
             "message_search_section": "訊息搜尋",
             "message_search_sleep_time": "訊息應多久下載一次。",
             "message_search_space_used": "已使用空間：",
@@ -3449,7 +3450,7 @@
         "you_are_presenting": "您正在投影"
     },
     "web_default_device_name": "%(appName)s：%(osName)s 的 %(browserName)s",
-    "welcome_to_element": "歡迎使用 Element",
+    "welcome_to_element": "歡迎使用 Gua",
     "widget": {
         "added_by": "小工具新增者為",
         "capabilities_dialog": {

@@ -1474,7 +1474,7 @@
         "restricted": "E kufizuar"
     },
     "powered_by_matrix": "Bazuar në Matrix",
-    "powered_by_matrix_with_logo": "Fjalosje &amp; bashkëpunim i decentralizuar, i fshehtëzuar, bazuar në $matrixLogo",
+    "powered_by_matrix_with_logo": "Mesazhe të lira, falas dhe të sigurta për të gjithë.",
     "presence": {
         "away": "I larguar",
         "busy": "I zënë",
@@ -2280,6 +2280,7 @@
             "message_search_indexing_idle": "Pa indeksuar aktualisht mesazhe nga ndonjë dhomë.",
             "message_search_intro": "%(brand)s-i po ruan lokalisht në mënyrë të sigurt në fshehtinë mesazhet që të shfaqen në përfundime kërkimi:",
             "message_search_room_progress": "%(doneRooms)s nga %(totalRooms)s",
+            "gua_encryption_description": "Mesazhet në Gua mbrohen me fshehtëzim skaj-më-skaj. Ato kyçen në pajisjen tuaj përpara dërgimit dhe mund të hapen vetëm nga njerëzit në bisedë.",
             "message_search_section": "Kërkim mesazhesh",
             "message_search_sleep_time": "Sa shpejt duhen shkarkuar mesazhet.",
             "message_search_space_used": "Hapësirë e përdorur:",
@@ -3311,7 +3312,7 @@
         "you_are_presenting": "Përfaqësoni"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s në %(osName)s",
-    "welcome_to_element": "Mirë se vini te Element",
+    "welcome_to_element": "Mirë se vini te Gua",
     "widget": {
         "added_by": "Widget i shtuar nga",
         "capabilities_dialog": {

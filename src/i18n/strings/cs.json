@@ -1779,7 +1779,7 @@
         "restricted": "Omezené"
     },
     "powered_by_matrix": "Běží na Matrixu",
-    "powered_by_matrix_with_logo": "Decentralizovaný, šifrovaný chat a spolupráce na platformě $matrixLogo",
+    "powered_by_matrix_with_logo": "Svobodné, bezplatné a bezpečné zprávy pro všechny.",
     "presence": {
         "away": "Pryč",
         "busy": "Zaneprázdněný",
@@ -2894,6 +2894,7 @@
             "message_search_indexing_idle": "Aktuálně neindexujeme žádné zprávy.",
             "message_search_intro": "%(brand)s si bezpečně uchovává šifrované zprávy lokálně, aby v nich mohl vyhledávat:",
             "message_search_room_progress": "%(doneRooms)s z %(totalRooms)s",
+            "gua_encryption_description": "Zprávy v aplikaci Gua jsou chráněné koncovým šifrováním. Zamknou se ve vašem zařízení ještě před odesláním a odemknout je mohou jen lidé v dané konverzaci.",
             "message_search_section": "Vyhledávání ve zprávách",
             "message_search_sleep_time": "Jak rychle se mají zprávy stahovat.",
             "message_search_space_used": "Použité místo:",
@@ -4041,7 +4042,7 @@
         "you_are_presenting": "Prezentujete"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s na %(osName)s",
-    "welcome_to_element": "Vítá vás Element",
+    "welcome_to_element": "Vítá vás Gua",
     "widget": {
         "added_by": "Widget přidal",
         "capabilities_dialog": {

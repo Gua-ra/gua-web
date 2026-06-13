@@ -1772,7 +1772,7 @@
         "restricted": "Dibatasi"
     },
     "powered_by_matrix": "Diberdayakan oleh Matrix",
-    "powered_by_matrix_with_logo": "Obrolan &amp; kolaborasi terdesentralisasi dan terenkripsi diberdayakan oleh $matrixLogo",
+    "powered_by_matrix_with_logo": "Perpesanan bebas, gratis, dan aman untuk semua orang.",
     "presence": {
         "away": "Idle",
         "busy": "Sibuk",
@@ -2880,6 +2880,7 @@
             "message_search_indexing_idle": "Tidak mengindeks pesan saat ini untuk ruangan apa saja.",
             "message_search_intro": "%(brand)s mengcache pesan terenkripsi secara lokal supaya dapat muncul di hasil pencarian dengan aman:",
             "message_search_room_progress": "%(doneRooms)s dari %(totalRooms)s",
+            "gua_encryption_description": "Pesan di Gua dilindungi dengan enkripsi ujung ke ujung. Pesan dikunci di perangkat Anda sebelum dikirim dan hanya dapat dibuka oleh orang-orang dalam percakapan.",
             "message_search_section": "Pencarian pesan",
             "message_search_sleep_time": "Seberapa cepat pesan akan diunduh.",
             "message_search_space_used": "Ruangan terpakai:",
@@ -4026,7 +4027,7 @@
         "you_are_presenting": "Anda sedang mempresentasi"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s di %(osName)s",
-    "welcome_to_element": "Selamat datang di Element",
+    "welcome_to_element": "Selamat datang di Gua",
     "widget": {
         "added_by": "Widget ditambahkan oleh",
         "capabilities_dialog": {

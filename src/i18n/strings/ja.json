@@ -1459,7 +1459,7 @@
         "moderator": "モデレーター",
         "restricted": "制限"
     },
-    "powered_by_matrix_with_logo": "$matrixLogo による、分散型で暗号化された会話とコラボレーション",
+    "powered_by_matrix_with_logo": "すべての人に、自由で無料かつ安全なメッセージングを。",
     "presence": {
         "away": "離席中",
         "busy": "取り込み中",
@@ -2214,6 +2214,7 @@
             "message_search_indexing_idle": "現在、どのルームのメッセージのインデックスも作成していません。",
             "message_search_intro": "%(brand)sは検索結果の表示用に、暗号化されたメッセージをローカルに安全にキャッシュしています。",
             "message_search_room_progress": "計%(totalRooms)s個のルームの内%(doneRooms)s個",
+            "gua_encryption_description": "Guaのメッセージはエンドツーエンド暗号化で保護されます。送信前にあなたの端末上でロックされ、会話に参加している人だけが解除できます。",
             "message_search_section": "メッセージの検索",
             "message_search_sleep_time": "メッセージをダウンロードする速度。",
             "message_search_space_used": "使用中のストレージ容量：",
@@ -3246,7 +3247,7 @@
         "you_are_presenting": "あなたが画面を共有しています"
     },
     "web_default_device_name": "%(appName)s： %(osName)sの%(browserName)s",
-    "welcome_to_element": "Elementにようこそ",
+    "welcome_to_element": "Guaへようこそ",
     "widget": {
         "added_by": "ウィジェットの追加者",
         "capabilities_dialog": {

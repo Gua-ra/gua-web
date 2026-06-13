@@ -1433,7 +1433,7 @@
         "restricted": "受限"
     },
     "powered_by_matrix": "由 Matrix 驱动",
-    "powered_by_matrix_with_logo": "去中心化、加密的聊天与协作，由 $matrixLogo 驱动",
+    "powered_by_matrix_with_logo": "面向所有人的自由、免费且安全的消息服务。",
     "presence": {
         "away": "离开",
         "busy": "忙",
@@ -2186,6 +2186,7 @@
             "message_search_indexing_idle": "现在没有为任何房间索引消息。",
             "message_search_intro": "%(brand)s 正在安全地在本地缓存加密消息以使其出现在搜索结果中：",
             "message_search_room_progress": "%(totalRooms)s 中之 %(doneRooms)s",
+            "gua_encryption_description": "Gua 上的消息受端到端加密保护。它们会在发送前在你的设备上锁定，只有对话中的人员才能解锁。",
             "message_search_section": "消息搜索",
             "message_search_sleep_time": "消息下载速度。",
             "message_search_space_used": "已使用空间：",
@@ -3170,7 +3171,7 @@
         "you_are_presenting": "你正在展示"
     },
     "web_default_device_name": "%(appName)s：%(browserName)s在%(osName)s",
-    "welcome_to_element": "欢迎来到 Element",
+    "welcome_to_element": "欢迎来到 Gua",
     "widget": {
         "added_by": "挂件添加者",
         "capabilities_dialog": {

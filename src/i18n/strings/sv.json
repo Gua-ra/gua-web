@@ -1776,7 +1776,7 @@
         "restricted": "Begränsad"
     },
     "powered_by_matrix": "Drivs av Matrix",
-    "powered_by_matrix_with_logo": "Decentraliserad krypterad chatt &amp; samarbete som drivs av $matrixLogo",
+    "powered_by_matrix_with_logo": "Fri, kostnadsfri och säker meddelandehantering för alla.",
     "presence": {
         "away": "Borta",
         "busy": "Upptagen",
@@ -2887,6 +2887,7 @@
             "message_search_indexing_idle": "Indexerar för närvarande inte meddelanden för något rum.",
             "message_search_intro": "%(brand)s cachar säkert krypterade meddelanden lokalt för att de ska visas i sökresultat:",
             "message_search_room_progress": "%(doneRooms)s av %(totalRooms)s",
+            "gua_encryption_description": "Meddelanden i Gua skyddas med end-to-end-kryptering. De låses på din enhet innan de skickas och kan bara låsas upp av personerna i konversationen.",
             "message_search_section": "Meddelandesök",
             "message_search_sleep_time": "Hur snabbt ska meddelanden laddas ner.",
             "message_search_space_used": "Använt utrymme:",
@@ -4033,7 +4034,7 @@
         "you_are_presenting": "Du presenterar"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s på %(osName)s",
-    "welcome_to_element": "Välkommen till Element",
+    "welcome_to_element": "Välkommen till Gua",
     "widget": {
         "added_by": "Widget tillagd av",
         "capabilities_dialog": {

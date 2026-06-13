@@ -19,7 +19,6 @@ import PosthogTrackers from "../../../PosthogTrackers";
 import { formatBytes } from "../../../utils/FormattingUtils";
 import { useToastContext } from "../../../contexts/ToastContext";
 import InlineSpinner from "../elements/InlineSpinner";
-import UserIdentifierCustomisations from "../../../customisations/UserIdentifier";
 import CopyableText from "../elements/CopyableText";
 import { useMatrixClientContext } from "../../../contexts/MatrixClientContext";
 import AccessibleButton from "../elements/AccessibleButton";
@@ -182,13 +181,13 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({
         }
     }, [displayName, client]);
 
-    const userIdentifier = useMemo(
-        () =>
-            UserIdentifierCustomisations.getDisplayUserIdentifier(client.getSafeUserId(), {
-                withDisplayName: true,
-            }),
-        [client],
-    );
+    const userIdentifier = useMemo(() => {
+        // GUA FORK: Show only the localpart (e.g. "alice") instead of the full
+        // Matrix ID ("@alice:dev.local"). The homeserver suffix is noise for our
+        // users and clashes with Gua's frictionless design. Display-only.
+        const mxid = client.getSafeUserId();
+        return mxid.replace(/^@/, "").split(":")[0];
+    }, [client]);
 
     const someFieldsDisabled = !canSetDisplayName || !canSetAvatar;
 

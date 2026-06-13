@@ -16,6 +16,8 @@ import UserProfileSettings from "../../UserProfileSettings";
 import SettingsStore from "../../../../../settings/SettingsStore";
 import AccessibleButton from "../../../elements/AccessibleButton";
 import DeactivateAccountDialog from "../../../dialogs/DeactivateAccountDialog";
+import GuaDeactivateAccountDialog from "../../../dialogs/GuaDeactivateAccountDialog";
+import SdkConfig from "../../../../../SdkConfig";
 import Modal from "../../../../../Modal";
 import { UIFeature } from "../../../../../settings/UIFeature";
 import ErrorDialog, { extractErrorMessageFromError } from "../../../dialogs/ErrorDialog";
@@ -165,7 +167,10 @@ const AccountUserSettingsTab: React.FC<IProps> = ({ closeSettingsFn }) => {
     }, []);
 
     const onDeactivateClicked = useCallback((): void => {
-        const { finished } = Modal.createDialog(DeactivateAccountDialog);
+        const dialog = SdkConfig.get("identity_service")?.base_url
+            ? GuaDeactivateAccountDialog
+            : DeactivateAccountDialog;
+        const { finished } = Modal.createDialog(dialog);
         finished.then(([success]) => {
             if (success) closeSettingsFn();
         });

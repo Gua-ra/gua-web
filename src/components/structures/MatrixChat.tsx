@@ -91,6 +91,7 @@ import ForgotPassword from "./auth/ForgotPassword";
 import E2eSetup from "./auth/E2eSetup";
 import Registration from "./auth/Registration";
 import Login from "./auth/Login";
+import GuaAuthFlow from "./auth/GuaAuthFlow";
 import ErrorBoundary from "../views/elements/ErrorBoundary";
 import VerificationRequestToast from "../views/toasts/VerificationRequestToast";
 import PerformanceMonitor, { PerformanceEntryNames } from "../../performance";
@@ -2135,6 +2136,12 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             }
         } else if (this.state.view === Views.WELCOME) {
             view = <Welcome />;
+        } else if (
+            (this.state.view === Views.REGISTER || this.state.view === Views.LOGIN) &&
+            (SdkConfig.get("gua_auth")?.phone_oidc_login || SdkConfig.get("identity_service")?.base_url)
+        ) {
+            // Gua uses a single phone/OTP onboarding flow for both sign-in and registration.
+            view = <GuaAuthFlow onLoggedIn={this.onUserCompletedLoginFlow} {...this.getServerProperties()} />;
         } else if (this.state.view === Views.REGISTER && SettingsStore.getValue(UIFeature.Registration)) {
             const email = ThreepidInviteStore.instance.pickBestInvite()?.toEmail;
             view = (

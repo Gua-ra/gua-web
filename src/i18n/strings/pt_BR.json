@@ -1,4 +1,89 @@
 {
+    "gua": {
+        "phone": {
+            "title": "Digite seu número de telefone",
+            "subtitle": "Enviaremos um código de verificação por SMS.",
+            "number_label": "Número de telefone",
+            "invalid": "Digite um número de telefone válido."
+        },
+        "otp": {
+            "title": "Digite o código",
+            "subtitle": "Enviamos um código de 6 dígitos para %(phone)s.",
+            "code_label": "Código de verificação",
+            "verify": "Verificar",
+            "resend": "Reenviar código",
+            "resend_in": "Reenviar código em %(seconds)ss",
+            "change_phone": "Alterar número de telefone"
+        },
+        "profile": {
+            "title": "Crie seu perfil",
+            "subtitle": "Escolha um nome de usuário e um nome de exibição.",
+            "username_label": "Nome de usuário",
+            "display_name_label": "Nome de exibição",
+            "username_available": "Nome de usuário disponível",
+            "username_taken": "Esse nome de usuário já está em uso",
+            "username_invalid": "Use 3–30 letras, números, pontos, traços ou sublinhados",
+            "username_checking": "Verificando…",
+            "create_account": "Criar conta"
+        },
+        "pin": {
+            "challenge_title": "Digite seu PIN",
+            "challenge_subtitle": "A verificação em duas etapas está ativada nesta conta.",
+            "label": "PIN",
+            "verify": "Verificar",
+            "forgot": "Esqueceu o PIN?",
+            "setup_create_title": "Crie um PIN",
+            "setup_create_subtitle": "Escolha um PIN de 6 dígitos para a verificação em duas etapas.",
+            "setup_confirm_title": "Confirme seu PIN",
+            "setup_confirm_subtitle": "Digite seu PIN novamente para confirmar.",
+            "mismatch": "Os PINs não coincidem. Tente novamente.",
+            "skip": "Pular por enquanto",
+            "continue": "Continuar"
+        },
+        "two_step": {
+            "title": "Verificação em duas etapas",
+            "status_on": "A verificação em duas etapas está ativada. Seu PIN será solicitado ao entrar em um novo dispositivo.",
+            "status_off": "Adicione um PIN para mais segurança ao entrar em um novo dispositivo.",
+            "set_up": "Configurar verificação em duas etapas",
+            "change_pin": "Alterar PIN",
+            "cancel": "Cancelar",
+            "current_pin": "PIN atual",
+            "new_pin": "Novo PIN",
+            "phone_label": "Número de telefone",
+            "send_code": "Enviar código",
+            "otp_label": "Código de verificação",
+            "done": "Concluído",
+            "set_success": "Verificação em duas etapas ativada.",
+            "change_success": "Seu PIN foi alterado."
+        },
+        "reminder": {
+            "text": "Adicione um PIN para proteger sua conta com verificação em duas etapas.",
+            "action": "Configurar",
+            "dismiss": "Dispensar"
+        },
+        "deactivate": {
+            "intro": "Desativar sua conta é permanente. Para confirmar que é você, enviaremos um código de verificação para seu telefone.",
+            "erase": "Também apagar todas as mensagens que enviei",
+            "send_code": "Enviar código de verificação",
+            "otp_label": "Código de verificação",
+            "confirm": "Desativar conta",
+            "cancel": "Cancelar"
+        },
+        "errors": {
+            "not_configured": "O login não está configurado. Entre em contato com o suporte.",
+            "rate_limited": "Muitas tentativas. Aguarde um momento e tente novamente.",
+            "invalid_otp": "O código digitado é inválido ou expirou.",
+            "invalid_pin": "Esse PIN está incorreto. Tente novamente.",
+            "pin_locked": "PIN bloqueado por excesso de tentativas. Tente novamente mais tarde.",
+            "pin_change_cooldown": "Por segurança, você só pode alterar seu PIN uma vez por dia.",
+            "pin_challenge_expired": "Sua sessão de login expirou. Verifique seu telefone novamente.",
+            "invalid_signup_token": "Sua sessão de cadastro expirou. Verifique seu telefone novamente.",
+            "username_taken": "Esse nome de usuário já está em uso. Escolha outro.",
+            "phone_already_linked": "Este número de telefone já está vinculado a outra conta.",
+            "invalid_reauth_token": "Sua verificação expirou. Solicite um novo código.",
+            "generic": "Algo deu errado. Tente novamente."
+        }
+    },
     "a11y": {
         "emoji_picker": "Seletor de emojis",
         "jump_first_invite": "Ir para o primeiro convite.",
@@ -1772,7 +1857,7 @@
         "restricted": "Restrito"
     },
     "powered_by_matrix": "Powered by Matrix",
-    "powered_by_matrix_with_logo": "Chat descentralizado e encriptado & colaboração",
+    "powered_by_matrix_with_logo": "Mensagens livres, gratuitas e seguras para todas as pessoas.",
     "presence": {
         "away": "Ausente",
         "busy": "Ocupado",
@@ -2854,7 +2939,7 @@
             "time_heading": "Exibindo tempo",
             "user_timezone": "Definir fuso horário"
         },
-        "prompt_invite": "Avisar antes de enviar convites para IDs da Matrix potencialmente inválidas",
+        "prompt_invite": "Avisar antes de enviar convites para nomes de usuário potencialmente inválidos",
         "replace_plain_emoji": "Substituir automaticamente os emojis em texto",
         "security": {
             "analytics_description": "Compartilhe dados anônimos para nos ajudar a identificar problemas. Nada pessoal. Sem terceiros.",
@@ -2883,6 +2968,7 @@
             "message_search_indexing_idle": "Atualmente, mensagens de nenhuma sala estão sendo armazenadas.",
             "message_search_intro": "%(brand)s está armazenando de forma segura as mensagens criptografadas localmente, para que possam aparecer nos resultados das buscas:",
             "message_search_room_progress": "%(doneRooms)s de %(totalRooms)s",
+            "gua_encryption_description": "As mensagens no Gua são protegidas com criptografia de ponta a ponta. Elas são criptografadas no seu dispositivo antes do envio e só podem ser descriptografadas pelas pessoas na conversa.",
             "message_search_section": "Pesquisa de mensagens",
             "message_search_sleep_time": "Com qual rapidez as mensagens devem ser baixadas.",
             "message_search_space_used": "Espaço usado:",

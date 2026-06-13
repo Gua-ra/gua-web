@@ -19,6 +19,8 @@ import UpdateCheckButton from "../../UpdateCheckButton";
 import BugReportDialog from "../../../dialogs/BugReportDialog";
 import CopyableText from "../../../elements/CopyableText";
 import SettingsTab from "../SettingsTab";
+import SettingsStore from "../../../../../settings/SettingsStore";
+import { UIFeature } from "../../../../../settings/UIFeature";
 import { SettingsSection } from "../../shared/SettingsSection";
 import { SettingsSubsection, SettingsSubsectionText } from "../../shared/SettingsSubsection";
 import ExternalLink from "../../../elements/ExternalLink";
@@ -272,18 +274,23 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
                     {this.renderLegal()}
                     {this.renderCredits()}
                     <SettingsSubsection heading={_t("common|advanced")}>
-                        <SettingsSubsectionText>
-                            {_t(
-                                "setting|help_about|homeserver",
-                                {
-                                    homeserverUrl: this.context.getHomeserverUrl(),
-                                },
-                                {
-                                    code: (sub) => <code>{sub}</code>,
-                                },
-                            )}
-                        </SettingsSubsectionText>
-                        {this.context.getIdentityServerUrl() && (
+                        {/* GUA FORK: Hide the homeserver / identity-server URLs from
+                            non-technical users (off-brand and confusing). Shown only when
+                            advanced settings are explicitly enabled. */}
+                        {SettingsStore.getValue(UIFeature.AdvancedSettings) && (
+                            <SettingsSubsectionText>
+                                {_t(
+                                    "setting|help_about|homeserver",
+                                    {
+                                        homeserverUrl: this.context.getHomeserverUrl(),
+                                    },
+                                    {
+                                        code: (sub) => <code>{sub}</code>,
+                                    },
+                                )}
+                            </SettingsSubsectionText>
+                        )}
+                        {SettingsStore.getValue(UIFeature.AdvancedSettings) && this.context.getIdentityServerUrl() && (
                             <SettingsSubsectionText>
                                 {_t(
                                     "setting|help_about|identity_server",
@@ -297,15 +304,20 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
                             </SettingsSubsectionText>
                         )}
                         <SettingsSubsectionText>
-                            <details>
-                                <summary className="mx_HelpUserSettingsTab_accessTokenDetails">
-                                    {_t("common|access_token")}
-                                </summary>
-                                <strong>{_t("setting|help_about|access_token_detail")}</strong>
-                                <CopyableText getTextToCopy={() => this.context.getAccessToken()}>
-                                    {this.context.getAccessToken()}
-                                </CopyableText>
-                            </details>
+                            {/* GUA FORK: The raw access token is a footgun for non-technical
+                                users (social-engineering / token-exfiltration risk). Hide it
+                                unless advanced settings are explicitly enabled. */}
+                            {SettingsStore.getValue(UIFeature.AdvancedSettings) && (
+                                <details>
+                                    <summary className="mx_HelpUserSettingsTab_accessTokenDetails">
+                                        {_t("common|access_token")}
+                                    </summary>
+                                    <strong>{_t("setting|help_about|access_token_detail")}</strong>
+                                    <CopyableText getTextToCopy={() => this.context.getAccessToken()}>
+                                        {this.context.getAccessToken()}
+                                    </CopyableText>
+                                </details>
+                            )}
                         </SettingsSubsectionText>
                         <AccessibleButton onClick={this.onClearCacheAndReload} kind="danger_outline">
                             {_t("setting|help_about|clear_cache_reload")}

@@ -2434,6 +2434,7 @@
             "message_search_indexing_idle": "Tsy manao indexing hafatra hoany efitrano rehetra.",
             "message_search_intro": "%(brand)sdia mitahiry tsara ny hafatra miafina ao an-toerana mba hiseho amin'ny valiny fikarohana:",
             "message_search_room_progress": "%(doneRooms)sivelan'ny%(totalRooms)s",
+            "gua_encryption_description": "Voaaro amin'ny fanafenana hatramin'ny farany ny hafatra ao amin'ny Gua. Voahidy ao amin'ny fitaovanao izy ireo alohan'ny handefasana ary ny olona ao amin'ilay resaka ihany no afaka manokatra azy.",
             "message_search_section": "Fikarohana hafatra",
             "message_search_sleep_time": "Haingana ny tokony hisintonana hafatra.",
             "message_search_space_used": "Toerana ampiasaina:",
@@ -3668,5 +3669,7 @@
             "userInputs": "Tsy tokony hisy angona manokana na pejy mifandraika amin'izany.",
             "wordByItself": "Mora fantarina ny teny iray"
         }
-    }
+    },
+    "powered_by_matrix_with_logo": "Fandefasana hafatra malalaka, maimaim-poana ary azo antoka ho an'ny rehetra.",
+    "welcome_to_element": "Tongasoa eto amin'ny Gua"
 }

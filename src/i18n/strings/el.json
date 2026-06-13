@@ -1468,7 +1468,7 @@
         "restricted": "Περιορισμένο/η"
     },
     "powered_by_matrix": "Με την υποστήριξη του Matrix",
-    "powered_by_matrix_with_logo": "Αποκεντρωμένη, κρυπτογραφημένη συνομιλία και συνεργασία χρησιμοποιώντας το $matrixLogo",
+    "powered_by_matrix_with_logo": "Ελεύθερη, δωρεάν και ασφαλής ανταλλαγή μηνυμάτων για όλες και όλους.",
     "presence": {
         "away": "Απομακρυσμένος",
         "busy": "Απασχολημένος",
@@ -2243,6 +2243,7 @@
             "message_search_indexing_idle": "Αυτήν τη στιγμή δεν υπάρχει ευρετηρίαση μηνυμάτων για κανένα δωμάτιο.",
             "message_search_intro": "Το %(brand)s αποθηκεύει με ασφάλεια κρυπτογραφημένα μηνύματα τοπικά για να εμφανίζονται στα αποτελέσματα αναζήτησης:",
             "message_search_room_progress": "%(doneRooms)s από %(totalRooms)s",
+            "gua_encryption_description": "Τα μηνύματα στο Gua προστατεύονται με κρυπτογράφηση από άκρο σε άκρο. Κλειδώνονται στη συσκευή σας πριν σταλούν και μπορούν να ξεκλειδωθούν μόνο από τα άτομα στη συνομιλία.",
             "message_search_section": "Αναζήτηση μηνυμάτων",
             "message_search_sleep_time": "Πόσο γρήγορα πρέπει να γίνεται λήψη των μηνυμάτων.",
             "message_search_space_used": "Χώρος που χρησιμοποιείται:",
@@ -3276,7 +3277,7 @@
         "voice_call": "Φωνητική κλήση",
         "you_are_presenting": "Παρουσιάζετε"
     },
-    "welcome_to_element": "Καλώς ήλθατε στο Element",
+    "welcome_to_element": "Καλώς ήλθατε στο Gua",
     "widget": {
         "added_by": "Μικροεοεφαρμογή προστέθηκε από",
         "capabilities_dialog": {

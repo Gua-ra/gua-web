@@ -1412,7 +1412,7 @@
         "restricted": "Bị hạn chế"
     },
     "powered_by_matrix": "Chạy trên giao thức Matrix",
-    "powered_by_matrix_with_logo": "Dịch vụ nhắn tin &amp; liên lạc được mã hóa, phi tập trung. Được vận hành trên $matrixLogo",
+    "powered_by_matrix_with_logo": "Nhắn tin tự do, miễn phí và an toàn cho mọi người.",
     "presence": {
         "away": "Vắng mặt",
         "busy": "Bận",
@@ -2195,6 +2195,7 @@
             "message_search_indexing_idle": "Hiện không lập chỉ mục tin nhắn cho bất kỳ phòng nào.",
             "message_search_intro": "%(brand)s đang lưu trữ cục bộ an toàn các tin nhắn được mã hóa để chúng xuất hiện trong kết quả tìm kiếm:",
             "message_search_room_progress": "%(doneRooms)s trong số %(totalRooms)s",
+            "gua_encryption_description": "Tin nhắn trên Gua được bảo vệ bằng mã hóa đầu cuối. Chúng được khóa trên thiết bị của bạn trước khi gửi và chỉ những người trong cuộc trò chuyện mới có thể mở khóa.",
             "message_search_section": "Tìm kiếm tin nhắn",
             "message_search_sleep_time": "Tin nhắn sẽ được tải xuống nhanh như thế nào.",
             "message_search_space_used": "Space đã sử dụng:",
@@ -3202,7 +3203,7 @@
         "you_are_presenting": "Bạn đang trình bày"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s trên %(osName)s",
-    "welcome_to_element": "Chào mừng tới Element",
+    "welcome_to_element": "Chào mừng tới Gua",
     "widget": {
         "added_by": "widget được thêm bởi",
         "capabilities_dialog": {

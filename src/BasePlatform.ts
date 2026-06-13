@@ -453,7 +453,7 @@ export default abstract class BasePlatform {
             clientName: config.brand,
             clientUri: config.oidc_metadata?.client_uri ?? this.defaultOidcClientUri,
             redirectUris: [this.getOidcCallbackUrl().href],
-            logoUri: config.oidc_metadata?.logo_uri ?? new URL("vector-icons/1024.png", this.baseUrl).href,
+            logoUri: new URL(config.oidc_metadata?.logo_uri ?? "vector-icons/1024.png", this.baseUrl).href,
             applicationType: "web",
             contacts: config.oidc_metadata?.contacts,
             tosUri: config.oidc_metadata?.tos_uri ?? config.terms_and_conditions_links?.[0]?.url,

@@ -45,6 +45,16 @@ export interface IConfigOptions {
     disable_login_language_selector?: boolean;
     disable_3pid_login?: boolean;
 
+    // Gua identity-service base URL. When set, the phone/OTP/PIN onboarding flow talks
+    // directly to this service to mint a Matrix session (web equivalent of the iOS
+    // Secrets.identityServiceBaseURL). No trailing slash required.
+    identity_service?: {
+        base_url: string;
+    };
+    gua_auth?: {
+        phone_oidc_login?: boolean;
+    };
+
     brand: string;
     branding?: {
         welcome_background_url?: string | string[]; // chosen at random if array

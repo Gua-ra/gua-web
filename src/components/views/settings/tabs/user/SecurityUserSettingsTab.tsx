@@ -27,6 +27,8 @@ import { PosthogAnalytics } from "../../../../../PosthogAnalytics";
 import { showDialog as showAnalyticsLearnMoreDialog } from "../../../dialogs/AnalyticsLearnMoreDialog";
 import { privateShouldBeEncrypted } from "../../../../../utils/rooms";
 import SettingsTab from "../SettingsTab";
+import SdkConfig from "../../../../../SdkConfig";
+import GuaTwoStepVerificationSettings from "../../GuaTwoStepVerificationSettings";
 import { SettingsSection } from "../../shared/SettingsSection";
 import { SettingsSubsection, SettingsSubsectionText } from "../../shared/SettingsSubsection";
 import { useOwnDevices } from "../../devices/useOwnDevices";
@@ -301,6 +303,12 @@ export default class SecurityUserSettingsTab extends React.Component<IProps, ISt
             </SettingsSubsection>
         );
 
+        const guaEncryptionDescription = (
+            <SettingsSubsection>
+                <SettingsSubsectionText>{_t("settings|security|gua_encryption_description")}</SettingsSubsectionText>
+            </SettingsSubsection>
+        );
+
         let warning;
         if (!privateShouldBeEncrypted(MatrixClientPeg.safeGet())) {
             warning = (
@@ -353,18 +361,31 @@ export default class SecurityUserSettingsTab extends React.Component<IProps, ISt
             }
         }
 
+        let privacySection;
+        if (SettingsStore.getValue(UIFeature.ThirdPartyID) || posthogSection) {
+            privacySection = (
+                <SettingsSection heading={_t("common|privacy")}>
+                    {SettingsStore.getValue(UIFeature.ThirdPartyID) ? <DiscoverySettings /> : null}
+                    {posthogSection}
+                </SettingsSection>
+            );
+        }
+
         return (
             <SettingsTab>
                 {warning}
                 <SetIntegrationManager />
                 <SettingsSection heading={_t("settings|security|encryption_section")}>
+                    {guaEncryptionDescription}
                     {secureBackup}
                     {eventIndex}
                 </SettingsSection>
-                <SettingsSection heading={_t("common|privacy")}>
-                    <DiscoverySettings />
-                    {posthogSection}
-                </SettingsSection>
+                {SdkConfig.get("identity_service")?.base_url ? (
+                    <SettingsSection heading={_t("gua|two_step|title")}>
+                        <GuaTwoStepVerificationSettings />
+                    </SettingsSection>
+                ) : null}
+                {privacySection}
                 {advancedSection}
             </SettingsTab>
         );

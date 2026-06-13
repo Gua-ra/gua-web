@@ -1120,7 +1120,7 @@
         "restricted": "מחוץ לתחום"
     },
     "powered_by_matrix": "מופעל על ידי מטריקס",
-    "powered_by_matrix_with_logo": "צ'אט מבוזר ומוצפן &amp; מופעל בשיתוף פעולה ע\"י $matrixLogo",
+    "powered_by_matrix_with_logo": "הודעות חופשיות, חינמיות ומאובטחות לכולם.",
     "presence": {
         "away": "מרוחק",
         "idle": "לא פעיל",
@@ -1716,6 +1716,7 @@
             "message_search_indexing_idle": "כרגע לא מוסיף לאינדקס הודעות עבור אף חדר.",
             "message_search_intro": "%(brand)s מאחסן באופן מאובטח הודעות מוצפנות באופן מקומי כדי שיופיעו בתוצאות החיפוש:",
             "message_search_room_progress": "%(doneRooms)s מתוך %(totalRooms)s",
+            "gua_encryption_description": "הודעות ב-Gua מוגנות בהצפנה מקצה לקצה. הן ננעלות במכשיר שלך לפני השליחה ורק האנשים בשיחה יכולים לפתוח אותן.",
             "message_search_section": "חיפוש הודעה",
             "message_search_sleep_time": "באיזו מהירות הודעות יורדות.",
             "message_search_space_used": "שטח משומש:",
@@ -2439,7 +2440,7 @@
         "you_are_presenting": "אתה מציג"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s עַל %(osName)s",
-    "welcome_to_element": "ברוכים הבאים ל Element",
+    "welcome_to_element": "ברוכים הבאים ל-Gua",
     "widget": {
         "added_by": "ישומון נוסף על ידי",
         "capabilities_dialog": {
