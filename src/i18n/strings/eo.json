@@ -1159,7 +1159,7 @@
         "restricted": "Limigita"
     },
     "powered_by_matrix": "Povigata de Matrix",
-    "powered_by_matrix_with_logo": "Malcentralizita kaj ĉifrita babilejo; kunlaboro danke al $matrixLogo",
+    "powered_by_matrix_with_logo": "Libera, senpaga kaj sekura mesaĝado por ĉiuj.",
     "presence": {
         "away": "For",
         "idle": "Senfara",
@@ -1795,6 +1795,7 @@
             "message_search_indexing_idle": "Mesaĝoj estas indeksataj en neniu ĉambro.",
             "message_search_intro": "%(brand)s sekure loke kaŝmemoras ĉifritajn mesaĝojn por aperigi ilin en serĉorezultoj:",
             "message_search_room_progress": "%(doneRooms)s el %(totalRooms)s",
+            "gua_encryption_description": "Mesaĝoj en Gua estas protektataj per ĉifrado de fino al fino. Ili estas ŝlosataj en via aparato antaŭ sendo kaj povas esti malŝlositaj nur de la homoj en la konversacio.",
             "message_search_section": "Serĉado de mesaĝoj",
             "message_search_sleep_time": "Kiel rapide elŝuti mesaĝojn.",
             "message_search_space_used": "Spaco uzita:",
@@ -2577,7 +2578,7 @@
         "you_are_presenting": "Vi prezentas"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s sur %(osName)s",
-    "welcome_to_element": "Bonvenon al Element",
+    "welcome_to_element": "Bonvenon al Gua",
     "widget": {
         "added_by": "Fenestraĵon aldonis",
         "capabilities_dialog": {

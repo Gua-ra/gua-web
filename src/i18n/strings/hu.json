@@ -1766,7 +1766,7 @@
         "restricted": "Korlátozott"
     },
     "powered_by_matrix": "A gépházban: Matrix",
-    "powered_by_matrix_with_logo": "Elosztott, titkosított csevegés és együttműködés ezzel: $matrixLogo",
+    "powered_by_matrix_with_logo": "Szabad, ingyenes és biztonságos üzenetküldés mindenkinek.",
     "presence": {
         "away": "Távol",
         "busy": "Foglalt",
@@ -2868,6 +2868,7 @@
             "message_search_indexing_idle": "Jelenleg egyik szoba indexelése sem történik.",
             "message_search_intro": "%(brand)s a kereshetőség érdekében a titkosított üzeneteket biztonságos módon helyileg tárolja:",
             "message_search_room_progress": "%(doneRooms)s / %(totalRooms)s",
+            "gua_encryption_description": "A Gua üzeneteit végpontok közötti titkosítás védi. Az üzenetek az eszközén zárolódnak elküldés előtt, és csak a beszélgetés résztvevői tudják feloldani őket.",
             "message_search_section": "Üzenet keresése",
             "message_search_sleep_time": "Milyen gyorsan legyenek az üzenetek letöltve.",
             "message_search_space_used": "Felhasznált hely:",
@@ -4004,7 +4005,7 @@
         "you_are_presenting": "Ön tartja a bemutatót"
     },
     "web_default_device_name": "%(appName)s: (%(browserName)s itt: %(osName)s)",
-    "welcome_to_element": "Üdvözli az Element",
+    "welcome_to_element": "Üdvözli a Gua",
     "widget": {
         "added_by": "A kisalkalmazást hozzáadta",
         "capabilities_dialog": {

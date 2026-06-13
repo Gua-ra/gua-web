@@ -2368,6 +2368,7 @@
             "message_search_indexing_idle": "Pašlaik neindeksē ziņas nevienai istabai.",
             "message_search_intro": "%(brand)s droši lokāli saglabā šifrētas ziņas kešatmiņā, lai tās tiktu parādītas meklēšanas rezultātos:",
             "message_search_room_progress": "%(doneRooms)s no %(totalRooms)s",
+            "gua_encryption_description": "Ziņojumi Gua ir aizsargāti ar pilnīgu šifrēšanu. Tie tiek aizslēgti jūsu ierīcē pirms nosūtīšanas, un tos var atslēgt tikai sarunas dalībnieki.",
             "message_search_section": "Ziņu meklēšana",
             "message_search_sleep_time": "Cik ātri būtu jālejupielādē ziņas.",
             "message_search_space_used": "Izmantotā vieta:",
@@ -3626,5 +3627,7 @@
             "userInputs": "Nevajadzētu būt nekādiem personīgiem vai ar lapu saistītiem datiem.",
             "wordByItself": "Vārds pats par sevi ir viegli uzminams"
         }
-    }
+    },
+    "powered_by_matrix_with_logo": "Brīva, bezmaksas un droša ziņapmaiņa ikvienam.",
+    "welcome_to_element": "Laipni lūdzam Gua"
 }

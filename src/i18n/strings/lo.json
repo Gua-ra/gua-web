@@ -1309,7 +1309,7 @@
         "restricted": "ຖືກຈຳກັດ"
     },
     "powered_by_matrix": "ສະໜັບສະໜູນໂດຍ Matrix",
-    "powered_by_matrix_with_logo": "ການສົນທະນາແບບເຂົ້າລະຫັດ ແລະກະຈ່າຍການຄຸ້ມຄອງ &amp; ການຮ່ວມມື້ ແລະສະໜັບສະໜູນໂດຍ $matrixLogo",
+    "powered_by_matrix_with_logo": "ການສົ່ງຂໍ້ຄວາມແບບເສລີ, ຟຣີ ແລະ ປອດໄພສຳລັບທຸກຄົນ.",
     "presence": {
         "away": "ຫ່າງອອກໄປ",
         "busy": "ບໍ່ຫວ່າງ",
@@ -2025,6 +2025,7 @@
             "message_search_indexing_idle": "ຕອນນີ້ບໍ່ໄດ້ຈັດດັດສະນີຂໍ້ຄວາມສໍາລັບຫ້ອງໃດ.",
             "message_search_intro": "%(brand)s ກໍາລັງເກັບຂໍ້ຄວາມທີ່ຖືກເຂົ້າລະຫັດໄວ້ຢ່າງປອດໄພຢູ່ໃນເຄື່ອງເພື່ອໃຫ້ພວກເຂົາປາກົດໃນຜົນການຄົ້ນຫາ:",
             "message_search_room_progress": "%(doneRooms)s ຈາກທັງໝົດ %(totalRooms)s",
+            "gua_encryption_description": "ຂໍ້ຄວາມໃນ Gua ຖືກປົກປ້ອງດ້ວຍການເຂົ້າລະຫັດແບບປາຍທາງຫາປາຍທາງ. ມັນຖືກລັອກໃນອຸປະກອນຂອງທ່ານກ່ອນສົ່ງ ແລະປົດລັອກໄດ້ສະເພາະໂດຍຄົນໃນການສົນທະນາ.",
             "message_search_section": "ຄົ້ນຫາຂໍ້ຄວາມ",
             "message_search_sleep_time": "ຂໍ້ຄວາມຄວນຖືກດາວໂຫຼດໄວເທົ່າໃດ.",
             "message_search_space_used": "ພື້ນທີ່ໃຊ້ແລ້ວ:",
@@ -2914,7 +2915,7 @@
         "voice_call": "ໂທດ້ວຍສຽງ",
         "you_are_presenting": "ທ່ານກໍາລັງນໍາສະເຫນີ"
     },
-    "welcome_to_element": "ຍິນດີຕ້ອນຮັບ",
+    "welcome_to_element": "ຍິນດີຕ້ອນຮັບສູ່ Gua",
     "widget": {
         "added_by": "ເພີ່ມWidgetໂດຍ",
         "capabilities_dialog": {

@@ -1777,7 +1777,7 @@
         "restricted": "Begrenset"
     },
     "powered_by_matrix": "Drevet av Matrix",
-    "powered_by_matrix_with_logo": "Desentralisert, kryptert chat og samarbeid drevet av $matrixLogo",
+    "powered_by_matrix_with_logo": "Fri, gratis og sikker meldingsutveksling for alle.",
     "presence": {
         "away": "Borte",
         "busy": "Opptatt",
@@ -2890,6 +2890,7 @@
             "message_search_indexing_idle": "Indekserer for øyeblikket ikke meldinger for noen rom.",
             "message_search_intro": "%(brand)s bufrer krypterte meldinger lokalt på en sikker måte slik at de vises i søkeresultatene:",
             "message_search_room_progress": "%(doneRooms)s av %(totalRooms)s",
+            "gua_encryption_description": "Meldinger i Gua er beskyttet med ende-til-ende-kryptering. De låses på enheten din før de sendes, og kan bare låses opp av personene i samtalen.",
             "message_search_section": "Meldingssøk",
             "message_search_sleep_time": "Hvor raskt skal meldinger lastes ned.",
             "message_search_space_used": "Plass brukt:",
@@ -4033,7 +4034,7 @@
         "you_are_presenting": "Du presenterer"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s på %(osName)s",
-    "welcome_to_element": "Velkommen til Element",
+    "welcome_to_element": "Velkommen til Gua",
     "widget": {
         "added_by": "Modulen ble lagt til av",
         "capabilities_dialog": {

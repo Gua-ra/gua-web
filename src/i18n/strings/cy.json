@@ -1810,7 +1810,7 @@
         "restricted": "Cyfyngedig"
     },
     "powered_by_matrix": "Wedi'i bweru gan Matrix",
-    "powered_by_matrix_with_logo": "Sgwrs ddatganoledig, wedi'i hamgryptio &amp; cydweithrediad wedi'i bweru gan $matrixLogo",
+    "powered_by_matrix_with_logo": "Negeseuon rhydd, am ddim a diogel i bawb.",
     "presence": {
         "away": "I ffwrdd",
         "busy": "Prysur",
@@ -2885,6 +2885,7 @@
             "message_search_indexing_idle": "Ddim yn mynegeio negeseuon ar gyfer unrhyw ystafell ar hyn o bryd.",
             "message_search_intro": "Mae %(brand)s yn cadw negeseuon wedi'u hamgryptio'n ddiogel yn lleol er mwyn iddynt ymddangos yn y canlyniadau chwilio:",
             "message_search_room_progress": "%(doneRooms)s allan o %(totalRooms)s",
+            "gua_encryption_description": "Mae negeseuon ar Gua wedi'u diogelu ag amgryptio pen-i-ben. Cânt eu cloi ar eich dyfais cyn eu hanfon a dim ond pobl yn y sgwrs sy'n gallu eu datgloi.",
             "message_search_section": "Chwilio am neges",
             "message_search_sleep_time": "Pa mor gyflym dylai negeseuon gael eu llwytho i lawr.",
             "message_search_space_used": "Gofod wedi'i ddefnyddio:",
@@ -3857,7 +3858,7 @@
         "you_are_presenting": "Rydych chi'n cyflwyno"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s ar %(osName)s",
-    "welcome_to_element": "Croeso i Element",
+    "welcome_to_element": "Croeso i Gua",
     "widget": {
         "added_by": "Ychwanegwyd teclyn gan",
         "capabilities_dialog": {

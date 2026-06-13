@@ -1712,7 +1712,7 @@
         "restricted": "Restrito"
     },
     "powered_by_matrix": "Fornecido por Matrix",
-    "powered_by_matrix_with_logo": "Conversa e colaboração descentralizadas e encriptadas com a tecnologia $matrixLogo",
+    "powered_by_matrix_with_logo": "Mensagens livres, gratuitas e seguras para todas as pessoas.",
     "presence": {
         "away": "Ausente",
         "busy": "Ocupado",
@@ -2776,6 +2776,7 @@
             "message_search_indexing_idle": "No momento, não estamos indexando mensagens de nenhuma sala.",
             "message_search_intro": "%(brand)s está a armazenar em segurança mensagens encriptadas localmente para que apareçam nos resultados da pesquisa:",
             "message_search_room_progress": "%(doneRooms)s fora de %(totalRooms)s",
+            "gua_encryption_description": "As mensagens no Gua são protegidas com encriptação ponto a ponto. São bloqueadas no seu dispositivo antes do envio e só podem ser desbloqueadas pelas pessoas na conversa.",
             "message_search_section": "Pesquisa de mensagens",
             "message_search_sleep_time": "A que velocidade as mensagens devem ser descarregadas.",
             "message_search_space_used": "Espaço utilizado:",
@@ -3915,7 +3916,7 @@
         "you_are_presenting": "Estás a apresentar"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s em %(osName)s",
-    "welcome_to_element": "Bem-vindo ao Element",
+    "welcome_to_element": "Boas-vindas ao Gua",
     "widget": {
         "added_by": "Widget adicionado por",
         "capabilities_dialog": {

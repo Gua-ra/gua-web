@@ -1352,7 +1352,7 @@
         "restricted": "Beperkte toegang"
     },
     "powered_by_matrix": "Mogelijk gemaakt door Matrix",
-    "powered_by_matrix_with_logo": "Gedecentraliseerde, versleutelde chat &amp; samenwerking mogelijk gemaakt door $matrixLogo",
+    "powered_by_matrix_with_logo": "Vrije, gratis en veilige berichten voor iedereen.",
     "presence": {
         "away": "Afwezig",
         "busy": "Bezet",
@@ -2086,6 +2086,7 @@
             "message_search_indexing_idle": "Er worden momenteel voor geen enkele kamer berichten geïndexeerd.",
             "message_search_intro": "%(brand)s bewaart versleutelde berichten veilig in het lokale cachegeheugen om ze in je zoekresultaten te laten verschijnen:",
             "message_search_room_progress": "%(doneRooms)s van %(totalRooms)s",
+            "gua_encryption_description": "Berichten op Gua zijn beschermd met end-to-end-versleuteling. Ze worden op je apparaat vergrendeld voordat ze worden verzonden en kunnen alleen door de mensen in het gesprek worden ontgrendeld.",
             "message_search_section": "Berichten zoeken",
             "message_search_sleep_time": "Ophaalfrequentie van berichten.",
             "message_search_space_used": "Gebruikte Space:",
@@ -3070,7 +3071,7 @@
         "you_are_presenting": "Je bent aan het presenteren"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s op %(osName)s",
-    "welcome_to_element": "Welkom bij Element",
+    "welcome_to_element": "Welkom bij Gua",
     "widget": {
         "added_by": "Widget toegevoegd door",
         "capabilities_dialog": {

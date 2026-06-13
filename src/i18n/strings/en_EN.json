@@ -1862,7 +1862,7 @@
         "restricted": "Restricted"
     },
     "powered_by_matrix": "Powered by Matrix",
-    "powered_by_matrix_with_logo": "Decentralised, encrypted chat &amp; collaboration powered by $matrixLogo",
+    "powered_by_matrix_with_logo": "Free, secure messaging for everyone.",
     "presence": {
         "away": "Away",
         "busy": "Busy",
@@ -2998,6 +2998,7 @@
             "message_search_indexing_idle": "Not currently indexing messages for any room.",
             "message_search_intro": "%(brand)s is securely caching encrypted messages locally for them to appear in search results:",
             "message_search_room_progress": "%(doneRooms)s out of %(totalRooms)s",
+            "gua_encryption_description": "Messages on Gua are protected with end-to-end encryption. They are locked on your device before being sent and can only be unlocked by the people in the conversation.",
             "message_search_section": "Message search",
             "message_search_sleep_time": "How fast should messages be downloaded.",
             "message_search_space_used": "Space used:",
@@ -4144,7 +4145,7 @@
         "you_are_presenting": "You are presenting"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s on %(osName)s",
-    "welcome_to_element": "Welcome to Element",
+    "welcome_to_element": "Welcome to Gua",
     "widget": {
         "added_by": "Widget added by",
         "capabilities_dialog": {

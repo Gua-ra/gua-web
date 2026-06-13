@@ -1780,7 +1780,7 @@
         "restricted": "Ograniczony"
     },
     "powered_by_matrix": "Zasilane przez Matrix",
-    "powered_by_matrix_with_logo": "Zdecentralizowany czat szyfrowany i współpraca oparta na $matrixLogo",
+    "powered_by_matrix_with_logo": "Wolna, bezpłatna i bezpieczna komunikacja dla wszystkich.",
     "presence": {
         "away": "Z dala od urządzenia",
         "busy": "Zajęty",
@@ -2894,6 +2894,7 @@
             "message_search_indexing_idle": "Aktualnie nie są indeksowane wiadomości z żadnego pokoju.",
             "message_search_intro": "%(brand)s bezpiecznie i lokalnie przechowuje wiadomości szyfrowane, aby mogły pojawić się w wynikach wyszukiwania:",
             "message_search_room_progress": "%(doneRooms)s z %(totalRooms)s",
+            "gua_encryption_description": "Wiadomości w Gua są chronione szyfrowaniem end-to-end. Są blokowane na Twoim urządzeniu przed wysłaniem i mogą je odblokować tylko osoby biorące udział w rozmowie.",
             "message_search_section": "Wyszukiwanie wiadomości",
             "message_search_sleep_time": "Jak szybko powinny być pobierane wiadomości.",
             "message_search_space_used": "Wykorzystane miejsce:",
@@ -4047,7 +4048,7 @@
         "you_are_presenting": "Prezentujesz"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s na %(osName)s",
-    "welcome_to_element": "Witamy w Element",
+    "welcome_to_element": "Witamy w Gua",
     "widget": {
         "added_by": "Widżet dodany przez",
         "capabilities_dialog": {

@@ -303,6 +303,12 @@ export default class SecurityUserSettingsTab extends React.Component<IProps, ISt
             </SettingsSubsection>
         );
 
+        const guaEncryptionDescription = (
+            <SettingsSubsection>
+                <SettingsSubsectionText>{_t("settings|security|gua_encryption_description")}</SettingsSubsectionText>
+            </SettingsSubsection>
+        );
+
         let warning;
         if (!privateShouldBeEncrypted(MatrixClientPeg.safeGet())) {
             warning = (
@@ -355,11 +361,22 @@ export default class SecurityUserSettingsTab extends React.Component<IProps, ISt
             }
         }
 
+        let privacySection;
+        if (SettingsStore.getValue(UIFeature.ThirdPartyID) || posthogSection) {
+            privacySection = (
+                <SettingsSection heading={_t("common|privacy")}>
+                    {SettingsStore.getValue(UIFeature.ThirdPartyID) ? <DiscoverySettings /> : null}
+                    {posthogSection}
+                </SettingsSection>
+            );
+        }
+
         return (
             <SettingsTab>
                 {warning}
                 <SetIntegrationManager />
                 <SettingsSection heading={_t("settings|security|encryption_section")}>
+                    {guaEncryptionDescription}
                     {secureBackup}
                     {eventIndex}
                 </SettingsSection>
@@ -368,10 +385,7 @@ export default class SecurityUserSettingsTab extends React.Component<IProps, ISt
                         <GuaTwoStepVerificationSettings />
                     </SettingsSection>
                 ) : null}
-                <SettingsSection heading={_t("common|privacy")}>
-                    <DiscoverySettings />
-                    {posthogSection}
-                </SettingsSection>
+                {privacySection}
                 {advancedSection}
             </SettingsTab>
         );

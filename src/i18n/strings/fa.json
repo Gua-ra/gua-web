@@ -1056,7 +1056,7 @@
         "restricted": "ممنوع"
     },
     "powered_by_matrix": "راه اندازی شده با استفاده از ماتریکس",
-    "powered_by_matrix_with_logo": "همکاری چت غیرمتمرکز و رمزگذاری شده &amp; توسعه یافته با استفاده از $matrixLogo",
+    "powered_by_matrix_with_logo": "پیام‌رسانی آزاد، رایگان و امن برای همه.",
     "presence": {
         "away": "بعدا",
         "idle": "بلااستفاده",
@@ -1582,6 +1582,7 @@
             "message_search_indexing_idle": "در حال حاضر ایندکس پیام ها برای هیچ اتاقی انجام نمی‌شود.",
             "message_search_intro": "%(brand)s پیام‌های رمزشده را به صورت امن و محلی ذخیره کرده تا در نتایج جستجو نمایش دهد:",
             "message_search_room_progress": "%(doneRooms)s از %(totalRooms)s",
+            "gua_encryption_description": "پیام‌ها در Gua با رمزگذاری سرتاسری محافظت می‌شوند. پیش از ارسال روی دستگاه شما قفل می‌شوند و فقط افراد حاضر در گفتگو می‌توانند آن‌ها را باز کنند.",
             "message_search_section": "جستجوی پیام‌ها",
             "message_search_sleep_time": "پیام‌ها باید چقدر سریع بارگیری شوند.",
             "message_search_space_used": "فضای مصرفی:",
@@ -2258,7 +2259,7 @@
         "voice_call": "تماس صوتی"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s: روی %(osName)s",
-    "welcome_to_element": "به Element خوش‌آمدید",
+    "welcome_to_element": "به Gua خوش آمدید",
     "widget": {
         "added_by": "ابزارک اضافه شده توسط",
         "capabilities_dialog": {

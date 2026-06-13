@@ -1857,7 +1857,7 @@
         "restricted": "Restrito"
     },
     "powered_by_matrix": "Powered by Matrix",
-    "powered_by_matrix_with_logo": "Chat descentralizado e encriptado & colaboração",
+    "powered_by_matrix_with_logo": "Mensagens livres, gratuitas e seguras para todas as pessoas.",
     "presence": {
         "away": "Ausente",
         "busy": "Ocupado",
@@ -2968,6 +2968,7 @@
             "message_search_indexing_idle": "Atualmente, mensagens de nenhuma sala estão sendo armazenadas.",
             "message_search_intro": "%(brand)s está armazenando de forma segura as mensagens criptografadas localmente, para que possam aparecer nos resultados das buscas:",
             "message_search_room_progress": "%(doneRooms)s de %(totalRooms)s",
+            "gua_encryption_description": "As mensagens no Gua são protegidas com criptografia de ponta a ponta. Elas são criptografadas no seu dispositivo antes do envio e só podem ser descriptografadas pelas pessoas na conversa.",
             "message_search_section": "Pesquisa de mensagens",
             "message_search_sleep_time": "Com qual rapidez as mensagens devem ser baixadas.",
             "message_search_space_used": "Espaço usado:",
