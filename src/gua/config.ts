@@ -9,6 +9,7 @@ import { type IConfigOptions } from "../IConfigOptions";
 
 export const GUA_BRAND = "Gua";
 export const GUA_LOGO_URL = "themes/gua/img/logos/logo.svg";
+export const GUA_APP_LOGO_URL = "themes/gua/img/logos/app-logo.png";
 export const GUA_WELCOME_BACKGROUND_URL = "themes/gua/img/backgrounds/background.svg";
 
 export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
@@ -18,7 +19,7 @@ export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
         auth_header_logo_url: GUA_LOGO_URL,
         auth_footer_links: [
             {
-                text: "Developed by Sarah Lacerda",
+                text: "Developed by Sarah L.S.",
                 url: "https://github.com/sarah-lacerda",
             },
             {
@@ -53,6 +54,6 @@ export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
         brand: "Gua Call",
     },
     oidc_metadata: {
-        logo_uri: GUA_LOGO_URL,
+        logo_uri: GUA_APP_LOGO_URL,
     },
 };
