@@ -52,7 +52,10 @@ async function resolveServerConfig(e164: string, fallback: ValidatedServerConfig
     if (!resolver) return fallback;
     try {
         const resolution = await resolver.resolve(e164);
-        return await AutoDiscoveryUtils.validateServerName(resolution.homeserver.serverName);
+        // Use the homeserver base URL the resolver returned directly (it is the source of truth), rather
+        // than re-discovering via HTTPS well-known on the server name — that is redundant and fails for
+        // http/localhost homeservers. The homeserver's own auth metadata still yields the MAS config.
+        return await AutoDiscoveryUtils.validateServerConfigWithStaticUrls(resolution.homeserver.baseUrl);
     } catch (e) {
         logger.warn("Gua resolver lookup failed; falling back to the default server config", e);
         return fallback;
