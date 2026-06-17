@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "ພັດທະນາໂດຍ %(name)s"
+        }
+    },
     "a11y": {
         "jump_first_invite": "ໄປຫາຄຳເຊີນທຳອິດ.",
         "n_unread_messages": {

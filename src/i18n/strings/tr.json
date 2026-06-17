@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "%(name)s tarafından geliştirildi"
+        }
+    },
     "a11y": {
         "emoji_picker": "Emoji seçici",
         "jump_first_invite": "İlk davete git.",

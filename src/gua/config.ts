@@ -10,16 +10,21 @@ import { type IConfigOptions } from "../IConfigOptions";
 export const GUA_BRAND = "Gua";
 export const GUA_LOGO_URL = "themes/gua/img/logos/logo.svg";
 export const GUA_APP_LOGO_URL = "themes/gua/img/logos/app-logo.png";
-export const GUA_WELCOME_BACKGROUND_URL = "themes/gua/img/backgrounds/background.svg";
+export const GUA_WELCOME_BACKGROUND_URL = "themes/gua/img/backgrounds/background.png";
 
 export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
     brand: GUA_BRAND,
     branding: {
         welcome_background_url: GUA_WELCOME_BACKGROUND_URL,
+        welcome_logo_url: GUA_APP_LOGO_URL,
         auth_header_logo_url: GUA_LOGO_URL,
         auth_footer_links: [
             {
                 text: "Developed by Sarah L.S.",
+                text_key: "gua|footer|developed_by",
+                variables: {
+                    name: "Sarah L.S.",
+                },
                 url: "https://github.com/sarah-lacerda",
             },
             {
@@ -38,7 +43,6 @@ export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
     default_theme: "light",
     setting_defaults: {
         breadcrumbs: true,
-        language: "pt-br",
     },
     room_directory: {
         servers: ["dev.gua.sarahlacerda.me"],

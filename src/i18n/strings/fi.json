@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Kehittänyt %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Emoji-valitsin",
         "jump_first_invite": "Siirry ensimmäiseen kutsuun.",

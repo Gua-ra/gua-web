@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Sukūrė %(name)s"
+        }
+    },
     "a11y": {
         "jump_first_invite": "Peršokti iki pirmo pakvietimo.",
         "n_unread_messages": {

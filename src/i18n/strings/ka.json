@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "შემუშავებულია %(name)s-ის მიერ"
+        }
+    },
     "a11y": {
         "user_menu": ""
     },

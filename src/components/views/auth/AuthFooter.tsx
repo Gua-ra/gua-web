@@ -10,7 +10,7 @@ Please see LICENSE files in the repository root for full details.
 import React, { type JSX, type ReactElement } from "react";
 
 import SdkConfig from "../../../SdkConfig";
-import { _t } from "../../../languageHandler";
+import { _t, type IVariables, type TranslationKey } from "../../../languageHandler";
 
 const AuthFooter = (): ReactElement => {
     const brandingConfig = SdkConfig.getObject("branding");
@@ -22,9 +22,13 @@ const AuthFooter = (): ReactElement => {
 
     const authFooterLinks: JSX.Element[] = [];
     for (const linkEntry of links) {
+        const linkText = linkEntry.text_key
+            ? _t(linkEntry.text_key as TranslationKey, linkEntry.variables as IVariables)
+            : linkEntry.text;
+
         authFooterLinks.push(
             <a href={linkEntry.url} key={linkEntry.text} target="_blank" rel="noreferrer noopener">
-                {linkEntry.text}
+                {linkText}
             </a>,
         );
     }

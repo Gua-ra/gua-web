@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Zhvilluar nga %(name)s"
+        }
+    },
     "a11y": {
         "jump_first_invite": "Hidhu te ftesa e parë.",
         "n_unread_messages": {

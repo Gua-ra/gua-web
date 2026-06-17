@@ -119,6 +119,13 @@ describe("<VoiceUserSettingsTab />", () => {
         expect(getByTestId("voice-echo-cancellation")).toBeTruthy();
     });
 
+    it("does not render fallback call assist server setting", () => {
+        render(getComponent());
+
+        expect(screen.queryByText("Allow fallback call assist server (/turn.matrix.org)")).not.toBeInTheDocument();
+        expect(screen.queryByText(/Your IP address would be shared during a call/)).not.toBeInTheDocument();
+    });
+
     it("sets and displays audio processing settings", () => {
         MediaDeviceHandlerMock.getAudioAutoGainControl.mockReturnValue(false);
         MediaDeviceHandlerMock.getAudioEchoCancellation.mockReturnValue(true);

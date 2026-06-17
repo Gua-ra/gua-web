@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Αναπτύχθηκε από %(name)s"
+        }
+    },
     "a11y": {
         "jump_first_invite": "Μετάβαση στην πρώτη πρόσκληση.",
         "n_unread_messages": {

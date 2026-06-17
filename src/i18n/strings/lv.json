@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Izstrādāja %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Emocijzīmju atlasītājs",
         "jump_first_invite": "Pārlēkt uz pirmo uzaicinājumu.",

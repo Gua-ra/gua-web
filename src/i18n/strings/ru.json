@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Разработано %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Выбор эмодзи",
         "jump_first_invite": "Перейти к первому приглашению.",

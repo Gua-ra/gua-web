@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "توسعه داده شده توسط %(name)s"
+        }
+    },
     "a11y": {
         "jump_first_invite": "به اولین دعوت بروید.",
         "n_unread_messages": {

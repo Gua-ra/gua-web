@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Desenvolvido por %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Selecionador de emojis",
         "jump_first_invite": "Salta para o primeiro convite.",

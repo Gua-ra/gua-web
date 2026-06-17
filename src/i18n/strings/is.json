@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Þróað af %(name)s"
+        }
+    },
     "a11y": {
         "jump_first_invite": "Fara í fyrsta boð.",
         "n_unread_messages": {

@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Utviklet av %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Emoji-velger",
         "jump_first_invite": "Hopp til den første invitasjonen.",

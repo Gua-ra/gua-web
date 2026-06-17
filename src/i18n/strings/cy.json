@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Datblygwyd gan %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Dewisydd Emoji",
         "jump_first_invite": "Symud i'r gwahoddiad cyntaf.",

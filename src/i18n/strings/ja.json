@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "%(name)s によって開発"
+        }
+    },
     "a11y": {
         "jump_first_invite": "最初の招待に移動。",
         "n_unread_messages": {

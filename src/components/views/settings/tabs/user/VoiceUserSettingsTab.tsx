@@ -24,6 +24,7 @@ import SettingsTab from "../SettingsTab";
 import { SettingsSection } from "../../shared/SettingsSection";
 import { SettingsSubsection } from "../../shared/SettingsSubsection";
 import MatrixClientContext from "../../../../../contexts/MatrixClientContext";
+import { GUA_SHOW_FALLBACK_ICE_SERVER_SETTING } from "../../../../../gua/settings";
 
 interface IState {
     mediaDevices: IMediaDevices | null;
@@ -217,14 +218,16 @@ export default class VoiceUserSettingsTab extends React.Component<EmptyObject, I
                             level={SettingLevel.DEVICE}
                             onChange={this.changeWebRtcMethod}
                         />
-                        <SettingsFlag
-                            name="fallbackICEServerAllowed"
-                            label={_t("settings|voip|enable_fallback_ice_server", {
-                                server: new URL(FALLBACK_ICE_SERVER).pathname,
-                            })}
-                            level={SettingLevel.DEVICE}
-                            hideIfCannotSet
-                        />
+                        {GUA_SHOW_FALLBACK_ICE_SERVER_SETTING && (
+                            <SettingsFlag
+                                name="fallbackICEServerAllowed"
+                                label={_t("settings|voip|enable_fallback_ice_server", {
+                                    server: new URL(FALLBACK_ICE_SERVER).pathname,
+                                })}
+                                level={SettingLevel.DEVICE}
+                                hideIfCannotSet
+                            />
+                        )}
                     </SettingsSubsection>
                 </SettingsSection>
             </SettingsTab>

@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Dikembangkan oleh %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Pemilih emoji",
         "jump_first_invite": "Pergi ke undangan pertama.",

@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Vyvinuto %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Výběr emodži",
         "jump_first_invite": "Přejít na první pozvánku.",

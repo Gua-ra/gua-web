@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Được phát triển bởi %(name)s"
+        }
+    },
     "a11y": {
         "jump_first_invite": "Chuyển đến lời mời đầu tiên.",
         "n_unread_messages": {

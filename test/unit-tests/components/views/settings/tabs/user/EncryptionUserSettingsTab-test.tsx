@@ -67,10 +67,11 @@ describe("<EncryptionUserSettingsTab />", () => {
         expect(spy).toHaveBeenCalled();
     });
 
-    it("should display the recovery panel when key storage is enabled", async () => {
+    it("should hide the recovery panel when key storage is enabled", async () => {
         jest.spyOn(matrixClient.getCrypto()!, "getActiveSessionBackupVersion").mockResolvedValue("1");
         renderComponent();
-        await waitFor(() => expect(screen.getByText("Recovery")).toBeInTheDocument());
+        await waitFor(() => expect(screen.getByRole("heading", { name: "Key storage" })).toBeInTheDocument());
+        expect(screen.queryByText("Recovery")).not.toBeInTheDocument();
     });
 
     it("should not display the recovery panel when key storage is not enabled", async () => {
@@ -80,7 +81,7 @@ describe("<EncryptionUserSettingsTab />", () => {
         await expect(screen.queryByText("Recovery")).not.toBeInTheDocument();
     });
 
-    it("should display the recovery out of sync panel when secrets are not cached", async () => {
+    it("should hide the recovery out of sync panel when secrets are not cached", async () => {
         jest.spyOn(matrixClient.getCrypto()!, "getActiveSessionBackupVersion").mockResolvedValue("1");
         // Secrets are not cached
         jest.spyOn(matrixClient.getCrypto()!, "getCrossSigningStatus").mockResolvedValue({
@@ -93,62 +94,40 @@ describe("<EncryptionUserSettingsTab />", () => {
             },
         });
 
-        const user = userEvent.setup();
-        const { asFragment } = renderComponent();
+        renderComponent();
 
-        await waitFor(() => screen.getByRole("button", { name: "Enter recovery key" }));
-        expect(asFragment()).toMatchSnapshot();
-
-        await user.click(screen.getByRole("button", { name: "Forgot recovery key?" }));
-        expect(
-            screen.getByRole("heading", { name: "Forgot your recovery key? You’ll need to reset your identity." }),
-        ).toBeVisible();
+        await waitFor(() => expect(screen.getByRole("heading", { name: "Key storage" })).toBeInTheDocument());
+        expect(screen.queryByRole("heading", { name: "Recovery" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Enter recovery key" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Forgot recovery key?" })).not.toBeInTheDocument();
     });
 
-    it("should display the change recovery key panel when the user clicks on the change recovery button", async () => {
+    it("should hide the change recovery key entry point", async () => {
         jest.spyOn(matrixClient.getCrypto()!, "getActiveSessionBackupVersion").mockResolvedValue("1");
-        const user = userEvent.setup();
 
-        const { asFragment } = renderComponent();
-        await waitFor(() => {
-            const button = screen.getByRole("button", { name: "Change recovery key" });
-            expect(button).toBeInTheDocument();
-            user.click(button);
-        });
-        await waitFor(() => expect(screen.getByText("Change recovery key")).toBeInTheDocument());
-        expect(asFragment()).toMatchSnapshot();
+        renderComponent();
+
+        await waitFor(() => expect(screen.getByRole("heading", { name: "Key storage" })).toBeInTheDocument());
+        expect(screen.queryByRole("button", { name: "Change recovery key" })).not.toBeInTheDocument();
     });
 
-    it("should display the set up recovery key when the user clicks on the set up recovery key button", async () => {
+    it("should hide the set up recovery key entry point", async () => {
         jest.spyOn(matrixClient.getCrypto()!, "getActiveSessionBackupVersion").mockResolvedValue("1");
         jest.spyOn(matrixClient.secretStorage, "getDefaultKeyId").mockResolvedValue(null);
-        const user = userEvent.setup();
 
-        const { asFragment } = renderComponent();
-        await waitFor(() => {
-            const button = screen.getByRole("button", { name: "Set up recovery" });
-            expect(button).toBeInTheDocument();
-            user.click(button);
-        });
-        await waitFor(() => expect(screen.getByText("Set up recovery")).toBeInTheDocument());
-        expect(asFragment()).toMatchSnapshot();
+        renderComponent();
+
+        await waitFor(() => expect(screen.getByRole("heading", { name: "Key storage" })).toBeInTheDocument());
+        expect(screen.queryByRole("button", { name: "Set up recovery" })).not.toBeInTheDocument();
     });
 
-    it("should display the reset identity panel when the user clicks on the reset cryptographic identity panel", async () => {
+    it("should hide the reset cryptographic identity entry point", async () => {
         jest.spyOn(matrixClient.getCrypto()!, "getActiveSessionBackupVersion").mockResolvedValue("1");
 
-        const user = userEvent.setup();
+        renderComponent();
 
-        const { asFragment } = renderComponent();
-        await waitFor(() => {
-            const button = screen.getByRole("button", { name: "Reset cryptographic identity" });
-            expect(button).toBeInTheDocument();
-            user.click(button);
-        });
-        await waitFor(() =>
-            expect(screen.getByText("Are you sure you want to reset your identity?")).toBeInTheDocument(),
-        );
-        expect(asFragment()).toMatchSnapshot();
+        await waitFor(() => expect(screen.getByRole("heading", { name: "Key storage" })).toBeInTheDocument());
+        expect(screen.queryByRole("button", { name: "Reset cryptographic identity" })).not.toBeInTheDocument();
     });
 
     it("should enter 'Forgot recovery' flow when initialState is set to 'reset_identity_forgot'", async () => {
@@ -175,12 +154,13 @@ describe("<EncryptionUserSettingsTab />", () => {
         ).toBeVisible();
     });
 
-    it("should update when key backup status event is fired", async () => {
+    it("should keep recovery hidden when key backup status event is fired", async () => {
         jest.spyOn(matrixClient.getCrypto()!, "getActiveSessionBackupVersion").mockResolvedValue("1");
 
         renderComponent();
 
-        await expect(await screen.findByRole("heading", { name: "Recovery" })).toBeVisible();
+        await expect(await screen.findByRole("heading", { name: "Key storage" })).toBeVisible();
+        expect(screen.queryByRole("heading", { name: "Recovery" })).toBeNull();
 
         jest.spyOn(matrixClient.getCrypto()!, "getActiveSessionBackupVersion").mockResolvedValue(null);
 
@@ -216,8 +196,9 @@ describe("<EncryptionUserSettingsTab />", () => {
         ).toBeVisible();
 
         await user.click(screen.getByRole("button", { name: "Back" }));
-        await waitFor(() =>
-            screen.getByText("Your key storage is out of sync. Click one of the buttons below to fix the problem."),
-        );
+        await waitFor(() => expect(screen.getByRole("heading", { name: "Key storage" })).toBeInTheDocument());
+        expect(
+            screen.queryByText("Your key storage is out of sync. Click one of the buttons below to fix the problem."),
+        ).not.toBeInTheDocument();
     });
 });
