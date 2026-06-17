@@ -54,6 +54,13 @@ export interface IConfigOptions {
     gua_auth?: {
         phone_oidc_login?: boolean;
     };
+    // Gua resolver (federation routing front door) base URL. When set, the phone-entry step asks the
+    // resolver which homeserver a phone belongs to (or should be created on) before starting OIDC, instead
+    // of using the configured default homeserver. Web equivalent of the iOS Secrets.resolverBaseURL.
+    // No trailing slash required; falls back to the default server config when unset or on lookup failure.
+    gua_resolver?: {
+        base_url: string;
+    };
 
     brand: string;
     branding?: {

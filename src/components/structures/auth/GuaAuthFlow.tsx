@@ -11,8 +11,12 @@ import { _t, getUserLanguage } from "../../../languageHandler";
 import { type IMatrixClientCreds } from "../../../MatrixClientPeg";
 import SdkConfig from "../../../SdkConfig";
 import { type ValidatedServerConfig } from "../../../utils/ValidatedServerConfig";
+import { logger } from "matrix-js-sdk/src/logger";
+
 import { getOidcClientId } from "../../../utils/oidc/registerClient";
 import { startGuaPhoneOidcLogin } from "../../../gua/oidc/startPhoneOidcLogin";
+import AutoDiscoveryUtils from "../../../utils/AutoDiscoveryUtils";
+import ResolverClient from "../../../gua/resolver/ResolverClient";
 import AuthPage from "../../views/auth/AuthPage";
 import AuthBody from "../../views/auth/AuthBody";
 import AuthHeader from "../../views/auth/AuthHeader";
@@ -37,6 +41,26 @@ type Step =
     | { kind: "newUser"; phone: string; signupToken: string }
     | { kind: "pinRequired"; phone: string; challengeToken: string }
     | { kind: "finishing" };
+
+/**
+ * GUA: ask the resolver which homeserver a phone belongs to (or should be created on) and discover its
+ * full config. Falls back to the configured default server config when the resolver is unset or the lookup
+ * fails, so the app keeps working before the resolver is deployed. Mirrors the iOS `resolveHomeserver`.
+ */
+async function resolveServerConfig(e164: string, fallback: ValidatedServerConfig): Promise<ValidatedServerConfig> {
+    const resolver = ResolverClient.fromConfig();
+    if (!resolver) return fallback;
+    try {
+        const resolution = await resolver.resolve(e164);
+        // Use the homeserver base URL the resolver returned directly (it is the source of truth), rather
+        // than re-discovering via HTTPS well-known on the server name — that is redundant and fails for
+        // http/localhost homeservers. The homeserver's own auth metadata still yields the MAS config.
+        return await AutoDiscoveryUtils.validateServerConfigWithStaticUrls(resolution.homeserver.baseUrl);
+    } catch (e) {
+        logger.warn("Gua resolver lookup failed; falling back to the default server config", e);
+        return fallback;
+    }
+}
 
 /**
  * Coordinator for the Gua phone/OTP onboarding flow. Drives the identity-service REST API
@@ -76,16 +100,18 @@ export default function GuaAuthFlow({ onLoggedIn, serverConfig }: Props): JSX.El
         setBusy(true);
         setError(undefined);
         try {
-            if (serverConfig.delegatedAuthentication) {
+            // GUA: route to the homeserver this phone belongs to, instead of always the configured default.
+            const effectiveConfig = await resolveServerConfig(e164, serverConfig);
+            if (effectiveConfig.delegatedAuthentication) {
                 const clientId = await getOidcClientId(
-                    serverConfig.delegatedAuthentication,
+                    effectiveConfig.delegatedAuthentication,
                     SdkConfig.get().oidc_static_clients,
                 );
                 await startGuaPhoneOidcLogin(
-                    serverConfig.delegatedAuthentication,
+                    effectiveConfig.delegatedAuthentication,
                     clientId,
-                    serverConfig.hsUrl,
-                    serverConfig.isUrl,
+                    effectiveConfig.hsUrl,
+                    effectiveConfig.isUrl,
                     e164,
                 );
                 return;
