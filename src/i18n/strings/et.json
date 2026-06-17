@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Arendanud %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Emojide valija",
         "jump_first_invite": "Siirdu esimese kutse juurde.",

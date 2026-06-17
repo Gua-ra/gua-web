@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Ontwikkeld door %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Emoji kiezer",
         "jump_first_invite": "Ga naar de eerste uitnodiging.",

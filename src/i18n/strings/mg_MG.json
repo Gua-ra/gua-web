@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Novolavolain'i %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Mpifidy Emoji",
         "jump_first_invite": "Hanketo amin'ny fanasana voalohany.",

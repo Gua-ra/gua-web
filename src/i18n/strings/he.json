@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "פותח על ידי %(name)s"
+        }
+    },
     "a11y": {
         "jump_first_invite": "קפצו להזמנה ראשונה.",
         "n_unread_messages": {

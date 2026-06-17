@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Développé par %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Sélecteur d'emoji",
         "jump_first_invite": "Sauter à la première invitation.",

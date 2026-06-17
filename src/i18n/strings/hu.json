@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Fejlesztette: %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Emodzsiválasztó",
         "jump_first_invite": "Ugrás az első meghívóhoz.",

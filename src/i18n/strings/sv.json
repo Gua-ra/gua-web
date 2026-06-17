@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Utvecklad av %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Emojiväljare",
         "jump_first_invite": "Hoppa till första inbjudan.",

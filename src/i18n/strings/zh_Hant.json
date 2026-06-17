@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "由 %(name)s 開發"
+        }
+    },
     "a11y": {
         "jump_first_invite": "跳到第一個邀請。",
         "n_unread_messages": {

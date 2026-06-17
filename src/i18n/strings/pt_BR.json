@@ -1,5 +1,8 @@
 {
     "gua": {
+        "footer": {
+            "developed_by": "Desenvolvido por %(name)s"
+        },
         "phone": {
             "title": "Digite seu número de telefone",
             "subtitle": "Enviaremos um código de verificação por SMS.",

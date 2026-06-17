@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Vyvinuté %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Výber emotikonov",
         "jump_first_invite": "Prejsť na prvú pozvánku.",

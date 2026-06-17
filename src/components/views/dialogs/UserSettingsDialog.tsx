@@ -48,6 +48,7 @@ import { useSettingValue } from "../../../hooks/useSettings";
 import { NoChange, useEventEmitterAsyncState, type AsyncStateCallbackResult } from "../../../hooks/useEventEmitter";
 import { ToastContext, useActiveToast } from "../../../contexts/ToastContext";
 import { EncryptionUserSettingsTab, type State } from "../settings/tabs/user/EncryptionUserSettingsTab";
+import { GUA_SHOW_USER_ADVANCED_ENCRYPTION_SETTINGS, GUA_SHOW_USER_RECOVERY_SETTINGS } from "../../../gua/settings";
 
 interface IProps {
     initialTabId?: UserTab;
@@ -97,9 +98,6 @@ function titleForTabID(tabId: UserTab): React.ReactNode {
 
 export default function UserSettingsDialog(props: IProps): JSX.Element {
     const voipEnabled = useSettingValue(UIFeature.Voip);
-    // GUA FORK: When advanced encryption is disabled, hide the whole Encryption
-    // ("Criptografia") tab. E2EE stays on with safe defaults (key storage +
-    // recovery managed automatically); only the advanced controls are hidden.
     const advancedEncryptionEnabled = useSettingValue(UIFeature.AdvancedEncryption);
     const mjolnirEnabled = useSettingValue("feature_mjolnir");
     // store these props in state as changing tabs back and forth should clear them
@@ -128,6 +126,9 @@ export default function UserSettingsDialog(props: IProps): JSX.Element {
 
     const getTabs = (): NonEmptyArray<Tab<UserTab>> => {
         const tabs: Tab<UserTab>[] = [];
+        const showEncryptionSettingsTab =
+            advancedEncryptionEnabled &&
+            (GUA_SHOW_USER_ADVANCED_ENCRYPTION_SETTINGS || GUA_SHOW_USER_RECOVERY_SETTINGS);
 
         tabs.push(
             new Tab(
@@ -215,7 +216,7 @@ export default function UserSettingsDialog(props: IProps): JSX.Element {
             ),
         );
 
-        if (advancedEncryptionEnabled) {
+        if (showEncryptionSettingsTab) {
             tabs.push(
                 new Tab(
                     UserTab.Encryption,
@@ -223,7 +224,9 @@ export default function UserSettingsDialog(props: IProps): JSX.Element {
                     <KeyIcon />,
                     <EncryptionUserSettingsTab initialState={initialEncryptionState} />,
                     "UserSettingsEncryption",
-                    showSetupRecoveryIndicator ? "mx_SettingsDialog_tabLabelsAlert" : undefined,
+                    GUA_SHOW_USER_RECOVERY_SETTINGS && showSetupRecoveryIndicator
+                        ? "mx_SettingsDialog_tabLabelsAlert"
+                        : undefined,
                 ),
             );
         }

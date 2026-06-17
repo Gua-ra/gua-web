@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Stworzone przez %(name)s"
+        }
+    },
     "a11y": {
         "emoji_picker": "Selektor emoji",
         "jump_first_invite": "Przejdź do pierwszego zaproszenia.",

@@ -251,22 +251,20 @@ describe("<UserSettingsDialog />", () => {
         expect(mockSettingsStore.unwatchSetting).toHaveBeenCalledWith("mock-watcher-id-feature_mjolnir");
     });
 
-    it("displays an indicator when user needs to set up recovery", async () => {
-        // Initially, the user doesn't have secret storage, so it should display
-        // an indicator.
+    it("does not display an indicator when user needs to set up recovery", async () => {
         mockClient.secretStorage.getDefaultKeyId.mockResolvedValue(null);
 
         const { container } = render(getComponent());
 
         await waitFor(() => {
-            expect(container.querySelector(".mx_SettingsDialog_tabLabelsAlert")).toBeInTheDocument();
+            expect(container.querySelector(".mx_SettingsDialog_tabLabelsAlert")).not.toBeInTheDocument();
         });
 
         // Test that the handler ignores unknown account data
         mockClient.emit(ClientEvent.AccountData, new MatrixEvent({ type: "bar" }));
 
-        // The user now has secret storage.  Trigger an update and check that
-        // the indicator disappears.
+        // The user now has secret storage. Trigger an update and check that
+        // the indicator remains hidden.
         mockClient.secretStorage.getDefaultKeyId.mockResolvedValue("foo");
         mockClient.emit(ClientEvent.AccountData, new MatrixEvent({ type: "m.secret_storage.default_key" }));
 

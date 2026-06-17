@@ -28,6 +28,10 @@ import { KeyStoragePanel } from "../../encryption/KeyStoragePanel";
 import SettingsStore from "../../../../../settings/SettingsStore";
 import { UIFeature } from "../../../../../settings/UIFeature";
 import { DeleteKeyStoragePanel } from "../../encryption/DeleteKeyStoragePanel";
+import {
+    GUA_SHOW_USER_ADVANCED_ENCRYPTION_SETTINGS,
+    GUA_SHOW_USER_RECOVERY_SETTINGS,
+} from "../../../../../gua/settings";
 
 /**
  * The state in the encryption settings tab.
@@ -75,30 +79,12 @@ export function EncryptionUserSettingsTab({ initialState = "loading" }: Props): 
 
     const checkEncryptionState = useCheckEncryptionState(state, setState);
 
-    let content: JSX.Element;
-
-    switch (state) {
-        case "loading":
-            content = <InlineSpinner aria-label={_t("common|loading")} />;
-            break;
-        case "set_up_encryption":
-            content = <SetUpEncryptionPanel onFinish={checkEncryptionState} />;
-            break;
-        case "secrets_not_cached":
-            content = (
-                <RecoveryPanelOutOfSync
-                    onFinish={checkEncryptionState}
-                    onForgotRecoveryKey={() => setState("reset_identity_forgot")}
-                />
-            );
-            break;
-        case "key_storage_disabled":
-        case "main":
-            content = (
+    const mainSettings = (
+        <>
+            <KeyStoragePanel onKeyStorageDisableClick={() => setState("key_storage_delete")} />
+            {GUA_SHOW_USER_RECOVERY_SETTINGS && (
                 <>
-                    <KeyStoragePanel onKeyStorageDisableClick={() => setState("key_storage_delete")} />
                     <Separator kind="section" />
-                    {/* We only show the "Recovery" panel if key storage is enabled.*/}
                     {state === "main" && (
                         <>
                             <RecoveryPanel
@@ -109,16 +95,39 @@ export function EncryptionUserSettingsTab({ initialState = "loading" }: Props): 
                             <Separator kind="section" />
                         </>
                     )}
-                    {/* GUA FORK: The advanced encryption panel (session ID/key, export/import
-                        keys, reset cryptographic identity, and the "only send to verified users"
-                        toggle) exposes cryptographic footguns that can confuse or harm
-                        non-technical users. Hidden unless UIFeature.advancedEncryption is enabled.
-                        E2EE itself stays fully on with safe defaults (key storage + recovery). */}
-                    {SettingsStore.getValue(UIFeature.AdvancedEncryption) && (
-                        <AdvancedPanel onResetIdentityClick={() => setState("reset_identity_compromised")} />
-                    )}
                 </>
+            )}
+            {GUA_SHOW_USER_ADVANCED_ENCRYPTION_SETTINGS && SettingsStore.getValue(UIFeature.AdvancedEncryption) && (
+                <>
+                    <Separator kind="section" />
+                    <AdvancedPanel onResetIdentityClick={() => setState("reset_identity_compromised")} />
+                </>
+            )}
+        </>
+    );
+
+    let content: JSX.Element;
+
+    switch (state) {
+        case "loading":
+            content = <InlineSpinner aria-label={_t("common|loading")} />;
+            break;
+        case "set_up_encryption":
+            content = <SetUpEncryptionPanel onFinish={checkEncryptionState} />;
+            break;
+        case "secrets_not_cached":
+            content = GUA_SHOW_USER_RECOVERY_SETTINGS ? (
+                <RecoveryPanelOutOfSync
+                    onFinish={checkEncryptionState}
+                    onForgotRecoveryKey={() => setState("reset_identity_forgot")}
+                />
+            ) : (
+                mainSettings
             );
+            break;
+        case "key_storage_disabled":
+        case "main":
+            content = mainSettings;
             break;
         case "change_recovery_key":
         case "set_recovery_key":

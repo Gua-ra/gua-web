@@ -1,4 +1,9 @@
 {
+    "gua": {
+        "footer": {
+            "developed_by": "Desarrollado por %(name)s"
+        }
+    },
     "a11y": {
         "jump_first_invite": "Salte a la primera invitación.",
         "n_unread_messages": {
