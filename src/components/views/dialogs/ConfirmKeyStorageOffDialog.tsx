@@ -60,7 +60,7 @@ export default class ConfirmKeyStorageOffDialog extends React.Component<Props> {
                     a: (sub) => (
                         <>
                             <br />
-                            <a href="https://element.io/help#encryption5" target="_blank" rel="noreferrer noopener">
+                            <a href="https://gua.global/about" target="_blank" rel="noreferrer noopener">
                                 {sub} <PopOutIcon />
                             </a>
                         </>

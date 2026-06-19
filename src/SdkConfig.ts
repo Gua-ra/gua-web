@@ -20,8 +20,8 @@ import { GUA_CONFIG_DEFAULTS } from "./gua/config";
 export const DEFAULTS: DeepReadonly<IConfigOptions> = {
     ...GUA_CONFIG_DEFAULTS,
     brand: GUA_CONFIG_DEFAULTS.brand!,
-    help_url: "https://element.io/help",
-    help_encryption_url: "https://element.io/help#encryption",
+    help_url: "https://gua.global/about",
+    help_encryption_url: "https://gua.global/about",
     integrations_ui_url: "https://scalar.vector.im/",
     integrations_rest_url: "https://scalar.vector.im/api",
     uisi_autorageshake_app: "element-auto-uisi",
