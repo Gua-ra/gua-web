@@ -77,19 +77,19 @@ describe("CompleteSecurity", () => {
         expect(screen.queryByRole("button", { name: "Skip verification for now" })).not.toBeInTheDocument();
     });
 
-    it("Renders a warning if user hits Reset", async () => {
-        // Given a store and a dialog based on it
+    it("Auto-resets frictionlessly when keys are lost (Gua)", async () => {
+        // Given a store with no devices to verify against and no recovery key,
+        // lostKeys() is true so a reset is the only possible outcome.
         const store = new SetupEncryptionStore();
         jest.spyOn(SetupEncryptionStore, "sharedInstance").mockReturnValue(store);
         const panel = await act(() => render(<CompleteSecurity onFinished={() => {}} />));
 
-        // When we hit reset
-        await act(async () => panel.getByRole("button", { name: "Proceed with reset" }).click());
-
-        // Then the reset identity dialog appears
+        // Then, without any user interaction, the reset identity dialog appears
+        // (no "Proceed with reset" dead-end screen).
         expect(
             screen.getByRole("heading", { name: "Are you sure you want to reset your identity?" }),
         ).toBeInTheDocument();
-        expect(panel.getByRole("button", { name: "Continue" })).toBeInTheDocument();
+        expect(panel.queryByRole("button", { name: "Proceed with reset" })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Continue" })).toBeInTheDocument();
     });
 });

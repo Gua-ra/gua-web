@@ -55,7 +55,7 @@ export const KeyStoragePanel: React.FC<Props> = ({ onKeyStorageDisableClick }) =
             }
             subHeading={_t("settings|encryption|key_storage|description", undefined, {
                 a: (sub) => (
-                    <a href="https://element.io/help#encryption5" target="_blank" rel="noreferrer noopener">
+                    <a href="https://gua.global/about" target="_blank" rel="noreferrer noopener">
                         {sub}
                     </a>
                 ),

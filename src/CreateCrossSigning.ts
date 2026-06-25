@@ -63,6 +63,16 @@ export async function uiAuthCallback(
             },
         };
 
+        // Gua: this dialog also drives the MAS/OIDC cross-signing reset.
+        // When the homeserver delegates to MAS, the upload-signing-keys request
+        // returns a `org.matrix.cross_signing_reset` UIA stage. InteractiveAuth /
+        // InteractiveAuthDialog map that stage to `MasUnlockCrossSigningAuthEntry`
+        // (see getEntryComponentForLoginType), which renders the
+        // `mas_cross_signing_reset_*` "Continue to account" → MAS popup, then
+        // "Retry" → submitAuthDict({}) so the key upload completes and persists.
+        // That stage is self-contained, so it needs no entry in
+        // `aestheticsForStagePhases`; the SSO aesthetics below only style the
+        // password/SSO fallback flows.
         const { finished } = Modal.createDialog(InteractiveAuthDialog, {
             title: "",
             matrixClient,

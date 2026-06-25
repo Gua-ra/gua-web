@@ -124,6 +124,19 @@ exports[`<SecurityUserSettingsTab /> renders security section 1`] = `
             class="mx_SettingsSubsection"
           >
             <div
+              class="mx_SettingsSubsection_content mx_SettingsSubsection_noHeading"
+            >
+              <div
+                class="mx_SettingsSubsection_text"
+              >
+                Messages on Gua are protected with end-to-end encryption. They are locked on your device before being sent and can only be unlocked by the people in the conversation.
+              </div>
+            </div>
+          </div>
+          <div
+            class="mx_SettingsSubsection"
+          >
+            <div
               class="mx_SettingsSubsectionHeading"
             >
               <h3
@@ -139,14 +152,14 @@ exports[`<SecurityUserSettingsTab /> renders security section 1`] = `
                 class="mx_SettingsSubsection_text"
               >
                 <span>
-                  Element can't securely cache encrypted messages locally while running in a web browser. Use 
+                  Gua can't securely cache encrypted messages locally while running in a web browser. Use 
                   <a
                     class="mx_ExternalLink"
-                    href="https://element.io/get-started"
+                    href="https://gua.global/about"
                     rel="noreferrer noopener"
                     target="_blank"
                   >
-                    Element Desktop
+                    Gua Desktop
                     <i
                       class="mx_ExternalLink_icon"
                     />
