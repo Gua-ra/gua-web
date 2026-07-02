@@ -1,13 +1,27 @@
-# Gua Web
+<p align="center">
+  <img src="docs/img/institutional-mock.jpg" alt="Gua Web running on a laptop and a phone" width="100%"/>
+</p>
 
-Gua Web is the web client for Gua, a phone-first private messenger. It is a fork of
-[Element Web](https://github.com/element-hq/element-web) that replaces the standard
-username/password authentication with Gua's phone-number onboarding: users enter their
-phone number, verify a one-time code (OTP) through the Gua identity service, and are
-signed in either directly (identity-service minted session) or via OIDC against the
-account provider that serves their number.
+<p align="center">
+  <img src="res/themes/gua/img/logos/app-logo.png" alt="Gua Logo" width="140"/>
+</p>
+
+<div align="center">
+    <h1>Gua for Web</h1>
+</div>
+
+**Gua** is a private, phone-number-based messaging app for the web, built on top of [Matrix](https://matrix.org/).
+
+This repository is Gua-ra's fork of [`element-hq/element-web`](https://github.com/element-hq/element-web) (Element Web). The Gua app replaces Element's brand and login flow with Gua's frictionless onboarding (phone-OTP + PIN default), backed by the [Gua Identity Service](https://github.com/Gua-ra/identity-service).
+
+---
 
 ## What is different from Element Web
+
+Gua Web replaces the standard username/password authentication with Gua's phone-number
+onboarding: users enter their phone number, verify a one-time code (OTP) through the Gua
+identity service, and are signed in either directly (identity-service minted session) or
+via OIDC against the account provider that serves their number.
 
 - **Phone/OTP onboarding.** A single sign-in and registration flow
   (`src/components/structures/auth/GuaAuthFlow.tsx`) drives phone entry, OTP
