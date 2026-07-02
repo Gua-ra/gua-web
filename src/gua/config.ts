@@ -45,7 +45,7 @@ export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
         breadcrumbs: true,
     },
     room_directory: {
-        servers: ["dev.gua.sarahlacerda.me"],
+        servers: [],
     },
     mobile_builds: {
         ios: null,
