@@ -1,9 +1,7 @@
-<p align="center">
-  <img src="docs/img/institutional-mock.jpg" alt="Gua Web running on a laptop and a phone" width="100%"/>
-</p>
+![Gua Web running on a laptop next to Gua running on a phone](https://github.com/user-attachments/assets/c74849a2-f2e3-4d7c-bada-9152a0217ecf)
 
 <p align="center">
-  <img src="res/themes/gua/img/logos/app-logo.png" alt="Gua Logo" width="140"/>
+  <img src="https://raw.githubusercontent.com/Gua-ra/gua-branding/refs/heads/main/logos/gua-logo-transparent.png" alt="Gua Logo" width="140"/>
 </p>
 
 <div align="center">
