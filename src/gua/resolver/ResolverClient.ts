@@ -25,6 +25,59 @@ export interface HomeserverResolution {
     exists: boolean;
     /** The homeserver to authenticate against (login) or create the account on (register). */
     homeserver: ResolvedHomeserver;
+    /** Optional decision metadata requested with `trace: true`; do not display to end users. */
+    trace?: ResolverDecisionTrace;
+}
+
+export interface ResolverResolveOptions {
+    country?: string;
+    mccmnc?: string;
+    carrier?: string;
+    regionHint?: string;
+    affiliations?: string[];
+    attributes?: Record<string, string>;
+    routingClaims?: ResolverRoutingClaimsEnvelope;
+    trace?: boolean;
+}
+
+export interface ResolverRoutingClaimsEnvelope {
+    schemaVersion: string;
+    issuer: string;
+    audience: string;
+    issuedAt: string;
+    expiresAt: string;
+    nonce: string;
+    affiliations?: string[];
+    attributes?: Record<string, string>;
+    signatures: ResolverClaimSignature[];
+}
+
+export interface ResolverClaimSignature {
+    keyId: string;
+    signatureB64: string;
+}
+
+export interface ResolverDecisionTrace {
+    source: string;
+    rule: string;
+    ruleId?: string;
+    reason?: string;
+    policyId?: string;
+    policyVersion?: number;
+    delegatedZoneId?: string;
+    assignmentPolicy?: string;
+    homeserverId?: string;
+}
+
+interface ResolveRequest extends ResolverResolveOptions {
+    phone: string;
+}
+
+interface ResolveResponse {
+    exists: boolean;
+    homeserver?: ResolvedHomeserver;
+    registerAt?: ResolvedHomeserver;
+    trace?: ResolverDecisionTrace;
 }
 
 export class ResolverError extends Error {
@@ -49,13 +102,14 @@ export default class ResolverClient {
     }
 
     /** Resolve a verified phone number to the homeserver it belongs to (or should be created on). */
-    public async resolve(phoneNumber: string): Promise<HomeserverResolution> {
+    public async resolve(phoneNumber: string, options: ResolverResolveOptions = {}): Promise<HomeserverResolution> {
+        const requestBody: ResolveRequest = { phone: phoneNumber, ...options };
         let response: Response;
         try {
             response = await fetch(`${this.baseUrl}/resolve`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Accept: "application/json" },
-                body: JSON.stringify({ phone: phoneNumber }),
+                body: JSON.stringify(requestBody),
             });
         } catch (e) {
             throw new ResolverError(`Could not reach the routing service: ${String(e)}`);
@@ -64,7 +118,7 @@ export default class ResolverClient {
             throw new ResolverError(`Routing service error (${response.status}).`);
         }
 
-        let body: { exists: boolean; homeserver?: ResolvedHomeserver; registerAt?: ResolvedHomeserver };
+        let body: ResolveResponse;
         try {
             body = await response.json();
         } catch (e) {
@@ -74,6 +128,6 @@ export default class ResolverClient {
         if (!ref) {
             throw new ResolverError("The routing service returned an unexpected response.");
         }
-        return { exists: body.exists, homeserver: ref };
+        return { exists: body.exists, homeserver: ref, trace: body.trace };
     }
 }
