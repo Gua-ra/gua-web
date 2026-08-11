@@ -1,5 +1,5 @@
 /*
-Copyright 2025 New Vector Ltd.
+Copyright 2026 Gua
 
 SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Commercial
 Please see LICENSE files in the repository root for full details.
@@ -7,177 +7,206 @@ Please see LICENSE files in the repository root for full details.
 
 @import url("@vector-im/compound-design-tokens/assets/web/css/compound-design-tokens.css");
 
+:root {
+    --gua-green: #00c99a;
+    --gua-green-dark: #006f58;
+    --gua-ink: #17201e;
+    --gua-muted: #5d6a67;
+    --gua-surface: rgba(255, 255, 255, 0.92);
+    --gua-border: rgba(7, 61, 51, 0.13);
+}
+
 html {
     min-height: 100%;
     position: relative;
+    overflow-x: hidden;
+    background: #f6fbf9;
 }
 
 body {
-    background: var(--cpd-color-bg-canvas-default);
+    min-height: 100vh;
+    box-sizing: border-box;
     max-width: 680px;
-    margin: var(--cpd-space-0x) auto;
-    padding-bottom: 178px; /* Match the height of mx_BottomGradient */
+    margin: 0 auto;
+    padding: 0 20px 190px;
     font-family: var(--cpd-font-family-sans);
-    font-size: var(--cpd-font-size-body-lg); /* Design says 16px, this is 17px */
-    color: var(--cpd-color-text-primary);
-}
-
-hr {
-    border: none;
-    height: var(--cpd-border-width-1);
-    background-color: var(
-        --cpd-color-bg-subtle-primary /* Design uses Border token from "Compound Marketing" set, but this matches. */
-    );
-    color: var(
-        --cpd-color-bg-subtle-primary /* Design uses Border token from "Compound Marketing" set, but this matches. */
-    );
-    margin: 0;
+    color: var(--gua-ink);
 }
 
 p {
-    margin: var(--cpd-space-1x) var(--cpd-space-0x);
-    padding: var(--cpd-space-0x);
-}
-
-.mx_Button {
-    border: 0;
-    border-radius: 100px;
-    min-width: 80px;
-    background-color: var(--cpd-color-bg-action-primary-rest);
-    color: var(--cpd-color-text-on-solid-primary);
-    cursor: pointer;
-    padding: 12px 22px;
-    word-break: break-word;
-    text-decoration: none;
-}
-
-#deep_link_button {
-    margin-top: 12px;
-    display: inline-block;
-    width: auto;
-    box-sizing: border-box;
-}
-
-.mx_StoreLinks {
-    margin: 15px 0 12px 0;
-}
-
-.mx_StoreBadge {
-    text-decoration: none !important;
-    margin: 16px 16px 16px 0px;
-}
-
-#f_droid_link {
-    color: var(--cpd-color-text-action-accent);
-    font-weight: bold;
-    text-decoration: none;
-}
-
-#f_droid_link:visited {
-    color: var(--cpd-color-text-action-accent);
-}
-
-.mx_HomePage_header {
-    color: var(--cpd-color-text-secondary);
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding-top: 48px;
-    padding-bottom: 48px;
-}
-
-.mx_HomePage_header #header_title {
-    margin-top: 8px;
-    margin-bottom: 0px;
-}
-
-.mx_HomePage h3 {
-    margin-top: 30px;
-}
-
-.mx_HomePage_col {
-    display: flex;
-    flex-direction: row;
-}
-
-.mx_HomePage_row {
-    flex: 1 1 0;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    margin: 0;
+    line-height: 1.55;
 }
 
 .mx_HomePage_container {
-    margin: 10px 20px;
+    position: relative;
+    z-index: 1;
 }
 
-.mx_HomePage_errorContainer {
-    display: none; /* shown in JS if needed */
-    margin: 20px;
-    border: var(--cpd-border-width-1) solid var(--cpd-color-border-critical-primary);
-    background-color: var(--cpd-color-bg-critical-subtle);
-    padding: 5px;
+.mx_HomePage_header {
+    padding: 44px 0 32px;
+    border-bottom: 1px solid var(--gua-border);
 }
 
-.mx_HomePage_container h1,
-.mx_HomePage_container h2,
-.mx_HomePage_container h3,
-.mx_HomePage_container h4 {
-    font-weight: var(--cpd-font-weight-semibold);
-    font-size: var(--cpd-font-size-body-lg); /* Design says 16px, this is 17px */
-    margin-bottom: 8px;
-    margin-top: 4px;
-}
-
-.mx_Spacer {
-    margin-top: 48px;
-}
-
-.mx_DesktopLink {
-    color: var(--cpd-color-text-action-accent);
-    font-weight: var(--cpd-font-weight-semibold);
-    text-decoration: none;
-}
-
-/*
- * The bottom gradient is a full-width background image that stretches horizontally across the page.
- * It is positioned pinned to the bottom of the viewport unless the content is taller than the viewport,
- * in which case it will be pinned to the bottom of the content.
- */
-.mx_BottomGradient {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100vw;
-    height: 178px; /* Match the height of assets/bottom-gradient.svg so the gradient only stretches horizontally */
-    background-image: url("./assets/bottom-gradient.svg");
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-    z-index: -1;
-    margin-left: calc(50% - 50vw); /* Center the gradient regardless of body width */
-}
-
-.mx_HomePage_step_number {
+.mx_GuaBrand {
     display: flex;
-    align-items: flex-start;
-    margin-right: 8px;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 34px;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
 }
 
-.mx_HomePage_step_number span {
+.mx_GuaBrand img {
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0, 111, 88, 0.18);
+}
+
+.mx_Eyebrow {
+    margin-bottom: 10px;
+    color: var(--gua-green-dark);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.mx_HomePage_header h1 {
+    max-width: 540px;
+    margin: 0;
+    font-size: clamp(30px, 8vw, 44px);
+    line-height: 1.08;
+    letter-spacing: -0.045em;
+}
+
+.mx_Introduction {
+    max-width: 540px;
+    margin-top: 18px;
+    color: var(--gua-muted);
+    font-size: 18px;
+}
+
+main {
+    display: grid;
+    gap: 18px;
+    padding-top: 28px;
+}
+
+.mx_BetaStep,
+.mx_ContinueSection {
+    border: 1px solid var(--gua-border);
+    border-radius: 22px;
+    background: var(--gua-surface);
+    box-shadow: 0 12px 40px rgba(7, 61, 51, 0.06);
+}
+
+.mx_BetaStep {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    padding: 22px 20px;
+}
+
+.mx_BetaStep_number {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: var(--cpd-space-6x);
-    height: var(--cpd-space-6x);
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    border: var(--cpd-border-width-1) solid var(--cpd-color-bg-subtle-primary); /* Not a border token, but matches the Design (Border token from the "Compound Marketing" set). */
-    background-color: transparent;
-    color: var(--cpd-color-text-secondary);
-    font-size: var(--cpd-font-size-body-md); /* Design says 14px, this is 15px */
+    background: rgba(0, 201, 154, 0.14);
+    color: var(--gua-green-dark);
+    font-size: 14px;
+    font-weight: 600;
 }
 
-#step2_description {
-    color: var(--cpd-color-text-secondary);
+.mx_BetaStep h2,
+.mx_ContinueSection h2 {
+    margin: 2px 0 8px;
+    font-size: 18px;
+    line-height: 1.3;
+}
+
+.mx_BetaStep p,
+.mx_ContinueSection p {
+    color: var(--gua-muted);
+}
+
+.mx_Button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 48px;
+    margin-top: 18px;
+    padding: 12px 20px;
+    border: 1px solid var(--gua-green-dark);
+    border-radius: 999px;
+    background: var(--gua-green-dark);
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.mx_Button:focus-visible {
+    outline: 3px solid rgba(0, 201, 154, 0.35);
+    outline-offset: 3px;
+}
+
+.mx_BetaPlatforms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.mx_BetaPlatforms span {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(0, 201, 154, 0.1);
+    color: var(--gua-green-dark);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.mx_ContinueSection {
+    padding: 22px 20px;
+}
+
+.mx_Button_secondary {
+    border-color: var(--gua-border);
+    background: #ffffff;
+    color: var(--gua-green-dark);
+}
+
+.mx_BottomGradient {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    height: 220px;
+    margin-left: calc(50% - 50vw);
+    background:
+        radial-gradient(circle at 25% 120%, rgba(0, 201, 154, 0.6), transparent 45%),
+        radial-gradient(circle at 78% 125%, rgba(17, 92, 175, 0.5), transparent 43%),
+        linear-gradient(to bottom, transparent, rgba(7, 61, 51, 0.13));
+    z-index: 0;
+}
+
+@media (min-width: 600px) {
+    body {
+        padding-right: 30px;
+        padding-left: 30px;
+    }
+
+    .mx_HomePage_header {
+        padding-top: 56px;
+    }
+
+    .mx_BetaStep,
+    .mx_ContinueSection {
+        padding: 26px;
+    }
 }
