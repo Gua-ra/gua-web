@@ -12,15 +12,17 @@ test.describe("Gua mobile guide", () => {
         viewport: { width: 390, height: 844 }, // iPhone 16e
     });
 
-    test("explains private beta access without public store links", async ({ page, axe }) => {
+    test("explains beta-only access without enrollment or public store links", async ({ page, axe }) => {
         await page.goto("/mobile_guide/");
 
-        await expect(page.getByRole("heading", { name: "Gua is currently in private beta" })).toBeVisible();
-        await expect(page.getByRole("link", { name: "Request beta access" })).toHaveAttribute(
-            "href",
-            "https://gua.global/support",
-        );
+        await expect(page.getByRole("heading", { name: "Gua Web is available to Gua beta testers" })).toBeVisible();
+        await expect(
+            page.getByText("Gua Web is optimized for desktop browsers and is available to Gua beta testers only."),
+        ).toBeVisible();
         await expect(page.getByText("Gua is not yet available in public app stores.")).toBeVisible();
+        await expect(page.locator("body")).not.toContainText("Request beta access");
+        await expect(page.locator("body")).not.toContainText("Apply on gua.global");
+        await expect(page.locator("body")).not.toContainText("invitation");
         await expect(page.locator("body")).not.toContainText("Element");
         await expect(
             page.locator('a[href*="apps.apple.com"], a[href*="play.google.com"], a[href*="f-droid.org"]'),
