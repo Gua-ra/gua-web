@@ -16,10 +16,16 @@ import { UIFeature } from "../../../settings/UIFeature";
 import LanguageSelector from "./LanguageSelector";
 import EmbeddedPage from "../../structures/EmbeddedPage";
 import { MATRIX_LOGO_HTML } from "../../structures/static-page-vars";
+import { GUA_WEB_REGISTRATION_DISABLED_MESSAGE, GUA_WEB_REGISTRATION_ENABLED } from "../../../gua/config";
 
 export default class Welcome extends React.PureComponent<EmptyObject> {
     public render(): React.ReactNode {
         const pagesConfig = SdkConfig.getObject("embedded_pages");
+        const brandingConfig = SdkConfig.getObject("branding");
+        const registrationEnabled = GUA_WEB_REGISTRATION_ENABLED && SettingsStore.getValue(UIFeature.Registration);
+        const registrationDisabledMessage =
+            brandingConfig?.get("registration_disabled_message")?.trim() || GUA_WEB_REGISTRATION_DISABLED_MESSAGE;
+        const showDisabledRegistration = !registrationEnabled && !!registrationDisabledMessage;
         let pageUrl: string | undefined;
         if (pagesConfig) {
             pageUrl = pagesConfig.get("welcome_url");
@@ -34,20 +40,21 @@ export default class Welcome extends React.PureComponent<EmptyObject> {
 
         if (!pageUrl) {
             // Fall back to default and replace $logoUrl in welcome.html
-            const brandingConfig = SdkConfig.getObject("branding");
             const logoUrl =
                 brandingConfig?.get("welcome_logo_url") ??
                 brandingConfig?.get("auth_header_logo_url") ??
                 "themes/element/img/logos/logo.png";
             replaceMap["$logoUrl"] = logoUrl;
-            pageUrl = "welcome.html";
+            // Keep the built-in branded page cache-safe when its static logo or registration controls change.
+            pageUrl = "welcome.html?gua-web-branding=wordmark-registration-disabled-v2";
         }
 
         return (
             <AuthPage>
                 <div
                     className={classNames("mx_Welcome", {
-                        mx_WelcomePage_registrationDisabled: !SettingsStore.getValue(UIFeature.Registration),
+                        mx_WelcomePage_registrationDisabled: !registrationEnabled,
+                        mx_WelcomePage_showDisabledRegistration: showDisabledRegistration,
                     })}
                     data-testid="mx_welcome_screen"
                 >

@@ -179,7 +179,13 @@ we don't have an account and should hide them. No account == no guest account ei
             <a href="#/login" class="mx_ButtonParent mx_ButtonSignIn mx_Button_iconSignIn">
                 <div class="mx_ButtonLabel">_t("action|sign_in")</div>
             </a>
-            <a href="#/register" class="mx_ButtonParent mx_ButtonCreateAccount mx_Button_iconCreateAccount">
+            <a
+                role="link"
+                aria-disabled="true"
+                tabindex="0"
+                title="Web account creation is unavailable during the beta."
+                class="mx_ButtonParent mx_ButtonCreateAccount mx_ButtonCreateAccount_disabled mx_Button_iconCreateAccount"
+            >
                 <div class="mx_ButtonLabel">_t("action|create_account")</div>
             </a>
         </div>

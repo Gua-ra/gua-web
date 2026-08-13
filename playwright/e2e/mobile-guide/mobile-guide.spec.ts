@@ -1,36 +1,76 @@
 /*
-Copyright 2025 New Vector Ltd.
+Copyright 2026 Gua
 
 SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Commercial
 Please see LICENSE files in the repository root for full details.
 */
 
 import { test, expect } from "../../element-web-test";
-import { MobileAppVariant } from "../../../src/vector/mobile_guide/mobile-apps";
 
-const variants = [MobileAppVariant.Classic, MobileAppVariant.X, MobileAppVariant.Pro];
+test.describe("Gua mobile guide", () => {
+    test.use({
+        viewport: { width: 390, height: 844 }, // iPhone 16e
+    });
 
-test.describe("Mobile Guide Screenshots", { tag: "@screenshot" }, () => {
-    for (const variant of variants) {
-        test.describe(`for variant ${variant}`, () => {
-            test.use({
-                config: {
-                    default_server_config: {
-                        "m.homeserver": {
-                            base_url: "https://matrix.server.invalid",
-                            server_name: "server.invalid",
-                        },
-                    },
-                    mobile_guide_app_variant: variant,
+    test("prioritizes desktop guidance without enrollment or public store links", async ({ page, axe }) => {
+        await page.goto("/mobile_guide/");
+
+        await expect(page.locator('link[rel="icon"][sizes="32x32"]')).toHaveAttribute(
+            "href",
+            /^\/themes\/gua\/img\/icons\/favicon\.[a-f0-9]+\.png$/,
+        );
+        await expect(page.getByRole("heading", { name: "Gua Web is optimized for desktop browsers" })).toBeVisible();
+        await expect(page.getByRole("img", { name: "Gua" })).toHaveAttribute("src", "/themes/gua/img/logos/logo.svg");
+        await expect(page.getByText("For the best experience, open Gua Web in a desktop browser.")).toBeVisible();
+        await expect(page.getByRole("heading", { name: "On a mobile device?" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Continue on web anyway" })).toBeVisible();
+        await expect(page.getByText("available to testers signed up for the Gua beta program.")).toBeVisible();
+        await expect(page.locator(".mx_BetaStep_number")).toHaveCount(0);
+        await expect(page.locator(".mx_Eyebrow")).toHaveCount(0);
+        await expect(page.locator("body")).not.toContainText("Request beta access");
+        await expect(page.locator("body")).not.toContainText("Apply on gua.global");
+        await expect(page.locator("body")).not.toContainText("invitation");
+        await expect(page.locator("body")).not.toContainText("Element");
+        await expect(
+            page.locator('a[href*="apps.apple.com"], a[href*="play.google.com"], a[href*="f-droid.org"]'),
+        ).toHaveCount(0);
+        await expect(axe).toHaveNoViolations();
+    });
+});
+
+test.describe("Gua web registration entry", () => {
+    const registrationDisabledMessage = "Web account creation is unavailable during the beta.";
+
+    test.use({
+        config: async ({ config }, use) => {
+            await use({
+                ...config,
+                brand: "Gua",
+                branding: {
+                    ...config.branding,
+                    welcome_logo_url: "themes/gua/img/logos/logo.svg",
+                    registration_disabled_message: registrationDisabledMessage,
                 },
-                viewport: { width: 390, height: 844 }, // iPhone 16e
+                setting_defaults: {
+                    ...config.setting_defaults,
+                    "UIFeature.registration": false,
+                },
             });
+        },
+    });
 
-            test("should match the mobile_guide screenshot", async ({ page, axe }) => {
-                await page.goto("/mobile_guide/");
-                await expect(page).toMatchScreenshot(`mobile-guide-${variant}.png`);
-                await expect(axe).toHaveNoViolations();
-            });
+    test("shows account creation as disabled without exposing the registration route", async ({ page }) => {
+        await page.goto("/#/welcome");
+
+        await expect(page.getByRole("img", { name: "Gua" })).toHaveAttribute("src", "themes/gua/img/logos/logo.svg", {
+            timeout: 15_000,
         });
-    }
+        const createAccount = page.getByRole("link", { name: "Create Account" });
+        await expect(createAccount).toBeVisible();
+        await expect(createAccount).toHaveAttribute("aria-disabled", "true");
+        await expect(createAccount).toHaveAttribute("title", registrationDisabledMessage);
+        await expect(createAccount).not.toHaveAttribute("href", /.+/);
+        await expect(createAccount).toHaveCSS("cursor", "not-allowed");
+        await expect(createAccount).toBeDisabled();
+    });
 });

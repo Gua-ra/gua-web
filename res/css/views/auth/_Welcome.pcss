@@ -9,10 +9,28 @@ Please see LICENSE files in the repository root for full details.
     display: flex;
     flex-direction: column;
     align-items: center;
-    &.mx_WelcomePage_registrationDisabled {
+    &.mx_WelcomePage_registrationDisabled:not(.mx_WelcomePage_showDisabledRegistration) {
         .mx_ButtonCreateAccount {
             display: none;
         }
+    }
+
+    &.mx_WelcomePage_registrationDisabled.mx_WelcomePage_showDisabledRegistration {
+        .mx_ButtonCreateAccount {
+            background-color: var(--cpd-color-bg-subtle-secondary);
+            color: var(--cpd-color-text-disabled) !important;
+            cursor: not-allowed;
+            filter: grayscale(1);
+            opacity: 0.72;
+        }
+    }
+
+    .mx_ButtonCreateAccount_disabled {
+        background-color: var(--cpd-color-bg-subtle-secondary);
+        color: var(--cpd-color-text-disabled) !important;
+        cursor: not-allowed;
+        filter: grayscale(1);
+        opacity: 0.72;
     }
 }
 
