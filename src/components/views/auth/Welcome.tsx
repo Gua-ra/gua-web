@@ -18,10 +18,6 @@ import EmbeddedPage from "../../structures/EmbeddedPage";
 import { MATRIX_LOGO_HTML } from "../../structures/static-page-vars";
 import { GUA_WEB_REGISTRATION_DISABLED_MESSAGE, GUA_WEB_REGISTRATION_ENABLED } from "../../../gua/config";
 
-function escapeHtmlAttribute(value: string): string {
-    return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-}
-
 export default class Welcome extends React.PureComponent<EmptyObject> {
     public render(): React.ReactNode {
         const pagesConfig = SdkConfig.getObject("embedded_pages");
@@ -40,16 +36,6 @@ export default class Welcome extends React.PureComponent<EmptyObject> {
             "$riot:casUrl": "#/start_cas",
             "$matrixLogo": MATRIX_LOGO_HTML,
             "[matrix]": MATRIX_LOGO_HTML,
-            "$registrationLinkAttributes": registrationEnabled
-                ? 'href="#/register"'
-                : [
-                      'role="link"',
-                      'aria-disabled="true"',
-                      'tabindex="0"',
-                      registrationDisabledMessage ? `title="${escapeHtmlAttribute(registrationDisabledMessage)}"` : "",
-                  ]
-                      .filter(Boolean)
-                      .join(" "),
         };
 
         if (!pageUrl) {
