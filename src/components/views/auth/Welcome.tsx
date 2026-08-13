@@ -17,9 +17,17 @@ import LanguageSelector from "./LanguageSelector";
 import EmbeddedPage from "../../structures/EmbeddedPage";
 import { MATRIX_LOGO_HTML } from "../../structures/static-page-vars";
 
+function escapeHtmlAttribute(value: string): string {
+    return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
+
 export default class Welcome extends React.PureComponent<EmptyObject> {
     public render(): React.ReactNode {
         const pagesConfig = SdkConfig.getObject("embedded_pages");
+        const brandingConfig = SdkConfig.getObject("branding");
+        const registrationEnabled = SettingsStore.getValue(UIFeature.Registration);
+        const registrationDisabledMessage = brandingConfig?.get("registration_disabled_message")?.trim();
+        const showDisabledRegistration = !registrationEnabled && !!registrationDisabledMessage;
         let pageUrl: string | undefined;
         if (pagesConfig) {
             pageUrl = pagesConfig.get("welcome_url");
@@ -30,11 +38,20 @@ export default class Welcome extends React.PureComponent<EmptyObject> {
             "$riot:casUrl": "#/start_cas",
             "$matrixLogo": MATRIX_LOGO_HTML,
             "[matrix]": MATRIX_LOGO_HTML,
+            "$registrationLinkAttributes": registrationEnabled
+                ? 'href="#/register"'
+                : [
+                      'role="link"',
+                      'aria-disabled="true"',
+                      'tabindex="0"',
+                      registrationDisabledMessage ? `title="${escapeHtmlAttribute(registrationDisabledMessage)}"` : "",
+                  ]
+                      .filter(Boolean)
+                      .join(" "),
         };
 
         if (!pageUrl) {
             // Fall back to default and replace $logoUrl in welcome.html
-            const brandingConfig = SdkConfig.getObject("branding");
             const logoUrl =
                 brandingConfig?.get("welcome_logo_url") ??
                 brandingConfig?.get("auth_header_logo_url") ??
@@ -47,7 +64,8 @@ export default class Welcome extends React.PureComponent<EmptyObject> {
             <AuthPage>
                 <div
                     className={classNames("mx_Welcome", {
-                        mx_WelcomePage_registrationDisabled: !SettingsStore.getValue(UIFeature.Registration),
+                        mx_WelcomePage_registrationDisabled: !registrationEnabled,
+                        mx_WelcomePage_showDisabledRegistration: showDisabledRegistration,
                     })}
                     data-testid="mx_welcome_screen"
                 >

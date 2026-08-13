@@ -67,6 +67,7 @@ export interface IConfigOptions {
         welcome_background_url?: string | string[]; // chosen at random if array
         welcome_logo_url?: string;
         auth_header_logo_url?: string;
+        registration_disabled_message?: string;
         auth_footer_links?: { text: string; text_key?: string; variables?: Record<string, string>; url: string }[];
     };
 
