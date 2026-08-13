@@ -16,6 +16,7 @@ test.describe("Gua mobile guide", () => {
         await page.goto("/mobile_guide/");
 
         await expect(page.getByRole("heading", { name: "Gua Web is optimized for desktop browsers" })).toBeVisible();
+        await expect(page.getByRole("img", { name: "Gua" })).toHaveAttribute("src", "/themes/gua/img/logos/logo.svg");
         await expect(page.getByText("For the best experience, open Gua Web in a desktop browser.")).toBeVisible();
         await expect(page.getByRole("heading", { name: "On a mobile device?" })).toBeVisible();
         await expect(page.getByRole("heading", { name: "Continue on web anyway" })).toBeVisible();

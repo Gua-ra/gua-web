@@ -12,8 +12,8 @@ Please see LICENSE files in the repository root for full details.
     --gua-green-dark: #006f58;
     --gua-ink: #17201e;
     --gua-muted: #5d6a67;
-    --gua-surface: rgba(255, 255, 255, 0.92);
-    --gua-border: rgba(7, 61, 51, 0.13);
+    --gua-surface: rgb(255, 255, 255, 0.92);
+    --gua-border: rgb(7, 61, 51, 0.13);
 }
 
 html {
@@ -49,18 +49,10 @@ p {
 }
 
 .mx_GuaBrand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    display: block;
+    width: 130px;
+    height: 50px;
     margin-bottom: 34px;
-    font-size: 28px;
-    font-weight: 600;
-    letter-spacing: -0.04em;
-}
-
-.mx_GuaBrand img {
-    border-radius: 14px;
-    box-shadow: 0 8px 24px rgba(0, 111, 88, 0.18);
 }
 
 .mx_HomePage_header h1 {
@@ -89,7 +81,7 @@ main {
     border: 1px solid var(--gua-border);
     border-radius: 22px;
     background: var(--gua-surface);
-    box-shadow: 0 12px 40px rgba(7, 61, 51, 0.06);
+    box-shadow: 0 12px 40px rgb(7, 61, 51, 0.06);
 }
 
 .mx_MobileSection {
@@ -125,7 +117,7 @@ main {
 }
 
 .mx_Button:focus-visible {
-    outline: 3px solid rgba(0, 201, 154, 0.35);
+    outline: 3px solid rgb(0, 201, 154, 0.35);
     outline-offset: 3px;
 }
 
@@ -139,7 +131,7 @@ main {
 .mx_BetaPlatforms span {
     padding: 7px 10px;
     border-radius: 999px;
-    background: rgba(0, 201, 154, 0.1);
+    background: rgb(0, 201, 154, 0.1);
     color: var(--gua-green-dark);
     font-size: 13px;
     font-weight: 600;
@@ -164,9 +156,9 @@ main {
     height: 220px;
     margin-left: calc(50% - 50vw);
     background:
-        radial-gradient(circle at 25% 120%, rgba(0, 201, 154, 0.6), transparent 45%),
-        radial-gradient(circle at 78% 125%, rgba(17, 92, 175, 0.5), transparent 43%),
-        linear-gradient(to bottom, transparent, rgba(7, 61, 51, 0.13));
+        radial-gradient(circle at 25% 120%, rgb(0, 201, 154, 0.6), transparent 45%),
+        radial-gradient(circle at 78% 125%, rgb(17, 92, 175, 0.5), transparent 43%),
+        linear-gradient(to bottom, transparent, rgb(7, 61, 51, 0.13));
     z-index: 0;
 }
 
