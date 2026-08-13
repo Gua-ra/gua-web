@@ -45,7 +45,8 @@ export default class Welcome extends React.PureComponent<EmptyObject> {
                 brandingConfig?.get("auth_header_logo_url") ??
                 "themes/element/img/logos/logo.png";
             replaceMap["$logoUrl"] = logoUrl;
-            pageUrl = "welcome.html";
+            // Keep the built-in branded page cache-safe when its static logo or registration controls change.
+            pageUrl = "welcome.html?gua-web-branding=wordmark-registration-disabled-v2";
         }
 
         return (

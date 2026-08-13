@@ -44,6 +44,7 @@ test.describe("Gua web registration entry", () => {
                 brand: "Gua",
                 branding: {
                     ...config.branding,
+                    welcome_logo_url: "themes/gua/img/logos/logo.svg",
                     registration_disabled_message: registrationDisabledMessage,
                 },
                 setting_defaults: {
@@ -57,6 +58,9 @@ test.describe("Gua web registration entry", () => {
     test("shows account creation as disabled without exposing the registration route", async ({ page }) => {
         await page.goto("/#/welcome");
 
+        await expect(page.getByRole("img", { name: "Gua" })).toHaveAttribute("src", "themes/gua/img/logos/logo.svg", {
+            timeout: 15_000,
+        });
         const createAccount = page.getByRole("link", { name: "Create Account" });
         await expect(createAccount).toBeVisible();
         await expect(createAccount).toHaveAttribute("aria-disabled", "true");
