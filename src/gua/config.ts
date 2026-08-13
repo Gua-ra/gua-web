@@ -18,6 +18,7 @@ export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
         welcome_background_url: GUA_WELCOME_BACKGROUND_URL,
         welcome_logo_url: GUA_APP_LOGO_URL,
         auth_header_logo_url: GUA_LOGO_URL,
+        registration_disabled_message: "Web account creation is unavailable during the beta.",
         auth_footer_links: [
             {
                 text: "Developed by Sarah L.S.",
@@ -42,7 +43,8 @@ export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
     default_country_code: "BR",
     default_theme: "light",
     setting_defaults: {
-        breadcrumbs: true,
+        "breadcrumbs": true,
+        "UIFeature.registration": false,
     },
     room_directory: {
         servers: [],
