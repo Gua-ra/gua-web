@@ -17,7 +17,7 @@ test.describe("Gua mobile guide", () => {
 
         await expect(page.locator('link[rel="icon"][sizes="32x32"]')).toHaveAttribute(
             "href",
-            /themes\/gua\/img\/icons\/favicon\.[a-f0-9]+\.png$/,
+            /^\/themes\/gua\/img\/icons\/favicon\.[a-f0-9]+\.png$/,
         );
         await expect(page.getByRole("heading", { name: "Gua Web is optimized for desktop browsers" })).toBeVisible();
         await expect(page.getByRole("img", { name: "Gua" })).toHaveAttribute("src", "/themes/gua/img/logos/logo.svg");
