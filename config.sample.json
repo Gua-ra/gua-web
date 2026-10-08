@@ -18,7 +18,6 @@
         "welcome_background_url": "themes/gua/img/backgrounds/background.png",
         "welcome_logo_url": "themes/gua/img/logos/logo.svg",
         "auth_header_logo_url": "themes/gua/img/logos/logo.svg",
-        "registration_disabled_message": "Web account creation is unavailable during the beta.",
         "auth_footer_links": [
             {
                 "text": "Developed by Sarah L.S.",

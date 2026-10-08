@@ -85,6 +85,9 @@
             "phone_already_linked": "Este número de telefone já está vinculado a outra conta.",
             "invalid_reauth_token": "Sua verificação expirou. Solicite um novo código.",
             "generic": "Algo deu errado. Tente novamente."
+        },
+        "welcome": {
+            "registration_disabled": "A criação de contas pela web não está disponível durante o beta."
         }
     },
     "a11y": {

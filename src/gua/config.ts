@@ -12,7 +12,6 @@ export const GUA_LOGO_URL = "themes/gua/img/logos/logo.svg";
 export const GUA_APP_LOGO_URL = "themes/gua/img/logos/app-logo.png";
 export const GUA_WELCOME_BACKGROUND_URL = "themes/gua/img/backgrounds/background.png";
 export const GUA_WEB_REGISTRATION_ENABLED: boolean = false;
-export const GUA_WEB_REGISTRATION_DISABLED_MESSAGE = "Web account creation is unavailable during the beta.";
 
 export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
     brand: GUA_BRAND,
@@ -20,7 +19,6 @@ export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
         welcome_background_url: GUA_WELCOME_BACKGROUND_URL,
         welcome_logo_url: GUA_LOGO_URL,
         auth_header_logo_url: GUA_LOGO_URL,
-        registration_disabled_message: GUA_WEB_REGISTRATION_DISABLED_MESSAGE,
         auth_footer_links: [
             {
                 text: "Developed by Sarah L.S.",
