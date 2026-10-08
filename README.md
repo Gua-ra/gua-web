@@ -10,7 +10,7 @@
 
 **Gua** is a private messaging app for the web, built on top of [Matrix](https://matrix.org/).
 
-This repository is Gua-ra's fork of [`element-hq/element-web`](https://github.com/element-hq/element-web) (Element Web). It carries the web client's share of Gua's product layer, not just a rebrand: resolver-based routing across a trusted federation of account providers, with the homeserver abstracted away from users; simplified onboarding — a phone number by default, flexible enough to sit in front of institutional SSO; and private contact discovery backed by query-only resolver lookups. The Gua brand and simplified settings round out the delta.
+This repository is Gua-ra's fork of [`element-hq/element-web`](https://github.com/element-hq/element-web) (Element Web). It carries the web client's share of Gua's product layer: resolver-based routing across a trusted federation of account providers, with the homeserver abstracted away from users; simplified onboarding (a phone number by default, flexible enough to sit in front of institutional SSO); and private contact discovery backed by query-only resolver lookups. The Gua brand and simplified settings round out the delta.
 
 ---
 
@@ -18,8 +18,8 @@ This repository is Gua-ra's fork of [`element-hq/element-web`](https://github.co
 
 Gua Web layers Gua's routing and onboarding stack on top of Element Web. At sign-in, the
 client resolves which trusted account provider serves a user (or should host a new
-account) and hands off to it — via OIDC or a directly minted session — so users never
-type or see a server name. The sign-in step itself is deliberately simple: today a phone
+account) and hands off to it, via OIDC or a directly minted session, so users never
+type or see a server name. The sign-in step itself is simple: today a phone
 number plus a one-time code, with an optional PIN as a second step; because the hand-off
 is standard OIDC, a provider can front its own flow instead, such as institutional SSO.
 
@@ -96,6 +96,7 @@ All remaining options are inherited from upstream and documented in
 - [Developer guide](developer_guide.md)
 - [Code style](code_style.md)
 - [Contribution guide](CONTRIBUTING.md)
+- Security problems: [SECURITY.md](SECURITY.md)
 - Linting: `yarn lint` (or the narrower `yarn lint:types`, `yarn lint:js`,
   `yarn lint:style`)
 - Tests: `yarn test` (Jest), `yarn test:playwright` (end-to-end)
