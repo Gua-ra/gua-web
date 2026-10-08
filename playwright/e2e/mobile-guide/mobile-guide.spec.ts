@@ -5,6 +5,8 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
+import { devices } from "@playwright/test";
+
 import { test, expect } from "../../element-web-test";
 
 test.describe("Gua mobile guide", () => {
@@ -38,39 +40,53 @@ test.describe("Gua mobile guide", () => {
     });
 });
 
-test.describe("Gua web registration entry", () => {
-    const registrationDisabledMessage = "Web account creation is unavailable during the beta.";
-
+test.describe("Gua mobile redirect", () => {
     test.use({
-        config: async ({ config }, use) => {
-            await use({
-                ...config,
-                brand: "Gua",
-                branding: {
-                    ...config.branding,
-                    welcome_logo_url: "themes/gua/img/logos/logo.svg",
-                    registration_disabled_message: registrationDisabledMessage,
-                },
-                setting_defaults: {
-                    ...config.setting_defaults,
-                    "UIFeature.registration": false,
-                },
-            });
-        },
+        userAgent: devices["iPhone 13"].userAgent,
+        viewport: { width: 390, height: 844 },
     });
 
-    test("shows account creation as disabled without exposing the registration route", async ({ page }) => {
-        await page.goto("/#/welcome");
+    test("sends phones to the guide until they choose to continue on web", async ({ page, context }) => {
+        await page.goto("/");
+        await expect(page).toHaveURL(/\/mobile_guide\/$/);
 
-        await expect(page.getByRole("img", { name: "Gua" })).toHaveAttribute("src", "themes/gua/img/logos/logo.svg", {
-            timeout: 15_000,
-        });
+        await page.getByRole("link", { name: "Continue to Gua Web" }).click();
+
+        await expect(page.getByTestId("mx_welcome_screen")).toBeVisible({ timeout: 15_000 });
+        await expect(page).not.toHaveURL(/mobile_guide/);
+        expect(await context.cookies()).toContainEqual(
+            expect.objectContaining({ name: "element_mobile_redirect_to_guide", value: "false", path: "/" }),
+        );
+    });
+});
+
+test.describe("Gua web registration entry", () => {
+    test("keeps account creation disabled and sends the registration route to the welcome screen", async ({ page }) => {
+        await page.goto("/#/register");
+
+        await expect(page).toHaveURL(/#\/welcome$/, { timeout: 15_000 });
+        await expect(page.getByTestId("mx_welcome_screen")).toBeVisible();
+        await expect(page.getByRole("img", { name: "Gua" })).toHaveAttribute("src", "themes/gua/img/logos/logo.svg");
         const createAccount = page.getByRole("link", { name: "Create Account" });
         await expect(createAccount).toBeVisible();
         await expect(createAccount).toHaveAttribute("aria-disabled", "true");
-        await expect(createAccount).toHaveAttribute("title", registrationDisabledMessage);
+        await expect(createAccount).toHaveAttribute("title", "Web account creation is unavailable during the beta.");
         await expect(createAccount).not.toHaveAttribute("href", /.+/);
         await expect(createAccount).toHaveCSS("cursor", "not-allowed");
         await expect(createAccount).toBeDisabled();
+    });
+
+    test.describe("in Brazilian Portuguese", () => {
+        test.use({ config: { setting_defaults: { language: "pt-br" } } });
+
+        test("translates the disabled account creation message", async ({ page }) => {
+            await page.goto("/#/welcome");
+
+            await expect(page.getByRole("link", { name: "Criar Conta" })).toHaveAttribute(
+                "title",
+                "A criação de contas pela web não está disponível durante o beta.",
+                { timeout: 15_000 },
+            );
+        });
     });
 });
