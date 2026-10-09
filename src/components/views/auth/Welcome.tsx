@@ -16,10 +16,12 @@ import { UIFeature } from "../../../settings/UIFeature";
 import LanguageSelector from "./LanguageSelector";
 import EmbeddedPage from "../../structures/EmbeddedPage";
 import { MATRIX_LOGO_HTML } from "../../structures/static-page-vars";
+import { GUA_WEB_REGISTRATION_ENABLED } from "../../../gua/config";
 
 export default class Welcome extends React.PureComponent<EmptyObject> {
     public render(): React.ReactNode {
         const pagesConfig = SdkConfig.getObject("embedded_pages");
+        const registrationEnabled = GUA_WEB_REGISTRATION_ENABLED && SettingsStore.getValue(UIFeature.Registration);
         let pageUrl: string | undefined;
         if (pagesConfig) {
             pageUrl = pagesConfig.get("welcome_url");
@@ -40,14 +42,15 @@ export default class Welcome extends React.PureComponent<EmptyObject> {
                 brandingConfig?.get("auth_header_logo_url") ??
                 "themes/element/img/logos/logo.png";
             replaceMap["$logoUrl"] = logoUrl;
-            pageUrl = "welcome.html";
+            // Keep the built-in branded page cache-safe when its static logo or registration controls change.
+            pageUrl = "welcome.html?gua-web-branding=wordmark-registration-disabled-v3";
         }
 
         return (
             <AuthPage>
                 <div
                     className={classNames("mx_Welcome", {
-                        mx_WelcomePage_registrationDisabled: !SettingsStore.getValue(UIFeature.Registration),
+                        mx_WelcomePage_registrationDisabled: !registrationEnabled,
                     })}
                     data-testid="mx_welcome_screen"
                 >

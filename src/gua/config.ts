@@ -11,12 +11,13 @@ export const GUA_BRAND = "Gua";
 export const GUA_LOGO_URL = "themes/gua/img/logos/logo.svg";
 export const GUA_APP_LOGO_URL = "themes/gua/img/logos/app-logo.png";
 export const GUA_WELCOME_BACKGROUND_URL = "themes/gua/img/backgrounds/background.png";
+export const GUA_WEB_REGISTRATION_ENABLED: boolean = false;
 
 export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
     brand: GUA_BRAND,
     branding: {
         welcome_background_url: GUA_WELCOME_BACKGROUND_URL,
-        welcome_logo_url: GUA_APP_LOGO_URL,
+        welcome_logo_url: GUA_LOGO_URL,
         auth_header_logo_url: GUA_LOGO_URL,
         auth_footer_links: [
             {
@@ -42,7 +43,8 @@ export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
     default_country_code: "BR",
     default_theme: "light",
     setting_defaults: {
-        breadcrumbs: true,
+        "breadcrumbs": true,
+        "UIFeature.registration": GUA_WEB_REGISTRATION_ENABLED,
     },
     room_directory: {
         servers: [],
