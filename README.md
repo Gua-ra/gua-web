@@ -10,23 +10,26 @@
 
 **Gua** is a private messaging app for the web, built on top of [Matrix](https://matrix.org/).
 
-This repository is Gua-ra's fork of [`element-hq/element-web`](https://github.com/element-hq/element-web) (Element Web). It carries the web client's share of Gua's product layer: resolver-based routing across a trusted federation of account providers, with the homeserver abstracted away from users; simplified onboarding (a phone number by default, flexible enough to sit in front of institutional SSO); and private contact discovery backed by query-only resolver lookups. The Gua brand and simplified settings round out the delta.
+This repository is Gua-ra's fork of [`element-hq/element-web`](https://github.com/element-hq/element-web) (Element Web). It carries the web client's share of Gua's product layer: resolver-based routing to the Gua homeserver that holds an account, with the homeserver abstracted away from users; and simplified onboarding (a phone number by default, flexible enough to sit in front of institutional SSO). The Gua brand and simplified settings round out the delta. Gua Web has no contact discovery, and calls are off on Gua Web.
 
 ---
 
 ## What is different from Element Web
 
 Gua Web layers Gua's routing and onboarding stack on top of Element Web. At sign-in, the
-client resolves which trusted account provider serves a user (or should host a new
+client resolves which account provider serves a user (or should host a new
 account) and hands off to it, via OIDC or a directly minted session, so users never
 type or see a server name. The sign-in step itself is simple: today a phone
-number plus a one-time code, with an optional PIN as a second step; because the hand-off
-is standard OIDC, a provider can front its own flow instead, such as institutional SSO.
+number plus a one-time code, followed by the account's passkey or PIN. A code alone
+never completes a sign-in. Because the hand-off is standard OIDC, a provider can front
+its own flow instead, such as institutional SSO.
 
 - **Phone/OTP onboarding.** A single sign-in and registration flow
-  (`src/components/structures/auth/GuaAuthFlow.tsx`) drives phone entry, OTP
-  verification, profile setup for new users, and an optional PIN (two-step
-  verification) challenge for returning users.
+  (`src/components/structures/auth/GuaAuthFlow.tsx`) starts with phone entry. When
+  the homeserver delegates authentication to its auth service, the flow continues
+  over OIDC and the sign-in page asks for the one-time code and then the account's
+  passkey or PIN. Otherwise the client runs OTP verification, profile setup for new
+  users, and the PIN challenge for returning users.
 - **Gua identity service client** (`src/identity/`). A REST client for the
   [Gua identity service](https://github.com/Gua-ra/identity-service) that handles
   OTP send/verify, signup completion, PIN management, account reauthentication,
@@ -34,7 +37,9 @@ is standard OIDC, a provider can front its own flow instead, such as institution
 - **Resolver-based homeserver routing** (`src/gua/resolver/`). When configured, the
   phone-entry step asks the Gua resolver which account provider a phone number
   belongs to (or should be created on) before starting OIDC, so the client never
-  hardcodes a server.
+  hardcodes a server. The roster behind that answer decides where new accounts are
+  created. The client uses the answer as received and does not check the roster's
+  signatures yet.
 - **OIDC phone login** (`src/gua/oidc/`). Starts an OIDC authorization flow with the
   verified phone number passed as a login hint.
 - **Gua branding and simplified settings.** Gua theme assets, plain-language
