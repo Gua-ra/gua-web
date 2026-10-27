@@ -6,7 +6,7 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import { mocked } from "jest-mock";
-import { ClientEvent, type MatrixClient } from "matrix-js-sdk/src/matrix";
+import { ClientEvent, type MatrixClient, SyncState, type SyncStateData } from "matrix-js-sdk/src/matrix";
 import {
     type CryptoApi,
     type DeviceVerificationStatus,
@@ -19,14 +19,14 @@ import VerificationRetryListener, {
     RETRY_REQUEST_EVENT_TYPE,
 } from "../../../../src/gua/verification/VerificationRetryListener";
 import {
-    lastVerificationRequestStartedAt,
+    lastVerificationRestartAt,
     resetVerifyWithAnotherDevice,
     retryVerifyWithAnotherDevice,
 } from "../../../../src/gua/verification/verifyWithAnotherDevice";
 import { flushPromises, stubClient } from "../../../test-utils";
 
 jest.mock("../../../../src/gua/verification/verifyWithAnotherDevice", () => ({
-    lastVerificationRequestStartedAt: jest.fn(),
+    lastVerificationRestartAt: jest.fn(),
     resetVerifyWithAnotherDevice: jest.fn(),
     retryVerifyWithAnotherDevice: jest.fn(),
 }));
@@ -61,10 +61,14 @@ describe("VerificationRetryListener", () => {
         crypto.userHasCrossSigningKeys = jest.fn().mockResolvedValue(true);
         mocked(crypto.getVerificationRequestsToDeviceInProgress).mockReturnValue([]);
 
+        mocked(client.getSyncState).mockReturnValue(SyncState.Syncing);
+        mocked(client.getSyncStateData).mockReturnValue({ catchingUp: false });
+
         startedAt = null;
-        mocked(lastVerificationRequestStartedAt).mockImplementation(() => startedAt);
+        mocked(lastVerificationRestartAt).mockImplementation(() => startedAt);
         mocked(retryVerifyWithAnotherDevice).mockImplementation(() => {
             startedAt = Date.now();
+            return true;
         });
 
         listener = new VerificationRetryListener();
@@ -96,6 +100,26 @@ describe("VerificationRetryListener", () => {
         await flushPromises();
 
         expect(retryVerifyWithAnotherDevice).not.toHaveBeenCalled();
+    });
+
+    it.each<[string, SyncState | null, SyncStateData | null]>([
+        ["before the first sync", null, null],
+        [
+            "after a cached start, before the first live sync",
+            SyncState.Prepared,
+            { catchingUp: false, fromCache: true },
+        ],
+        ["while draining queued events", SyncState.Syncing, { catchingUp: true }],
+        ["while reconnecting", SyncState.Reconnecting, {}],
+    ])("ignores a request delivered %s", async (_, state, data) => {
+        mocked(client.getSyncState).mockReturnValue(state);
+        mocked(client.getSyncStateData).mockReturnValue(data);
+
+        nudge();
+        await flushPromises();
+
+        expect(retryVerifyWithAnotherDevice).not.toHaveBeenCalled();
+        expect(crypto.getDeviceVerificationStatus).not.toHaveBeenCalled();
     });
 
     it("ignores the request once this device is cross-signed", async () => {
@@ -162,8 +186,19 @@ describe("VerificationRetryListener", () => {
         expect(retryVerifyWithAnotherDevice).toHaveBeenCalledTimes(2);
     });
 
+    it("does not count a retry the shared function declined", async () => {
+        mocked(retryVerifyWithAnotherDevice).mockReturnValue(false);
+
+        nudge();
+        await flushPromises();
+        nudge();
+        await flushPromises();
+
+        expect(retryVerifyWithAnotherDevice).toHaveBeenCalledTimes(2);
+    });
+
     it("acts once on requests that arrive together", async () => {
-        mocked(retryVerifyWithAnotherDevice).mockImplementation(() => {});
+        mocked(retryVerifyWithAnotherDevice).mockImplementation(() => true);
 
         nudge();
         nudge();

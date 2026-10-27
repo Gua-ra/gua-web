@@ -44,6 +44,8 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
     // the store emits multiple "update" events before the reset flow completes.
     private autoResetTriggered = false;
     private unregisterVerifyButtonHandler?: () => void;
+    // Gua: the reset runs in dialogs over this body while its phase stays Intro.
+    private resetInProgress = false;
 
     public constructor(props: IProps) {
         super(props);
@@ -131,10 +133,11 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
 
     // Gua: another of our devices asked for a fresh request. Act only on the Intro choices, never during
     // recovery-key entry, skip confirmation, a reset or an incoming request shown in place.
-    private onRetryRequested = (): void => {
+    private onRetryRequested = (): boolean => {
         const { verificationRequest, phase, lostKeys } = this.state;
-        if (verificationRequest || phase !== Phase.Intro || lostKeys) return;
+        if (this.resetInProgress || verificationRequest || phase !== Phase.Intro || lostKeys) return false;
         this.onVerifyClick();
+        return true;
     };
 
     private onSkipConfirmClick = (): void => {
@@ -164,7 +167,8 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
      * we stop re-prompting on subsequent logins.
      */
     private startReset(): void {
-        Modal.createDialog(ResetIdentityDialog, {
+        this.resetInProgress = true;
+        const { finished } = Modal.createDialog(ResetIdentityDialog, {
             onReset: () => {
                 // The reset completed - close this dialog and continue into the app
                 this.props.onFinished();
@@ -172,6 +176,9 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
                 store.done();
             },
             variant: "confirm",
+        });
+        finished.then(() => {
+            this.resetInProgress = false;
         });
     }
 

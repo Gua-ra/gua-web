@@ -30,6 +30,7 @@ import { persistAccessTokenInStorage, persistRefreshTokenInStorage } from "../..
 import { encryptPickleKey } from "../../src/utils/tokens/pickling";
 import * as StorageManager from "../../src/utils/StorageManager.ts";
 import type BasePlatform from "../../src/BasePlatform.ts";
+import VerificationRetryListener from "../../src/gua/verification/VerificationRetryListener";
 
 const { logout, restoreSessionFromStorage, setLoggedIn } = Lifecycle;
 
@@ -604,6 +605,19 @@ describe("Lifecycle", () => {
             await setLoggedIn(credentials);
 
             expect(MatrixClientPeg.start).toHaveBeenCalled();
+        });
+
+        it("should start the verification retry listener with the client and stop it with the client", async () => {
+            const listener = VerificationRetryListener.sharedInstance();
+            jest.spyOn(listener, "start");
+            jest.spyOn(listener, "stop");
+
+            await setLoggedIn(credentials);
+            expect(listener.start).toHaveBeenCalledWith(mockClient);
+
+            mocked(listener.stop).mockClear();
+            Lifecycle.stopMatrixClient();
+            expect(listener.stop).toHaveBeenCalledTimes(1);
         });
 
         describe("after a soft-logout", () => {

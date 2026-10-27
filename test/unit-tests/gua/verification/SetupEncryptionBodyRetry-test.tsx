@@ -14,13 +14,14 @@ import { type CryptoApi, type VerificationRequest } from "matrix-js-sdk/src/cryp
 
 import SetupEncryptionBody from "../../../../src/components/structures/auth/SetupEncryptionBody";
 import VerificationRequestDialog from "../../../../src/components/views/dialogs/VerificationRequestDialog";
+import { ResetIdentityDialog } from "../../../../src/components/views/dialogs/ResetIdentityDialog";
 import Modal from "../../../../src/Modal";
 import { Phase, SetupEncryptionStore } from "../../../../src/stores/SetupEncryptionStore";
 import {
     resetVerifyWithAnotherDevice,
     retryVerifyWithAnotherDevice,
 } from "../../../../src/gua/verification/verifyWithAnotherDevice";
-import { stubClient } from "../../../test-utils";
+import { flushPromises, stubClient } from "../../../test-utils";
 
 class MockSetupEncryptionStore extends EventEmitter {
     public phase: Phase = Phase.Intro;
@@ -28,8 +29,9 @@ class MockSetupEncryptionStore extends EventEmitter {
     public backupInfo = null;
     public keyInfo = null;
     public hasDevicesToVerifyAgainst = true;
+    public keysLost = false;
     public lostKeys(): boolean {
-        return false;
+        return this.keysLost;
     }
     public start: () => void = jest.fn();
     public stop: () => void = jest.fn();
@@ -54,6 +56,14 @@ describe("SetupEncryptionBody retry request", () => {
     afterEach(() => {
         jest.restoreAllMocks();
     });
+
+    function retry(): boolean {
+        let acted = false;
+        act(() => {
+            acted = retryVerifyWithAnotherDevice(client);
+        });
+        return acted;
+    }
 
     function calls(onFinished: jest.Mock): unknown[] {
         return [
@@ -100,6 +110,51 @@ describe("SetupEncryptionBody retry request", () => {
             expect(Modal.createDialog).not.toHaveBeenCalled();
         },
     );
+
+    it("ignores the retry request when only a reset can help", async () => {
+        store.keysLost = true;
+        // The automatic reset dialog has already closed, so only the lost-keys gate stands.
+        mocked(Modal.createDialog).mockReturnValue({ finished: Promise.resolve([]), close: jest.fn() });
+        const onFinished = jest.fn();
+        render(<SetupEncryptionBody onFinished={onFinished} />);
+        await flushPromises();
+
+        expect(retry()).toBe(false);
+
+        expect(crypto.requestOwnUserVerification).not.toHaveBeenCalled();
+        expect(Modal.createDialog).not.toHaveBeenCalledWith(VerificationRequestDialog, expect.anything());
+    });
+
+    it("ignores the retry request while an incoming request is shown in place", () => {
+        store.verificationRequest = { otherUserId: client.getSafeUserId() } as VerificationRequest;
+        mocked(client.getUser).mockReturnValue(null);
+        const onFinished = jest.fn();
+        render(<SetupEncryptionBody onFinished={onFinished} />);
+
+        expect(retry()).toBe(false);
+
+        expect(crypto.requestOwnUserVerification).not.toHaveBeenCalled();
+        expect(onFinished).not.toHaveBeenCalled();
+    });
+
+    it("ignores the retry request while a reset started from the body is open", async () => {
+        const reset = Promise.withResolvers<[]>();
+        mocked(Modal.createDialog).mockReturnValueOnce({ finished: reset.promise, close: jest.fn() });
+        const onFinished = jest.fn();
+        render(<SetupEncryptionBody onFinished={onFinished} />);
+        act(() => screen.getByRole("button", { name: "Reset all" }).click());
+        expect(Modal.createDialog).toHaveBeenCalledWith(ResetIdentityDialog, expect.anything());
+
+        expect(retry()).toBe(false);
+        expect(crypto.requestOwnUserVerification).not.toHaveBeenCalled();
+        expect(onFinished).not.toHaveBeenCalled();
+
+        // The user backed out of the reset: the body takes retry requests again.
+        reset.resolve([]);
+        await flushPromises();
+        expect(retry()).toBe(true);
+        expect(crypto.requestOwnUserVerification).toHaveBeenCalledTimes(1);
+    });
 
     it("falls back to the shared function once the body has unmounted", () => {
         const onFinished = jest.fn();

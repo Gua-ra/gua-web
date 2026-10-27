@@ -5,12 +5,12 @@ SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
 Please see LICENSE files in the repository root for full details.
 */
 
-import { ClientEvent, type MatrixClient, type ReceivedToDeviceMessage } from "matrix-js-sdk/src/matrix";
+import { ClientEvent, type MatrixClient, type ReceivedToDeviceMessage, SyncState } from "matrix-js-sdk/src/matrix";
 import { type VerificationRequest, VerificationPhase } from "matrix-js-sdk/src/crypto-api";
 import { logger as baseLogger } from "matrix-js-sdk/src/logger";
 
 import {
-    lastVerificationRequestStartedAt,
+    lastVerificationRestartAt,
     resetVerifyWithAnotherDevice,
     retryVerifyWithAnotherDevice,
 } from "./verifyWithAnotherDevice";
@@ -54,6 +54,11 @@ export default class VerificationRetryListener {
         const client = this.client;
         // The event carries no secrets, but only our own devices may ask us to restart.
         if (!client || message.sender !== client.getUserId()) return;
+        // A request queued while this client was closed or offline carries no timestamp and may be hours old.
+        if (!isLive(client)) {
+            logger.info("Ignoring a verification retry request delivered while catching up");
+            return;
+        }
         void this.onRetryRequest(client, message.content?.from_device);
     };
 
@@ -63,8 +68,11 @@ export default class VerificationRetryListener {
         try {
             if (!(await this.canRestart(client))) return;
             if (client !== this.client || this.restartedRecently()) return;
-            logger.info(`Device ${String(fromDevice)} asked for a new verification request; sending one`);
-            retryVerifyWithAnotherDevice(client);
+            const acted = retryVerifyWithAnotherDevice(client);
+            logger.info(
+                `Device ${String(fromDevice)} asked for a new verification request; ` +
+                    (acted ? "sending one" : "busy, ignoring it"),
+            );
         } catch (e) {
             logger.warn("Could not handle the verification retry request", e);
         } finally {
@@ -73,8 +81,8 @@ export default class VerificationRetryListener {
     }
 
     private restartedRecently(): boolean {
-        const startedAt = lastVerificationRequestStartedAt();
-        return startedAt !== null && Date.now() - startedAt < RESTART_DEBOUNCE_MS;
+        const restartedAt = lastVerificationRestartAt();
+        return restartedAt !== null && Date.now() - restartedAt < RESTART_DEBOUNCE_MS;
     }
 
     private async canRestart(client: MatrixClient): Promise<boolean> {
@@ -98,4 +106,12 @@ function blocksRestart(request: VerificationRequest): boolean {
     if (!request.pending) return false;
     if (request.phase === VerificationPhase.Ready || request.phase === VerificationPhase.Started) return true;
     return !request.initiatedByMe;
+}
+
+/**
+ * After a start or a reconnect the SDK drains the server's to-device queue first; events from that backlog are
+ * delivered before the sync state reaches Syncing with catchingUp false.
+ */
+function isLive(client: MatrixClient): boolean {
+    return client.getSyncState() === SyncState.Syncing && !client.getSyncStateData()?.catchingUp;
 }

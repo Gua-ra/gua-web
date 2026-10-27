@@ -6,13 +6,14 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import { mocked } from "jest-mock";
+import { waitFor } from "jest-matrix-react";
 import { type MatrixClient } from "matrix-js-sdk/src/matrix";
 import { type CryptoApi, VerificationPhase, type VerificationRequest } from "matrix-js-sdk/src/crypto-api";
 
 import Modal from "../../../../src/Modal";
 import VerificationRequestDialog from "../../../../src/components/views/dialogs/VerificationRequestDialog";
 import {
-    lastVerificationRequestStartedAt,
+    lastVerificationRestartAt,
     registerVerifyButtonHandler,
     resetVerifyWithAnotherDevice,
     retryVerifyWithAnotherDevice,
@@ -36,11 +37,13 @@ describe("verifyWithAnotherDevice", () => {
             phase: VerificationPhase.Requested,
             cancel: jest.fn(),
         } as unknown as MockRequest;
+        // Bound now, so a cancel that settles after its test cannot write into the next test's log.
+        const target = log;
         request.cancel.mockImplementation(async () => {
-            log.push(`cancel ${name}`);
+            target.push(`cancel ${name}`);
             // The cancel goes out over HTTP; the next request must wait for it.
             await new Promise((resolve) => setTimeout(resolve, 0));
-            log.push(`cancel ${name} sent`);
+            target.push(`cancel ${name} sent`);
             request.pending = false;
             request.phase = VerificationPhase.Cancelled;
         });
@@ -77,7 +80,8 @@ describe("verifyWithAnotherDevice", () => {
         });
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        await Promise.all(requests.flatMap((request) => request.cancel.mock.results.map((result) => result.value)));
         jest.restoreAllMocks();
     });
 
@@ -91,7 +95,15 @@ describe("verifyWithAnotherDevice", () => {
             verificationRequestPromise: expect.any(Promise),
             member: client.getUser(client.getSafeUserId()),
         });
-        expect(lastVerificationRequestStartedAt()).not.toBeNull();
+    });
+
+    it("counts a replaced request as a restart, but not a first request", async () => {
+        verifyWithAnotherDevice(client);
+        expect(lastVerificationRestartAt()).toBeNull();
+        await flushPromises();
+
+        await verifyWithAnotherDevice(client);
+        expect(lastVerificationRestartAt()).not.toBeNull();
     });
 
     it("cancels the request and runs onDialogClosed when the user closes the dialog", async () => {
@@ -176,13 +188,23 @@ describe("verifyWithAnotherDevice", () => {
 
     describe("retryVerifyWithAnotherDevice", () => {
         it("hands the retry to the mounted verify button handler", () => {
-            const handler = jest.fn();
+            const handler = jest.fn().mockReturnValue(true);
             const unregister = registerVerifyButtonHandler(handler);
 
-            retryVerifyWithAnotherDevice(client);
+            expect(retryVerifyWithAnotherDevice(client)).toBe(true);
 
             expect(handler).toHaveBeenCalledTimes(1);
             expect(crypto.requestOwnUserVerification).not.toHaveBeenCalled();
+            expect(lastVerificationRestartAt()).not.toBeNull();
+            unregister();
+        });
+
+        it("does not count a retry the mounted handler declined as a restart", () => {
+            const unregister = registerVerifyButtonHandler(jest.fn().mockReturnValue(false));
+
+            expect(retryVerifyWithAnotherDevice(client)).toBe(false);
+
+            expect(lastVerificationRestartAt()).toBeNull();
             unregister();
         });
 
@@ -190,9 +212,38 @@ describe("verifyWithAnotherDevice", () => {
             const unregister = registerVerifyButtonHandler(jest.fn());
             unregister();
 
-            retryVerifyWithAnotherDevice(client);
+            expect(retryVerifyWithAnotherDevice(client)).toBe(true);
 
             expect(log).toEqual(["request 1", "open dialog 1"]);
+            expect(lastVerificationRestartAt()).not.toBeNull();
+        });
+
+        it("does nothing while another dialog is open", () => {
+            jest.spyOn(Modal, "hasDialogs").mockReturnValue(true);
+
+            expect(retryVerifyWithAnotherDevice(client)).toBe(false);
+
+            expect(log).toEqual([]);
+            expect(lastVerificationRestartAt()).toBeNull();
+        });
+
+        it("replaces the request when the open dialog is the one it tracks", async () => {
+            verifyWithAnotherDevice(client);
+            await flushPromises();
+            jest.spyOn(Modal, "hasDialogs").mockReturnValue(true);
+
+            expect(retryVerifyWithAnotherDevice(client)).toBe(true);
+            await waitFor(() => expect(log).toContain("open dialog 2"));
+
+            expect(log).toEqual([
+                "request 1",
+                "open dialog 1",
+                "close dialog 1",
+                "cancel 1",
+                "cancel 1 sent",
+                "request 2",
+                "open dialog 2",
+            ]);
         });
     });
 });
