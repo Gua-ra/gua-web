@@ -14,12 +14,15 @@ import { type SecretStorageKeyDescription } from "matrix-js-sdk/src/secret-stora
 import { _t } from "../../../languageHandler";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
 import Modal from "../../../Modal";
-import VerificationRequestDialog from "../../views/dialogs/VerificationRequestDialog";
 import { SetupEncryptionStore, Phase } from "../../../stores/SetupEncryptionStore";
 import EncryptionPanel from "../../views/right_panel/EncryptionPanel";
 import AccessibleButton, { type ButtonEvent } from "../../views/elements/AccessibleButton";
 import Spinner from "../../views/elements/Spinner";
 import { ResetIdentityDialog } from "../../views/dialogs/ResetIdentityDialog";
+import {
+    registerVerifyButtonHandler,
+    verifyWithAnotherDevice,
+} from "../../../gua/verification/verifyWithAnotherDevice";
 
 function keyHasPassphrase(keyInfo: SecretStorageKeyDescription): boolean {
     return Boolean(keyInfo.passphrase && keyInfo.passphrase.salt && keyInfo.passphrase.iterations);
@@ -40,6 +43,7 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
     // Gua: guard so the frictionless auto-reset is only kicked off once, even if
     // the store emits multiple "update" events before the reset flow completes.
     private autoResetTriggered = false;
+    private unregisterVerifyButtonHandler?: () => void;
 
     public constructor(props: IProps) {
         super(props);
@@ -59,6 +63,7 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
     public componentDidMount(): void {
         const store = SetupEncryptionStore.sharedInstance();
         store.on("update", this.onStoreUpdate);
+        this.unregisterVerifyButtonHandler = registerVerifyButtonHandler(this.onRetryRequested);
         // Gua: if we already know on mount that the only possible outcome is a
         // reset (no other verified device and no recovery key), don't render the
         // "Unable to verify this device → Proceed with reset" dead-end — just
@@ -106,6 +111,7 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
     public componentWillUnmount(): void {
         const store = SetupEncryptionStore.sharedInstance();
         store.off("update", this.onStoreUpdate);
+        this.unregisterVerifyButtonHandler?.();
         store.stop();
     }
 
@@ -115,23 +121,20 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
     };
 
     private onVerifyClick = (): void => {
-        const cli = MatrixClientPeg.safeGet();
-        const userId = cli.getSafeUserId();
-        const requestPromise = cli.getCrypto()!.requestOwnUserVerification();
-
         // We need to call onFinished now to close this dialog, and
         // again later to signal that the verification is complete.
-        this.props.onFinished();
-        const { finished: verificationFinished } = Modal.createDialog(VerificationRequestDialog, {
-            verificationRequestPromise: requestPromise,
-            member: cli.getUser(userId) ?? undefined,
+        void verifyWithAnotherDevice(MatrixClientPeg.safeGet(), {
+            onRequestSent: () => this.props.onFinished(),
+            onDialogClosed: () => this.props.onFinished(),
         });
+    };
 
-        verificationFinished.then(async () => {
-            const request = await requestPromise;
-            request.cancel();
-            this.props.onFinished();
-        });
+    // Gua: another of our devices asked for a fresh request. Act only on the Intro choices, never during
+    // recovery-key entry, skip confirmation, a reset or an incoming request shown in place.
+    private onRetryRequested = (): void => {
+        const { verificationRequest, phase, lostKeys } = this.state;
+        if (verificationRequest || phase !== Phase.Intro || lostKeys) return;
+        this.onVerifyClick();
     };
 
     private onSkipConfirmClick = (): void => {
