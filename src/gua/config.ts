@@ -6,6 +6,8 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import { type IConfigOptions } from "../IConfigOptions";
+// Import i18n.tsx instead of languageHandler to avoid circular deps through SdkConfig
+import { _td } from "../shared-components/utils/i18n";
 
 export const GUA_BRAND = "Gua";
 export const GUA_LOGO_URL = "themes/gua/img/logos/logo.svg";
@@ -21,7 +23,7 @@ export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
         auth_footer_links: [
             {
                 text: "Developed by Sarah L.S.",
-                text_key: "gua|footer|developed_by",
+                text_key: _td("gua|footer|developed_by"),
                 variables: {
                     name: "Sarah L.S.",
                 },
