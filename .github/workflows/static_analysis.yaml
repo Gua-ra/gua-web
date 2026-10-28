@@ -36,23 +36,40 @@ jobs:
             - name: Typecheck
               run: "yarn run lint:types"
 
+    # The check from matrix-org/matrix-web-i18n's i18n_check.yml, run inline without its guard that
+    # only en_EN.json may change: that guard protects upstream's Localazy sync, and Gua translates
+    # its own strings directly in every locale file.
     i18n_lint:
         name: "i18n Check"
-        uses: matrix-org/matrix-web-i18n/.github/workflows/i18n_check.yml@main
-        permissions:
-            pull-requests: read
-        with:
-            hardcoded-words: "Element"
-            allowed-hardcoded-keys: |
-                console_dev_note
-                labs|element_call_video_rooms
-                labs|feature_disable_call_per_sender_encryption
-                voip|element_call
-                error|invalid_json
-                error|misconfigured
-                welcome_to_element
-                devtools|settings|elementCallUrl
-                labs|sliding_sync_description
+        runs-on: ubuntu-24.04
+        steps:
+            - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+
+            - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+              with:
+                  cache: "yarn"
+                  node-version: "lts/*"
+
+            - name: Install Deps
+              run: "yarn install --frozen-lockfile"
+
+            - name: Run i18n
+              env:
+                  HARDCODED_WORDS: "Element"
+                  ALLOWED_HARDCODED_KEYS: |
+                      console_dev_note
+                      labs|element_call_video_rooms
+                      labs|feature_disable_call_per_sender_encryption
+                      voip|element_call
+                      error|invalid_json
+                      error|misconfigured
+                      welcome_to_element
+                      devtools|settings|elementCallUrl
+                      labs|sliding_sync_description
+              run: "yarn i18n"
+
+            - name: Fail if i18n changed any file
+              run: git diff --exit-code
 
     rethemendex_lint:
         name: "Rethemendex Check"
