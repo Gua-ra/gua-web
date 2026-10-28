@@ -6,8 +6,8 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import React, { act } from "react";
-import { render, screen } from "jest-matrix-react";
+import React from "react";
+import { render, screen, waitFor } from "jest-matrix-react";
 import { type Mocked } from "jest-mock";
 import { type CryptoApi } from "matrix-js-sdk/src/crypto-api";
 
@@ -22,13 +22,13 @@ describe("SetupEncryptionDialog", () => {
         jest.restoreAllMocks();
     });
 
-    it("should launch a dialog when I say Proceed, then be finished when I reset", async () => {
+    it("should reset automatically when there is nothing to verify against, then be finished", async () => {
         mockClient();
         const store = new SetupEncryptionStore();
         jest.spyOn(SetupEncryptionStore, "sharedInstance").mockReturnValue(store);
 
         // Given when you open the reset dialog we immediately reset
-        jest.spyOn(Modal, "createDialog").mockImplementation((_, props) => {
+        const createDialog = jest.spyOn(Modal, "createDialog").mockImplementation((_, props) => {
             // Simulate doing the reset in the dialog
             props?.onReset();
 
@@ -38,18 +38,16 @@ describe("SetupEncryptionDialog", () => {
             };
         });
 
-        // When we launch the dialog and set it ready to start
+        // When we launch the dialog and the store finds no other device and no key backup
         const onFinished = jest.fn();
         render(<SetupEncryptionDialog onFinished={onFinished} />);
-        await act(async () => await store.fetchKeyInfo());
-        expect(store.phase).toBe(Phase.Intro);
 
-        // And we hit the Proceed with reset button.
-        // (The createDialog mock above simulates the user doing the reset)
-        await act(async () => screen.getByRole("button", { name: "Proceed with reset" }).click());
-
-        // Then the phase has been set to Finished
-        expect(store.phase).toBe(Phase.Finished);
+        // Then Gua opens the reset straight away instead of asking to "Proceed with reset",
+        // and the phase has been set to Finished
+        await waitFor(() => expect(store.phase).toBe(Phase.Finished));
+        expect(createDialog).toHaveBeenCalledTimes(1);
+        expect(onFinished).toHaveBeenCalled();
+        expect(screen.queryByRole("button", { name: "Proceed with reset" })).not.toBeInTheDocument();
     });
 });
 
