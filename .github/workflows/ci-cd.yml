@@ -1,11 +1,9 @@
 name: CI/CD
 
-# Deploy paths, in order of how often they are used:
-#   - label a PR `deploy:dev`  -> builds that branch and rolls it onto dev, so a change can
-#                                 be tried on the real stack before it is merged. Remove the
-#                                 label and re-add it to redeploy after new commits.
-#   - merge to gua/main        -> deploys dev automatically, and stages prod for approval.
-#   - workflow_dispatch        -> same thing by hand, for either environment.
+# Deploys:
+#   - a PR labelled `deploy:dev` builds that branch and rolls it onto dev. Re-add the label to redeploy.
+#   - a merge to gua/main deploys dev and stages prod for approval.
+#   - workflow_dispatch does either by hand.
 on:
     push:
         branches: ["gua/main"]
@@ -22,13 +20,11 @@ on:
 permissions:
     contents: read
     packages: write
-    # So a labelled PR can be told where it landed.
     pull-requests: write
 
 env:
     IMAGE: ghcr.io/gua-ra/gua-web
-    # Put this label on a PR to roll that PR's build onto dev. Only people with write
-    # access can label, which is what keeps this from being an open door on a public repo.
+    # Only people with write access can add labels, which is what gates PR deploys.
     DEPLOY_LABEL: deploy:dev
 
 jobs:
@@ -40,14 +36,12 @@ jobs:
         steps:
             - uses: actions/checkout@v4
               with:
-                  # docker-package.sh derives the webapp version from git history and
-                  # tags inside the image build, so it needs the full history.
+                  # docker-package.sh reads the version from git history.
                   fetch-depth: 0
 
             - id: gate
               name: Decide whether this PR asked for a dev deploy
-              # Same-repo check: a PR from a fork has no access to the registry credentials, so
-              # labelling one would fail at the push step rather than deploy anything.
+              # A PR from a fork has no registry credentials, so it never deploys.
               run: |
                   if [ "${{ github.event_name }}" = "pull_request" ] \
                      && [ "${{ github.event.pull_request.head.repo.full_name }}" = "${{ github.repository }}" ] \
@@ -60,11 +54,7 @@ jobs:
             - id: ref
               run: echo "ref=${IMAGE}:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
-            # An unlabelled PR builds nothing here: no image, no deploy. The upstream Build and
-            # Tests workflows already run on every PR, so this one only spends a webapp build
-            # when a deploy was actually asked for.
-            # The Dockerfile is self-contained: its builder stage runs yarn install
-            # and the webapp build, so no host-side node or yarn setup is needed.
+            # An unlabelled PR skips the image build. Build and Tests already cover it.
             - if: github.event_name != 'pull_request' || steps.gate.outputs.dev == 'true'
               uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
             - if: github.event_name != 'pull_request' || steps.gate.outputs.dev == 'true'
@@ -78,9 +68,6 @@ jobs:
               id: meta
               with:
                   images: ${{ env.IMAGE }}
-                  # Deploys always use the immutable sha tag. `dev` stays pinned to gua/main so it
-                  # keeps meaning "what gua/main builds"; a labelled PR gets a pr-N tag for humans
-                  # to spot.
                   tags: |
                       type=sha,format=long
                       type=raw,value=dev,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/gua/main' }}
@@ -96,14 +83,6 @@ jobs:
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
 
-    # AUTOMATIC on push to gua/main; also manually dispatchable (environment=dev)
-    # to roll any branch onto dev for QA, and fired by a PR labelled `deploy:dev`.
-    # The deploy runner manifest lives in gua-deploy under
-    # k8s/cicd/gua-web-deploy-runner.yaml and must be registered before deploys
-    # can run.
-    # NOTE: no runner carrying this job's label is registered yet, so a labelled PR
-    # (like every other path into this job) sits queued as pending instead of
-    # deploying. That is the missing runner, not a stuck workflow.
     deploy-dev:
         needs: build
         if: >-
@@ -116,9 +95,7 @@ jobs:
             - name: Roll out ${{ needs.build.outputs.ref }} to dev
               run: |
                   IMG="${{ needs.build.outputs.ref }}"
-                  # deployment/gua-web was created out of band, so its container name is
-                  # not recorded in any manifest in this repo. Resolve it at runtime
-                  # instead of hardcoding a guess that could silently drift.
+                  # The deployment is not defined in this repo, so read its container name.
                   CONTAINER="$(kubectl -n gua get deployment gua-web -o jsonpath='{.spec.template.spec.containers[0].name}')"
                   kubectl -n gua set image deployment/gua-web "${CONTAINER}=${IMG}"
                   kubectl -n gua rollout status deployment/gua-web --timeout=180s
@@ -135,9 +112,7 @@ jobs:
                         body: `Deployed to **dev** (ns \`gua\`): \`${{ needs.build.outputs.ref }}\`\n\nDev keeps running this build until something else is deployed over it. Merging to gua/main returns dev to gua/main's build.`
                       })
 
-    # Staged on every push to gua/main and manually dispatchable with
-    # environment=prod. The production GitHub Environment has a required reviewer
-    # and a gua/main branch policy, so staged runs pause here until approved.
+    # The production environment requires a reviewer, so this waits for approval.
     deploy-prod:
         needs: build
         if: >-
@@ -149,8 +124,6 @@ jobs:
             - name: Roll out ${{ needs.build.outputs.ref }} to prod
               run: |
                   IMG="${{ needs.build.outputs.ref }}"
-                  # Same runtime container name resolution as dev, the prod deployment
-                  # was also created out of band.
                   CONTAINER="$(kubectl -n gua-prod get deployment gua-web -o jsonpath='{.spec.template.spec.containers[0].name}')"
                   kubectl -n gua-prod set image deployment/gua-web "${CONTAINER}=${IMG}"
                   kubectl -n gua-prod rollout status deployment/gua-web --timeout=180s

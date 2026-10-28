@@ -55,8 +55,7 @@ jobs:
             # Workaround for yarn install timeouts, especially on Windows
             - run: yarn config set network-timeout 300000
 
-            # The fork builds against the matrix-js-sdk commit locked in yarn.lock, the same one
-            # the deployed image uses, not a branch-matched clone of upstream develop.
+            # Same locked matrix-js-sdk as the deployed image, not upstream's layered build.
             - name: Install Deps
               run: yarn install --frozen-lockfile
 
