@@ -16,6 +16,7 @@ import {
     locateHomeserver,
     parseInstant,
     parseSignedRoster,
+    type LocatedHomeserver,
     type LogCheckpoint,
     type RosterEntry,
     type SignedRoster,
@@ -82,14 +83,21 @@ export function lastResolverVerificationReport(): ResolverVerificationReport | u
 export function readVerificationConfig(): ResolverVerificationConfig {
     const raw = SdkConfig.get("gua_resolver")?.verification;
     const keys = (list?: readonly { id: string; public_key: string }[]): TrustedKey[] =>
-        (list ?? []).map((k) => ({ id: k.id, publicKey: k.public_key }));
+        (Array.isArray(list) ? list : [])
+            .filter((k) => typeof k?.id === "string" && typeof k?.public_key === "string")
+            .map((k) => ({ id: k.id, publicKey: k.public_key }));
     return {
         mode: raw?.mode === "off" ? "off" : "report",
         authorityKeys: keys(raw?.authority_keys),
-        authorityThreshold: raw?.authority_threshold ?? 1,
+        authorityThreshold: threshold(raw?.authority_threshold),
         policyKeys: keys(raw?.policy_keys),
-        policyThreshold: raw?.policy_threshold ?? 1,
+        policyThreshold: threshold(raw?.policy_threshold),
     };
+}
+
+/** A positive integer, else one signature: a malformed value must never compare as met. */
+function threshold(value: unknown): number {
+    return typeof value === "number" && Number.isInteger(value) && value >= 1 ? value : 1;
 }
 
 /** A label for the report, never a hostname: the authority key id without its common prefix. */
@@ -237,17 +245,23 @@ class Verification {
 
         const answer = resolution.homeserver;
         const located = locateHomeserver(answer.serverName, answer.baseUrl, answer.masIssuer ?? null, roster);
-        const issuer = this.input.discoveredIssuer ? await this.untilDeadline(this.input.discoveredIssuer) : undefined;
-        const rosterIssuer = located.entry?.homeserver.masIssuer ?? null;
-        const issuerDiffers = issuer !== undefined && rosterIssuer !== null && !sameIssuer(issuer, rosterIssuer);
-        this.checks.homeserverMatch = check(
-            located.match === "ACTIVE_MATCH" && issuerDiffers ? "FIELD_MISMATCH" : located.match,
-        );
+        this.checks.homeserverMatch = check(located.match);
 
         await this.checkMember(located.entry);
         await this.checkLogConsistency(roster.logCheckpoint);
         const policy = await this.checkPolicy(roster.logCheckpoint);
         if (policy !== undefined) await this.checkPlacement(roster, policy, answer);
+        await this.checkDiscoveredIssuer(located);
+    }
+
+    /** Runs last: homeserver discovery can outlast the artifact fetches and must not starve them. */
+    private async checkDiscoveredIssuer(located: LocatedHomeserver): Promise<void> {
+        if (!this.input.discoveredIssuer || located.match !== "ACTIVE_MATCH") return;
+        const issuer = await this.untilDeadline(this.input.discoveredIssuer);
+        const rosterIssuer = located.entry?.homeserver.masIssuer ?? null;
+        if (issuer !== undefined && rosterIssuer !== null && !sameIssuer(issuer, rosterIssuer)) {
+            this.checks.homeserverMatch = check("FIELD_MISMATCH");
+        }
     }
 
     private async checkMember(entry: RosterEntry | null): Promise<void> {
@@ -337,16 +351,16 @@ class Verification {
         } catch (e) {
             return this.policyUnverifiable(e instanceof ParseError ? "parse_error" : "log_unavailable");
         }
-        const policyHash = await this.crypto.sha256Hex(canonical);
-        if (!events.some((e) => e.type === "POLICY_PUBLISH" && e.payloadHash === policyHash)) {
-            return this.policyInvalid("policy_not_logged");
-        }
+        // Only leaves under the signed checkpoint count; a tail past it is nothing the authority signed.
+        if (events.length < served.size) return this.policyInvalid("log_mismatch");
+        const covered = events.slice(0, served.size);
         const merkle = new MerkleTree(this.crypto);
         const leaves: string[] = [];
-        for (const event of events.slice(0, served.size))
-            leaves.push(await merkle.leafHash(MerkleTree.leafData(event)));
-        if (events.length < served.size || (await merkle.root(leaves)) !== served.merkleRoot) {
-            return this.policyInvalid("log_mismatch");
+        for (const event of covered) leaves.push(await merkle.leafHash(MerkleTree.leafData(event)));
+        if ((await merkle.root(leaves)) !== served.merkleRoot) return this.policyInvalid("log_mismatch");
+        const policyHash = await this.crypto.sha256Hex(canonical);
+        if (!covered.some((e) => e.type === "POLICY_PUBLISH" && e.payloadHash === policyHash)) {
+            return this.policyInvalid("policy_not_logged");
         }
 
         this.checks.policy = check("valid");

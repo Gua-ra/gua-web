@@ -65,7 +65,10 @@ function nullableString(value: unknown, what: string): string | null {
     return value;
 }
 
-/** Strict: unknown fields, nulls for primitives and fractional integers refuse the block. */
+/**
+ * Strict: unknown fields, nulls for primitives and a fractional sequence refuse the block. Duplicate keys,
+ * trailing content and a float token such as 1.0 are resolved by the platform JSON parse before this runs.
+ */
 export function parseMemberBlock(value: unknown): MemberBlock {
     if (typeof value !== "object" || value === null || Array.isArray(value)) {
         throw new MalformedMemberEntryError("member is not an object");

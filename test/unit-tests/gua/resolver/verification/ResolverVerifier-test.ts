@@ -407,6 +407,43 @@ describe("ResolverVerifier", () => {
         expect(report.policy).toEqual(unverifiable("log_unavailable"));
     });
 
+    it("refuses a policy whose POLICY_PUBLISH leaf lies past the signed checkpoint", async () => {
+        // r1's checkpoint covers the first three leaves; the policy's leaf is the fourth.
+        const report = await run({
+            transport: stubTransport({
+                fetchRoster: async () => r1.roster,
+                fetchRoutingPolicy: async () => policy.bundle,
+            }),
+            config: { ...config, authorityKeys: trustedKeys(r1.trustedKeys), authorityThreshold: r1.threshold },
+        });
+
+        expect(report.rosterVersion).toBe(3);
+        expect(report.rosterSignature).toEqual({ outcome: "valid" });
+        expect(report.policy).toEqual({ outcome: "invalid", reason: "policy_not_logged" });
+        expect(report.placement).toEqual({ outcome: "notApplicable" });
+        expect(report.overall).toEqual({ outcome: "failed", check: "policy" });
+    });
+
+    it("fetches the artifacts before waiting on homeserver discovery", async () => {
+        const transport = stubTransport({
+            fetchRoutingPolicy: async (signal) => {
+                if (signal?.aborted) throw new Error("aborted");
+                return null;
+            },
+        });
+        const report = await run({
+            transport,
+            resolution: caAnswer,
+            discoveredIssuer: new Promise(() => {}),
+            budgetMs: 50,
+        });
+
+        expect(report.homeserverMatch).toEqual({ outcome: "ACTIVE_MATCH" });
+        expect(report.policy).toEqual({ outcome: "notPresent" });
+        expect(report.placement).toEqual({ outcome: "match" });
+        expect(report.overall).toEqual({ outcome: "verified" });
+    });
+
     it("reports FIELD_MISMATCH for a known server name with another base URL", async () => {
         const report = await run({
             resolution: { exists: true, homeserver: { ...brAnswer.homeserver, baseUrl: "https://matrix.evil.test" } },
@@ -485,6 +522,29 @@ describe("ResolverVerifier", () => {
                 authorityKeys: [{ id: "gua-authority-prod", publicKey: "spki" }],
                 authorityThreshold: 2,
                 policyKeys: [{ id: "gua-authority-prod", publicKey: "spki" }],
+                policyThreshold: 1,
+            });
+        });
+
+        it("drops a key entry without a public key and keeps the rest", () => {
+            SdkConfig.add({
+                gua_resolver: {
+                    base_url: "https://resolver.example",
+                    verification: {
+                        authority_keys: [
+                            { id: "broken" } as { id: string; public_key: string },
+                            { id: "gua-authority-prod", public_key: "spki" },
+                        ],
+                        authority_threshold: 0,
+                    },
+                },
+            });
+
+            expect(readVerificationConfig()).toEqual({
+                mode: "report",
+                authorityKeys: [{ id: "gua-authority-prod", publicKey: "spki" }],
+                authorityThreshold: 1,
+                policyKeys: [],
                 policyThreshold: 1,
             });
         });

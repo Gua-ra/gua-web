@@ -35,7 +35,7 @@ export function localStorageCheckpointStore(resolverBaseUrl: string): Checkpoint
             try {
                 window.localStorage.setItem(key, JSON.stringify(checkpoint));
             } catch {
-                // Storage can be absent or full; the pin is a convenience, not state the check depends on.
+                // Storage can be absent or full; without a pin the next run reports firstSeen again.
             }
         },
     };
