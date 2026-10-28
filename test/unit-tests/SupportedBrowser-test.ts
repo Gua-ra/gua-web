@@ -101,7 +101,7 @@ describe("SupportedBrowser", () => {
         expect(toastSpy).toHaveBeenCalledWith(
             expect.objectContaining({
                 component: GenericToast,
-                title: "Element does not support this browser",
+                title: "Gua does not support this browser",
             }),
         );
 

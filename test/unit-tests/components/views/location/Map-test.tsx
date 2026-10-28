@@ -247,7 +247,7 @@ describe("<Map />", () => {
             expect(Modal.createDialog).toHaveBeenCalledWith(ErrorDialog, {
                 title: "Could not fetch location",
                 description:
-                    "Element was denied permission to fetch your location. Please allow location access in your browser settings.",
+                    "Gua was denied permission to fetch your location. Please allow location access in your browser settings.",
             });
         });
 
