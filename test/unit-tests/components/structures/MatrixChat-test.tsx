@@ -1268,6 +1268,8 @@ describe("<MatrixChat />", () => {
         };
 
         beforeEach(() => {
+            // Gua shows its phone sign-in by default; these cover the password login it shows when that is off.
+            defaultProps.config = { ...defaultProps.config, gua_auth: { phone_oidc_login: false } };
             loginClient = getMockClientWithEventEmitter(getMockClientMethods());
             // this is used to create a temporary client during login
             // FIXME: except it is *also* used as the permanent client for the rest of the test.
@@ -1766,6 +1768,11 @@ describe("<MatrixChat />", () => {
     });
 
     describe("mobile registration", () => {
+        // Gua shows its phone sign-in by default; these cover the registration it shows when that is off.
+        beforeEach(() => {
+            defaultProps.config = { ...defaultProps.config, gua_auth: { phone_oidc_login: false } };
+        });
+
         const getComponentAndWaitForReady = async (): Promise<RenderResult> => {
             const renderResult = getComponent();
             // wait for welcome page chrome render
