@@ -135,9 +135,9 @@ exports[`AddRemoveThreepids should render phone numbers 1`] = `
                 <div
                   class="mx_Dropdown_option_emoji"
                 >
-                  🇺🇸
+                  🇧🇷
                 </div>
-                +1
+                +55
               </span>
             </div>
             <span
