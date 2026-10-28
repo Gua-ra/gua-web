@@ -21,8 +21,11 @@ export interface ResolvedHomeserver {
 
 /** Outcome of resolving a phone number against the Gua resolver. */
 export interface HomeserverResolution {
-    /** `true` when an account already exists for this phone (→ login); `false` when not (→ register). */
-    exists: boolean;
+    /**
+     * `true` when an account already exists for this phone (→ login); `false` when not (→ register).
+     * Absent when the resolver no longer says which (uniform `registerAt` answers).
+     */
+    exists?: boolean;
     /** The homeserver to authenticate against (login) or create the account on (register). */
     homeserver: ResolvedHomeserver;
 }
@@ -39,7 +42,7 @@ export class ResolverError extends Error {
  * number to a homeserver, so the client never hardcodes one. Faithful port of the iOS `ResolverClient`.
  */
 export default class ResolverClient {
-    public constructor(private readonly baseUrl: string) {}
+    public constructor(public readonly baseUrl: string) {}
 
     /** Build a client from `gua_resolver.base_url` in the app config, or `null` if unset. */
     public static fromConfig(): ResolverClient | null {
@@ -54,7 +57,7 @@ export default class ResolverClient {
         try {
             response = await fetch(`${this.baseUrl}/resolve`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", Accept: "application/json" },
+                headers: { "Content-Type": "application/json", "Accept": "application/json" },
                 body: JSON.stringify({ phone: phoneNumber }),
             });
         } catch (e) {
@@ -64,16 +67,54 @@ export default class ResolverClient {
             throw new ResolverError(`Routing service error (${response.status}).`);
         }
 
-        let body: { exists: boolean; homeserver?: ResolvedHomeserver; registerAt?: ResolvedHomeserver };
+        let body: { exists?: boolean; homeserver?: ResolvedHomeserver | null; registerAt?: ResolvedHomeserver | null };
         try {
             body = await response.json();
         } catch (e) {
             throw new ResolverError(`Could not parse the routing service response: ${String(e)}`);
         }
-        const ref = body.exists ? body.homeserver : body.registerAt;
+        const ref = body.homeserver ?? body.registerAt;
         if (!ref) {
             throw new ResolverError("The routing service returned an unexpected response.");
         }
         return { exists: body.exists, homeserver: ref };
+    }
+
+    /** The signed roster (`GET /roster`), as served. */
+    public fetchRoster(signal?: AbortSignal): Promise<unknown> {
+        return this.getJson("/roster", signal);
+    }
+
+    /** The transparency log head and events (`GET /roster/log`); an authority node only. */
+    public fetchLog(signal?: AbortSignal): Promise<unknown> {
+        return this.getJson("/roster/log", signal);
+    }
+
+    /** A consistency proof between two log sizes (`GET /roster/log/consistency`). */
+    public fetchConsistency(first: number, second: number, signal?: AbortSignal): Promise<unknown> {
+        return this.getJson(`/roster/log/consistency?first=${first}&second=${second}`, signal);
+    }
+
+    /** The signed routing policy (`GET /policy/routing`), or `null` when the resolver serves none (404). */
+    public fetchRoutingPolicy(signal?: AbortSignal): Promise<unknown | null> {
+        return this.getJson("/policy/routing", signal, true);
+    }
+
+    private async getJson(path: string, signal?: AbortSignal, nullOnNotFound = false): Promise<unknown> {
+        let response: Response;
+        try {
+            response = await fetch(`${this.baseUrl}${path}`, { headers: { Accept: "application/json" }, signal });
+        } catch (e) {
+            throw new ResolverError(`Could not reach the routing service: ${String(e)}`);
+        }
+        if (nullOnNotFound && response.status === 404) return null;
+        if (!response.ok) {
+            throw new ResolverError(`Routing service error (${response.status}).`);
+        }
+        try {
+            return await response.json();
+        } catch (e) {
+            throw new ResolverError(`Could not parse the routing service response: ${String(e)}`);
+        }
     }
 }

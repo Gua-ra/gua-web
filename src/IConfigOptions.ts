@@ -60,6 +60,15 @@ export interface IConfigOptions {
     // No trailing slash required; falls back to the default server config when unset or on lookup failure.
     gua_resolver?: {
         base_url: string;
+        // Report-only verification of resolver answers against the signed roster. Trust roots are the
+        // base64 SPKI Ed25519 keys the resolver publishes out of band; absent keys leave the verifier inert.
+        verification?: {
+            mode?: "off" | "report";
+            authority_keys: { id: string; public_key: string }[];
+            authority_threshold?: number;
+            policy_keys?: { id: string; public_key: string }[];
+            policy_threshold?: number;
+        };
     };
 
     brand: string;

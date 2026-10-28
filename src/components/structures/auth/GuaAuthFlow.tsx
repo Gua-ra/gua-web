@@ -17,6 +17,7 @@ import { getOidcClientId } from "../../../utils/oidc/registerClient";
 import { startGuaPhoneOidcLogin } from "../../../gua/oidc/startPhoneOidcLogin";
 import AutoDiscoveryUtils from "../../../utils/AutoDiscoveryUtils";
 import ResolverClient from "../../../gua/resolver/ResolverClient";
+import { startResolverVerification } from "../../../gua/resolver/verification/ResolverVerifier";
 import AuthPage from "../../views/auth/AuthPage";
 import AuthBody from "../../views/auth/AuthBody";
 import AuthHeader from "../../views/auth/AuthHeader";
@@ -55,7 +56,9 @@ async function resolveServerConfig(e164: string, fallback: ValidatedServerConfig
         // Use the homeserver base URL the resolver returned directly (it is the source of truth), rather
         // than re-discovering via HTTPS well-known on the server name — that is redundant and fails for
         // http/localhost homeservers. The homeserver's own auth metadata still yields the MAS config.
-        return await AutoDiscoveryUtils.validateServerConfigWithStaticUrls(resolution.homeserver.baseUrl);
+        const discovery = AutoDiscoveryUtils.validateServerConfigWithStaticUrls(resolution.homeserver.baseUrl);
+        startResolverVerification(resolver, resolution, e164, discovery);
+        return await discovery;
     } catch (e) {
         logger.warn("Gua resolver lookup failed; falling back to the default server config", e);
         return fallback;
