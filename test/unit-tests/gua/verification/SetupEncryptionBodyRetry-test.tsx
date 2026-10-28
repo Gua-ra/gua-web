@@ -113,7 +113,7 @@ describe("SetupEncryptionBody retry request", () => {
 
     it("ignores the retry request when only a reset can help", async () => {
         store.keysLost = true;
-        // The automatic reset dialog has already closed, so only the lost-keys gate stands.
+        // Let the automatic reset dialog close so only the lostKeys guard is under test.
         mocked(Modal.createDialog).mockReturnValue({ finished: Promise.resolve([]), close: jest.fn() });
         const onFinished = jest.fn();
         render(<SetupEncryptionBody onFinished={onFinished} />);
@@ -149,7 +149,6 @@ describe("SetupEncryptionBody retry request", () => {
         expect(crypto.requestOwnUserVerification).not.toHaveBeenCalled();
         expect(onFinished).not.toHaveBeenCalled();
 
-        // The user backed out of the reset: the body takes retry requests again.
         reset.resolve([]);
         await flushPromises();
         expect(retry()).toBe(true);

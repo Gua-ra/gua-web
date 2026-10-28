@@ -37,11 +37,11 @@ describe("verifyWithAnotherDevice", () => {
             phase: VerificationPhase.Requested,
             cancel: jest.fn(),
         } as unknown as MockRequest;
-        // Bound now, so a cancel that settles after its test cannot write into the next test's log.
+        // Captured so a late cancel cannot write into the next test's log.
         const target = log;
         request.cancel.mockImplementation(async () => {
             target.push(`cancel ${name}`);
-            // The cancel goes out over HTTP; the next request must wait for it.
+            // Stands in for the HTTP round trip the next request must wait for.
             await new Promise((resolve) => setTimeout(resolve, 0));
             target.push(`cancel ${name} sent`);
             request.pending = false;
@@ -146,7 +146,6 @@ describe("verifyWithAnotherDevice", () => {
         expect(onDialogClosed).not.toHaveBeenCalled();
         expect(requests[0].cancel).toHaveBeenCalledTimes(1);
 
-        // The new dialog inherits the completion callback of the one it replaced.
         dialogs[1].close();
         await flushPromises();
         expect(requests[1].cancel).toHaveBeenCalledTimes(1);

@@ -15,9 +15,8 @@ import VerificationRequestDialog from "../../components/views/dialogs/Verificati
 const logger = baseLogger.getChild("GuaVerifyWithAnotherDevice:");
 
 export interface VerifyWithAnotherDeviceOptions {
-    /** Runs right after the new request is started, before its dialog opens. */
     onRequestSent?: () => void;
-    /** Runs when the dialog closes, unless a newer request replaced it first. */
+    /** Carried over to the replacing dialog when a newer request replaces this one. */
     onDialogClosed?: () => void;
 }
 
@@ -33,31 +32,23 @@ let restarting: Promise<void> | null = null;
 let lastRestartedAt: number | null = null;
 let verifyButtonHandler: (() => boolean) | null = null;
 
-/**
- * When this device last restarted its own-user verification: replaced a pending request, or acted on a retry
- * request. A first request with nothing to replace is not a restart.
- */
+/** Set when a pending request is replaced or a retry is acted on, not by a first request with nothing to replace. */
 export function lastVerificationRestartAt(): number | null {
     return lastRestartedAt;
 }
 
-/**
- * What "Verify with another device" does: close the dialog of our pending outgoing self-verification request,
- * cancel every such request this device started, then send a fresh one and open a {@link VerificationRequestDialog}.
- */
 export function verifyWithAnotherDevice(
     cli: MatrixClient,
     options: VerifyWithAnotherDeviceOptions = {},
 ): Promise<void> {
     const previous = restarting;
     if (!previous && !current && pendingOutgoingRequests(cli).length === 0) {
-        // Nothing to replace: send and open synchronously so onRequestSent runs before the click handler returns.
+        // Synchronous so onRequestSent runs before the click handler returns.
         openRequest(cli, options);
         return Promise.resolve();
     }
     lastRestartedAt = Date.now();
-    // Two live requests between our own devices cancel each other, so restarts run one at a time and each
-    // new request is only sent once the previous one is cancelled.
+    // Two live requests between our own devices cancel each other, so each restart waits for the previous cancel.
     const run: Promise<void> = (previous ?? Promise.resolve())
         .then(async () => {
             const inheritedOnDialogClosed = await retireOutgoing(cli);
@@ -71,10 +62,7 @@ export function verifyWithAnotherDevice(
     return run;
 }
 
-/**
- * Lets the mounted SetupEncryptionBody take a retry request, so it behaves exactly like a click on its button.
- * The handler returns whether it acted. Returns the function that removes the handler again.
- */
+/** Retries go through the mounted SetupEncryptionBody so they behave exactly like a click on its button. */
 export function registerVerifyButtonHandler(handler: () => boolean): () => void {
     verifyButtonHandler = handler;
     return () => {
@@ -82,15 +70,11 @@ export function registerVerifyButtonHandler(handler: () => boolean): () => void 
     };
 }
 
-/**
- * Re-runs "Verify with another device": through the mounted SetupEncryptionBody if there is one.
- * Returns whether it did.
- */
 export function retryVerifyWithAnotherDevice(cli: MatrixClient): boolean {
     if (verifyButtonHandler) {
         if (!verifyButtonHandler()) return false;
     } else {
-        // Any other open dialog may be mid-flow (an identity reset from Settings, for one): never act over it.
+        // Never act over a dialog other than our own, which may be mid-flow.
         if (Modal.hasDialogs() && !current) return false;
         void verifyWithAnotherDevice(cli);
     }
@@ -98,7 +82,6 @@ export function retryVerifyWithAnotherDevice(cli: MatrixClient): boolean {
     return true;
 }
 
-/** Forgets the tracked request and dialog, for when the client stops. */
 export function resetVerifyWithAnotherDevice(): void {
     current = null;
     restarting = null;
@@ -138,7 +121,6 @@ function openRequest(cli: MatrixClient, options: VerifyWithAnotherDeviceOptions,
     });
 }
 
-/** Closes the tracked dialog, then cancels every pending outgoing self-verification request. */
 async function retireOutgoing(cli: MatrixClient): Promise<(() => void) | undefined> {
     const previous = current;
     current = null;

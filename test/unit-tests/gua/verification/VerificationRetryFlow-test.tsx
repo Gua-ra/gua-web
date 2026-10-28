@@ -132,7 +132,6 @@ describe("verification retry request, end to end", () => {
         act(() => screen.getByRole("button", { name: "Verify with another device" }).click());
         unmount();
 
-        // The other device dropped the first request and asks again seconds later.
         nudge();
         await waitFor(() => expect(log).toContain("open verification dialog 2"));
 

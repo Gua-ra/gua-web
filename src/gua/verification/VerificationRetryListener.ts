@@ -15,17 +15,12 @@ import {
     retryVerifyWithAnotherDevice,
 } from "./verifyWithAnotherDevice";
 
-/**
- * Sent unencrypted by one of our verified devices once it has this device's keys, asking us to send our
- * verification request again (it dropped the first one because it could not look this device up yet).
- */
 export const RETRY_REQUEST_EVENT_TYPE = "global.gua.verification.retry_request";
 
 export const RESTART_DEBOUNCE_MS = 15_000;
 
 const logger = baseLogger.getChild("GuaVerificationRetryListener:");
 
-/** Re-sends "Verify with another device" when another of our devices asks for it. */
 export default class VerificationRetryListener {
     private static instance?: VerificationRetryListener;
     private client?: MatrixClient;
@@ -98,20 +93,14 @@ export default class VerificationRetryListener {
     }
 }
 
-/**
- * A verification past the Requested phase is under way, and an incoming request still in Requested would be
- * cancelled together with our new one. Only our own outgoing Requested request may be replaced.
- */
+/** A new request would cancel an incoming one, so only our own request still in Requested may be replaced. */
 function blocksRestart(request: VerificationRequest): boolean {
     if (!request.pending) return false;
     if (request.phase === VerificationPhase.Ready || request.phase === VerificationPhase.Started) return true;
     return !request.initiatedByMe;
 }
 
-/**
- * After a start or a reconnect the SDK drains the server's to-device queue first; events from that backlog are
- * delivered before the sync state reaches Syncing with catchingUp false.
- */
+/** The SDK delivers the queued to-device backlog before the sync state reaches Syncing with catchingUp false. */
 function isLive(client: MatrixClient): boolean {
     return client.getSyncState() === SyncState.Syncing && !client.getSyncStateData()?.catchingUp;
 }

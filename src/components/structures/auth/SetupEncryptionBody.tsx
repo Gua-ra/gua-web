@@ -40,8 +40,6 @@ interface IState {
 }
 
 export default class SetupEncryptionBody extends React.Component<IProps, IState> {
-    // Gua: guard so the frictionless auto-reset is only kicked off once, even if
-    // the store emits multiple "update" events before the reset flow completes.
     private autoResetTriggered = false;
     private unregisterVerifyButtonHandler?: () => void;
     // Gua: the reset runs in dialogs over this body while its phase stays Intro.
@@ -66,24 +64,10 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
         const store = SetupEncryptionStore.sharedInstance();
         store.on("update", this.onStoreUpdate);
         this.unregisterVerifyButtonHandler = registerVerifyButtonHandler(this.onRetryRequested);
-        // Gua: if we already know on mount that the only possible outcome is a
-        // reset (no other verified device and no recovery key), don't render the
-        // "Unable to verify this device → Proceed with reset" dead-end — just
-        // reset silently and continue into the app.
         this.maybeAutoReset();
     }
 
-    /**
-     * Gua frictionless auto-reset.
-     *
-     * When {@link SetupEncryptionStore.lostKeys} is true there is nothing to
-     * verify against (no other verified device, no recovery key) so a reset is
-     * the *only* outcome the user could pick on the Intro screen. Rather than
-     * making them click through the "Proceed with reset" confirmation, kick off
-     * the existing reset flow automatically. The reset persists fresh
-     * cross-signing keys and self-signs this device once its key-upload UIA
-     * completes (against MAS/OIDC via {@link uiAuthCallback}).
-     */
+    // Gua: with lost keys a reset is the only possible outcome, so open it straight away.
     private maybeAutoReset(): void {
         if (this.autoResetTriggered) return;
         const store = SetupEncryptionStore.sharedInstance();
@@ -105,8 +89,7 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
             backupInfo: store.backupInfo,
             lostKeys: store.lostKeys(),
         });
-        // Gua: the store may only learn it has lost its keys after start() has
-        // resolved, so re-evaluate the auto-reset on every update too.
+        // Gua: lostKeys is only known once the store's async key lookup finishes.
         this.maybeAutoReset();
     };
 
@@ -131,8 +114,7 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
         });
     };
 
-    // Gua: another of our devices asked for a fresh request. Act only on the Intro choices, never during
-    // recovery-key entry, skip confirmation, a reset or an incoming request shown in place.
+    // Gua: take a retry only while the Intro choices are showing and nothing covers them.
     private onRetryRequested = (): boolean => {
         const { verificationRequest, phase, lostKeys } = this.state;
         if (this.resetInProgress || verificationRequest || phase !== Phase.Intro || lostKeys) return false;
@@ -155,22 +137,11 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
         this.startReset();
     };
 
-    /**
-     * Open the reset-identity flow. Shared by the explicit "Reset all" link (in
-     * the normal Intro branch) and the Gua frictionless auto-reset.
-     *
-     * The reset itself runs in {@link ResetIdentityBody}, which calls
-     * `getCrypto().resetEncryption(uiAuthCallback)`. On MAS/OIDC the key-upload
-     * UIA is satisfied via the `org.matrix.cross_signing_reset` redirect stage
-     * (`MasUnlockCrossSigningAuthEntry`): the user is bounced to their account
-     * to confirm, then the upload completes so the fresh identity persists and
-     * we stop re-prompting on subsequent logins.
-     */
     private startReset(): void {
         this.resetInProgress = true;
         const { finished } = Modal.createDialog(ResetIdentityDialog, {
             onReset: () => {
-                // The reset completed - close this dialog and continue into the app
+                // The user completed the reset process - close this dialog
                 this.props.onFinished();
                 const store = SetupEncryptionStore.sharedInstance();
                 store.done();
@@ -207,10 +178,7 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
             );
         } else if (phase === Phase.Intro) {
             if (lostKeys) {
-                // Gua: a reset is the only possible outcome here, so we kick it
-                // off automatically (see maybeAutoReset). Render a spinner as the
-                // backdrop while the reset dialog opens and runs, rather than the
-                // "Unable to verify this device → Proceed with reset" dead-end.
+                // Gua: backdrop while maybeAutoReset runs the reset.
                 return <Spinner />;
             } else {
                 const store = SetupEncryptionStore.sharedInstance();
