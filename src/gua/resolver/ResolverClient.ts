@@ -22,10 +22,7 @@ export interface ResolvedHomeserver {
 
 /** Outcome of resolving a phone number against the Gua resolver. */
 export interface HomeserverResolution {
-    /**
-     * `true` when an account already exists for this phone (→ login); `false` when not (→ register).
-     * Absent when the resolver no longer says which (uniform `registerAt` answers).
-     */
+    /** True when an account exists for this phone, false when it does not, absent when the resolver does not say. */
     exists?: boolean;
     /** The homeserver to authenticate against (login) or create the account on (register). */
     homeserver: ResolvedHomeserver;
@@ -89,17 +86,14 @@ export default class ResolverClient {
         return { exists: body.exists, homeserver: ref, rosterVersion };
     }
 
-    /** The signed roster (`GET /roster`), as served. */
     public fetchRoster(signal?: AbortSignal): Promise<unknown> {
         return this.getJson("/roster", signal);
     }
 
-    /** The transparency log head and events (`GET /roster/log`); an authority node only. */
     public fetchLog(signal?: AbortSignal): Promise<unknown> {
         return this.getJson("/roster/log", signal);
     }
 
-    /** A consistency proof between two log sizes (`GET /roster/log/consistency`). */
     public fetchConsistency(first: number, second: number, signal?: AbortSignal): Promise<unknown> {
         return this.getJson(`/roster/log/consistency?first=${first}&second=${second}`, signal);
     }

@@ -69,7 +69,6 @@ export function concatBytes(...parts: Uint8Array[]): Uint8Array {
     return out;
 }
 
-/** Ed25519 and SHA-256 through WebCrypto. */
 export class VerifierCrypto {
     public constructor(private readonly subtle: SubtleCrypto | null = globalThis.crypto?.subtle ?? null) {}
 
