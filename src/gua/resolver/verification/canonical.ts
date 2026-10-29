@@ -17,6 +17,7 @@ import {
     optionalString,
     optionalStringList,
     string,
+    uint31,
 } from "./json";
 import { type CheckResult, invalid, Reason, type RosterForm, unverifiable } from "./report";
 
@@ -122,9 +123,10 @@ function parseEntry(value: unknown): RosterEntry {
     };
 }
 
+/** An entry without a key id or a value is kept as a signature that does not verify. */
 function parseSignature(value: unknown): Signature {
     const s = object(value);
-    return { keyId: string(s.authorityKeyId), signatureB64: string(s.signatureB64) };
+    return { keyId: optionalString(s.authorityKeyId) ?? "", signatureB64: optionalString(s.signatureB64) ?? "" };
 }
 
 /** Lenient at the document level (unknown fields ignored), strict about every field the canonical form reads. */
@@ -135,7 +137,7 @@ export function parseSignedRoster(document: unknown): SignedRoster {
         version: int64(d.version),
         issuedAt: instant(d.issuedAt),
         entries: list(d.entries).map(parseEntry),
-        logCheckpoint: { merkleRoot: string(checkpoint.merkleRoot), size: int64(checkpoint.size) },
+        logCheckpoint: { merkleRoot: string(checkpoint.merkleRoot), size: uint31(checkpoint.size) },
         authoritySignatures: list(d.authoritySignatures ?? []).map(parseSignature),
     };
 }

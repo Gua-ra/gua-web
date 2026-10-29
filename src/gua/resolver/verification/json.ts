@@ -112,6 +112,13 @@ export function int32(value: unknown): number {
     return n;
 }
 
+/** Log sizes and indexes. The consistency check shifts them as 32-bit integers, which would never end past 2^31. */
+export function uint31(value: unknown): number {
+    const n = int64(value);
+    if (n < 0 || n > INT32_MAX) throw new ParseError("expected a log size");
+    return n;
+}
+
 export interface ParsedInstant {
     /** Epoch milliseconds, the fraction truncated to three digits. */
     epochMs: number;

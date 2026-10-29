@@ -52,6 +52,8 @@ import {
 } from "./report";
 
 const DEFAULT_BUDGET_MS = 10_000;
+// The resolver re-signs the roster as its log grows, so older artifacts would leave most placements unattributed.
+const MAX_ARTIFACT_AGE_MS = 5 * 60_000;
 const MAX_LOG_SIZE = 4096;
 const ARTIFACT_CHECKS: readonly CheckName[] = ["rosterSignature", "logConsistency", "policy"];
 const ANSWER_CHECKS: readonly CheckName[] = ["homeserverMatch", "memberEntry", "placement"];
@@ -119,9 +121,12 @@ function webLock(baseUrl: string): ResolverLock | null {
     return (signal, body) => locks.request(`gua-resolver-verification:${baseUrl}`, { signal }, body);
 }
 
-/** What the other checks report when the roster signature is not valid. */
+/** Unless the roster signature is valid the other five checks are roster_unverified; two reasons fill all six. */
 function reasonAfterRoster(signature: CheckResult): Reason {
-    return signature.outcome === "unverifiable" ? signature.reason : Reason.RosterUnverified;
+    const everywhere =
+        signature.outcome === "unverifiable" &&
+        (signature.reason === Reason.NoTrustRoots || signature.reason === Reason.CryptoUnsupported);
+    return everywhere ? signature.reason : Reason.RosterUnverified;
 }
 
 /** Each check settles once. Waiters resume when it does; a deadline or a flush settles whatever is left. */
@@ -158,19 +163,29 @@ class ArtifactsRun {
     public roster: SignedRoster | null = null;
     public policy: VerifiedPolicy | null = null;
     private readonly abort = new AbortController();
+    private timedOut = false;
+    private settledAt: number | null = null;
 
     public constructor(private readonly context: Context) {
         const timer = setTimeout(() => {
+            this.timedOut = true;
             this.abort.abort();
-            this.checks.settleAll(ARTIFACT_CHECKS, unverifiable(Reason.Timeout));
+            this.settleRemaining(Reason.Timeout);
         }, context.budgetMs);
         void this.run()
-            .catch(() => this.checks.settleAll(ARTIFACT_CHECKS, unverifiable(Reason.InternalError)))
+            .catch(() => this.settleRemaining(Reason.InternalError))
             .finally(() => clearTimeout(timer));
+        void this.settled().then(() => (this.settledAt = context.now()));
     }
 
     public get running(): boolean {
         return ARTIFACT_CHECKS.some((name) => !this.checks.get(name));
+    }
+
+    /** Cut short by the deadline, or settled too long ago for a new answer to rely on. */
+    public get stale(): boolean {
+        if (this.settledAt === null) return false;
+        return this.timedOut || this.context.now() - this.settledAt > MAX_ARTIFACT_AGE_MS;
     }
 
     public get rosterVersion(): number | null {
@@ -224,6 +239,11 @@ class ArtifactsRun {
     private rosterFailed(signature: CheckResult): void {
         this.checks.settle("rosterSignature", signature);
         this.checks.settleAll(["logConsistency", "policy"], unverifiable(reasonAfterRoster(signature)));
+    }
+
+    private settleRemaining(reason: Reason): void {
+        if (!this.checks.get("rosterSignature")) this.rosterFailed(unverifiable(reason));
+        this.checks.settleAll(["logConsistency", "policy"], unverifiable(reason));
     }
 
     private fetchFailure(error: unknown, unavailable: Reason): Reason {
@@ -355,9 +375,12 @@ class AnswerRun {
     }
 
     private snapshot(): ResolverVerificationReport {
+        const signature = this.artifacts.checks.get("rosterSignature") ?? unverifiable(Reason.Timeout);
+        const gated = signature.outcome === "valid" ? null : unverifiable(reasonAfterRoster(signature));
         const checks = {} as Record<CheckName, CheckResult>;
         for (const name of CHECK_ORDER) {
-            checks[name] = this.artifacts.checks.get(name) ?? this.checks.get(name) ?? unverifiable(Reason.Timeout);
+            const settled = this.artifacts.checks.get(name) ?? this.checks.get(name) ?? unverifiable(Reason.Timeout);
+            checks[name] = name === "rosterSignature" ? signature : (gated ?? settled);
         }
         return {
             ...checks,
@@ -447,7 +470,7 @@ export class ResolverVerification {
 
     /** Logs exactly one report for this answer, when its checks settle or at flush(), whichever comes first. */
     public verify(resolution: HomeserverResolution, phone: string): Promise<ResolverVerificationReport> {
-        this.artifacts ??= new ArtifactsRun(this.context);
+        if (!this.artifacts || this.artifacts.stale) this.artifacts = new ArtifactsRun(this.context);
         const run = new AnswerRun(this.artifacts, resolution, phone, this.context);
         this.pending.add(run);
         return run.complete().finally(() => this.pending.delete(run));

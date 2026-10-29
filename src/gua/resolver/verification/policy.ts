@@ -136,12 +136,14 @@ export function parseRoutingPolicy(document: unknown): RoutingPolicyBundle {
     };
 }
 
-/** A bundle or zone is in effect from notBefore, inclusive, until expiresAt, exclusive; a missing bound is open. */
+/**
+ * A bundle or zone is in effect from notBefore, inclusive, until expiresAt, exclusive. A missing bound is open, and so
+ * is one at the epoch, because the signed bytes write both as 0.
+ */
 export function inEffect(notBefore: string | null, expiresAt: string | null, atEpochMs: number): boolean {
-    return (
-        (notBefore === null || instantToEpochMs(notBefore) <= atEpochMs) &&
-        (expiresAt === null || atEpochMs < instantToEpochMs(expiresAt))
-    );
+    const from = epoch(notBefore);
+    const until = epoch(expiresAt);
+    return (from === 0 || from <= atEpochMs) && (until === 0 || atEpochMs < until);
 }
 
 function epoch(iso: string | null): number {

@@ -25,6 +25,7 @@ import { type IMatrixClientCreds, MatrixClientPeg, type MatrixClientPegAssignOpt
 import { ModuleRunner } from "./modules/ModuleRunner";
 import EventIndexPeg from "./indexing/EventIndexPeg";
 import createMatrixClient from "./utils/createMatrixClient";
+import { storedCheckpoints } from "./gua/resolver/verification/checkpointStore";
 import Notifier from "./Notifier";
 import UserActivity from "./UserActivity";
 import Presence from "./Presence";
@@ -1129,8 +1130,11 @@ export async function clearStorage(opts?: { deleteEverything?: boolean }): Promi
         // try to save any 3pid invites from being obliterated and registration time
         const pendingInvites = ThreepidInviteStore.instance.getWireInvites();
         const registrationTime = window.localStorage.getItem("mx_registration_time");
+        // GUA FORK: the resolver log pins outlive sign-in and sign-out, and go only with the app's data.
+        const resolverPins = storedCheckpoints();
 
         window.localStorage.clear();
+        resolverPins.forEach(([key, value]) => window.localStorage.setItem(key, value));
 
         try {
             await StorageAccess.idbClear("account");

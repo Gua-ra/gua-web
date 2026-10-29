@@ -6,7 +6,7 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import { bytesToHex, concatBytes, hexToBytes, utf8Bytes, type VerifierCrypto } from "./ed25519";
-import { instantToEpochMs, int64, list, object, optionalString, ParseError, string } from "./json";
+import { instantToEpochMs, list, object, optionalString, ParseError, string, uint31 } from "./json";
 
 const LEAF_PREFIX = new Uint8Array([0x00]);
 const NODE_PREFIX = new Uint8Array([0x01]);
@@ -25,7 +25,7 @@ export function parseLogEvents(document: unknown): LogEvent[] {
     return list(object(document).events).map((value) => {
         const e = object(value);
         return {
-            index: int64(e.index),
+            index: uint31(e.index),
             type: string(e.type),
             homeserverId: optionalString(e.homeserverId),
             payloadHash: string(e.payloadHash),
@@ -103,6 +103,8 @@ export class MerkleTree {
             sn >>= 1;
         }
         while (idx < nodes.length) {
+            // RFC 9162 section 2.1.4.2: hashes left over once sn reaches 0 fail the proof.
+            if (sn === 0) return false;
             const node = nodes[idx++];
             if ((fn & 1) === 1 || fn === sn) {
                 fr = await this.nodeHash(node, fr);

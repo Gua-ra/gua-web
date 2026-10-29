@@ -245,6 +245,11 @@ function everyCheck(result: CheckResult): Json {
     };
 }
 
+/** A roster that is not valid, for any reason but missing trust roots or crypto, leaves the rest roster_unverified. */
+function rosterFailure(reason: Reason): Json {
+    return { ...everyCheck(unverifiable(Reason.RosterUnverified)), rosterSignature: unverifiable(reason) };
+}
+
 async function until(condition: () => boolean): Promise<void> {
     for (let i = 0; i < 200 && !condition(); i++) {
         await new Promise((resolve) => setTimeout(resolve, 5));
@@ -373,7 +378,7 @@ describe("ResolverVerification", () => {
     });
 
     describe("roster", () => {
-        it("reports roster_unavailable for every check when the roster cannot be fetched", async () => {
+        it("reports roster_unavailable when the roster cannot be fetched, and fetches nothing more", async () => {
             const store = memoryStore();
             const transport = stubTransport({
                 fetchRoster: async () => {
@@ -382,7 +387,7 @@ describe("ResolverVerification", () => {
             });
             const report = await run({ transport, checkpoints: store });
 
-            expect(report).toMatchObject(everyCheck(unverifiable(Reason.RosterUnavailable)));
+            expect(report).toMatchObject(rosterFailure(Reason.RosterUnavailable));
             expect(report.rosterForm).toBeNull();
             expect(store.current).toBeNull();
             expect(transport.calls).toEqual(["roster"]);
@@ -395,27 +400,27 @@ describe("ResolverVerification", () => {
             expect(report.rosterSignature).toEqual(unverifiable(Reason.RosterUnavailable));
         });
 
-        it("reports every check timeout when the roster does not arrive within the budget", async () => {
+        it("reports a roster that does not arrive within the budget as timeout", async () => {
             const transport = stubTransport({
                 fetchRoster: (signal) =>
                     new Promise((_, reject) => signal?.addEventListener("abort", () => reject(new Error("aborted")))),
             });
             const report = await run({ transport, budgetMs: 20 });
 
-            expect(report).toMatchObject(everyCheck(unverifiable(Reason.Timeout)));
+            expect(report).toMatchObject(rosterFailure(Reason.Timeout));
         });
 
-        it("reports every check parse_error when the roster body is not JSON", async () => {
+        it("reports a roster body that is not JSON as parse_error", async () => {
             const report = await run({ transport: rosterServedAs(new TextEncoder().encode("<html>busy</html>")) });
 
-            expect(report).toMatchObject(everyCheck(unverifiable(Reason.ParseError)));
+            expect(report).toMatchObject(rosterFailure(Reason.ParseError));
         });
 
         it("reports parse_error promptly for a roster whose ignored field nests 100,000 arrays", async () => {
             const body = JSON.stringify(r2.roster).replace(/}$/, `,"ignored":${deeplyNested(100_000)}}`);
             const report = await run({ transport: rosterServedAs(new TextEncoder().encode(body)) });
 
-            expect(report).toMatchObject(everyCheck(unverifiable(Reason.ParseError)));
+            expect(report).toMatchObject(rosterFailure(Reason.ParseError));
         });
 
         it("reports parse_error promptly for a roster whose first member block nests 100,000 arrays", async () => {
@@ -424,7 +429,7 @@ describe("ResolverVerification", () => {
             const body = JSON.stringify(roster).replace('"NESTED"', deeplyNested(100_000));
             const report = await run({ transport: rosterServedAs(new TextEncoder().encode(body)) });
 
-            expect(report).toMatchObject(everyCheck(unverifiable(Reason.ParseError)));
+            expect(report).toMatchObject(rosterFailure(Reason.ParseError));
         });
 
         it("reports parse_error for a 3 MiB roster", async () => {
@@ -439,7 +444,22 @@ describe("ResolverVerification", () => {
 
             expect(report.rosterForm).toBe("mixed");
             expect(report.rosterVersion).toBeNull();
-            expect(report).toMatchObject(everyCheck(unverifiable(Reason.MixedRosterForm)));
+            expect(report).toMatchObject(rosterFailure(Reason.MixedRosterForm));
+        });
+
+        it("reports a checkpoint size past 2^31 as parse_error", async () => {
+            const roster = { ...copy(r2.roster), logCheckpoint: { merkleRoot: rootAt(7), size: 2 ** 32 } };
+            const report = await run({ transport: stubTransport({ fetchRoster: async () => roster }) });
+
+            expect(report.rosterSignature).toEqual(unverifiable(Reason.ParseError));
+        });
+
+        it("counts a signature entry without a key id or a value as one that does not verify", async () => {
+            const roster = copy(r2.roster);
+            roster.authoritySignatures.push({}, { authorityKeyId: "authority-a" });
+            const report = await run({ transport: stubTransport({ fetchRoster: async () => roster }) });
+
+            expect(report.rosterSignature).toEqual({ outcome: "valid" });
         });
 
         it("reports a tampered roster as bad_signature with no version and the other checks roster_unverified", async () => {
@@ -529,6 +549,16 @@ describe("ResolverVerification", () => {
             expect(report.homeserverMatch).toEqual({ outcome: "FIELD_MISMATCH" });
             expect(report.memberEntry).toEqual(unverifiable(Reason.NoMatchingEntry));
             expect(report.overall).toEqual({ outcome: "failed", check: "homeserverMatch" });
+        });
+
+        it("reports a member window bound that does not parse as parse_error", async () => {
+            // The member block is outside the authority's signature, so the roster stays valid.
+            const roster = copy(r2.roster);
+            roster.entries.find((e: Json) => e.homeserver.id === "hs-br").member.notBefore = "2026-09-01";
+            const report = await run({ transport: stubTransport({ fetchRoster: async () => roster }) });
+
+            expect(report.rosterSignature).toEqual({ outcome: "valid" });
+            expect(report.memberEntry).toEqual(invalid(Reason.ParseError));
         });
 
         it("reports a member signing key the browser refuses as bad_signing_key and still checks the log", async () => {
@@ -649,6 +679,23 @@ describe("ResolverVerification", () => {
 
             expect(report.logConsistency).toEqual(unverifiable(Reason.StorageUnavailable));
             expect(setItem).not.toHaveBeenCalled();
+        });
+
+        it("reports a stored pin that does not parse as storage_unavailable and leaves it in place", async () => {
+            const key = "gua_resolver_log_checkpoint:https://resolver.example";
+            window.localStorage.setItem(key, "{not json");
+            const report = await run({ checkpoints: localStorageCheckpointStore("https://resolver.example") });
+
+            expect(report.logConsistency).toEqual(unverifiable(Reason.StorageUnavailable));
+            expect(window.localStorage.getItem(key)).toBe("{not json");
+        });
+
+        it("reports a stored pin whose size passes 2^31 as storage_unavailable", async () => {
+            const key = "gua_resolver_log_checkpoint:https://resolver.example";
+            window.localStorage.setItem(key, JSON.stringify({ merkleRoot: rootAt(7), size: 2 ** 32 }));
+            const report = await run({ checkpoints: localStorageCheckpointStore("https://resolver.example") });
+
+            expect(report.logConsistency).toEqual(unverifiable(Reason.StorageUnavailable));
         });
 
         it("reports storage_unavailable instead of firstSeen when localStorage cannot be written", async () => {
@@ -779,6 +826,14 @@ describe("ResolverVerification", () => {
             expect(report.policy).toEqual(unverifiable(Reason.ParseError));
         });
 
+        it("reports parse_error for a log event index past 2^31", async () => {
+            const events = copy(vectors.log.events);
+            events[7].index = 2 ** 32;
+            const report = await run({ transport: stubTransport({ fetchLog: async () => ({ events }) }) });
+
+            expect(report.policy).toEqual(unverifiable(Reason.ParseError));
+        });
+
         it("hashes the log in served order, so swapped events do not match the signed root", async () => {
             const [first, second, ...rest] = vectors.log.events;
             const report = await run({
@@ -898,6 +953,19 @@ describe("ResolverVerification", () => {
                 expect(placement.decision?.ruleId).toBe("r-sp");
                 expect(placement.unsignedRuleAbove).toBe(true);
             });
+
+            it("ranks a rule without an id after the others of its priority, as the signed bytes do", async () => {
+                const rule = {
+                    ...unsignedRule,
+                    id: null,
+                    priority: 10,
+                    delegatedZoneId: "sp-zone",
+                    targetHomeserverId: "hs-ca",
+                };
+                const placement = await placementWith(rule);
+
+                expect(placement.decision?.ruleId).toBe("r-sp");
+            });
         });
     });
 
@@ -946,6 +1014,39 @@ describe("ResolverVerification", () => {
             expect(logger.info).toHaveBeenCalledTimes(2);
         });
 
+        it("verifies the artifacts again for an answer more than five minutes after they settled", async () => {
+            let clock = NOW;
+            const transport = stubTransport();
+            const verification = verifier({ transport, now: () => clock });
+            await verification.verify(brAnswer, PHONE);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            clock += 5 * 60_000 + 1;
+            await verification.verify(brAnswer, PHONE);
+
+            expect(transport.calls.filter((c) => c === "roster")).toHaveLength(2);
+        });
+
+        it("verifies the artifacts again after a run that timed out", async () => {
+            let rosterCalls = 0;
+            const transport = stubTransport({
+                fetchRoster: (signal) =>
+                    ++rosterCalls === 1
+                        ? new Promise((_, reject) =>
+                              signal?.addEventListener("abort", () => reject(new Error("aborted"))),
+                          )
+                        : Promise.resolve(r2.roster),
+            });
+            const verification = verifier({ transport, budgetMs: 50 });
+            verification.prepare();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            const report = await verification.verify(brAnswer, PHONE);
+
+            expect(rosterCalls).toBe(2);
+            expect(report.rosterSignature).toEqual({ outcome: "valid" });
+        });
+
         it("logs a pending report at flush with unsettled checks as timeout, and only that one", async () => {
             let releaseRoster = (_roster: unknown): void => {};
             const transport = stubTransport({ fetchRoster: () => new Promise((resolve) => (releaseRoster = resolve)) });
@@ -956,12 +1057,12 @@ describe("ResolverVerification", () => {
             verification.flush();
             expect(logger.info).toHaveBeenCalledTimes(1);
             expect(jest.mocked(logger.info).mock.calls[0][0]).toContain(
-                "rosterSignature=unverifiable(timeout) homeserverMatch=unverifiable(timeout)",
+                "rosterSignature=unverifiable(timeout) homeserverMatch=unverifiable(roster_unverified)",
             );
 
             releaseRoster(r2.roster);
             const report = await pending;
-            expect(report).toMatchObject(everyCheck(unverifiable(Reason.Timeout)));
+            expect(report).toMatchObject(rosterFailure(Reason.Timeout));
             expect(logger.info).toHaveBeenCalledTimes(1);
         });
 
@@ -980,7 +1081,7 @@ describe("ResolverVerification", () => {
     describe("configuration", () => {
         const keys = [{ id: "authority-a", public_key: r1.trustedKeys[0].publicKeySpkiB64 }];
 
-        it("is inert when config.json carries no verification block", () => {
+        it("reads no trust roots, threshold one and environment unknown without a verification block", () => {
             SdkConfig.add({ gua_resolver: { base_url: "https://resolver.example" } });
 
             expect(readVerificationConfig()).toEqual({
@@ -1072,9 +1173,9 @@ describe("ResolverVerification", () => {
             expect(localStorageCheckpointStore("https://other.example").load()).toBeNull();
         });
 
-        it("treats an unreadable value as no pin", () => {
+        it("throws for a stored value that does not read back as a pin", () => {
             window.localStorage.setItem("gua_resolver_log_checkpoint:https://resolver.example", "{not json");
-            expect(localStorageCheckpointStore("https://resolver.example").load()).toBeNull();
+            expect(() => localStorageCheckpointStore("https://resolver.example").load()).toThrow();
         });
     });
 });

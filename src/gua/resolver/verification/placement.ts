@@ -20,6 +20,7 @@ import {
     isRuleEnabled,
     type RoutingPolicyBundle,
     type RoutingPolicyRule,
+    sortedRules,
 } from "./policy";
 
 /**
@@ -123,7 +124,7 @@ function ruleMatches(rule: RoutingPolicyRule, ctx: PlacementContext): boolean {
 }
 
 /**
- * PolicyRoutingRule: enabled rules by priority, then id; the first that is delegate-signed, inside its zone's window,
+ * PolicyRoutingRule: enabled rules in their signed order; the first that is delegate-signed, inside its zone's window,
  * matching and aimed at a candidate decides. Delegate signatures are covered neither by the bundle signatures nor by
  * the POLICY_PUBLISH hash, so a resolver can strip one to hide a rule: a matching unsigned rule above is reported.
  */
@@ -138,9 +139,7 @@ function policyRule(
     for (const zone of policy.bundle.delegationZones) {
         if (zone.id !== null && !zones.has(zone.id)) zones.set(zone.id, zone);
     }
-    const ranked = policy.bundle.rules
-        .filter(isRuleEnabled)
-        .sort((a, b) => a.priority - b.priority || compareUtf16(nz(a.id), nz(b.id)));
+    const ranked = sortedRules(policy.bundle.rules).filter(isRuleEnabled);
     let unsignedRuleAbove = false;
     for (const rule of ranked) {
         const zone = rule.delegatedZoneId === null ? undefined : zones.get(rule.delegatedZoneId);

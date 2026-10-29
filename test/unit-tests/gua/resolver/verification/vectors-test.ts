@@ -133,6 +133,14 @@ interface PolicyLogVector {
     expected: string;
 }
 
+interface WindowVector {
+    name: string;
+    notBefore: string | null;
+    expiresAt: string | null;
+    evaluatedAt: string;
+    inEffect: boolean;
+}
+
 interface PolicyValidityVector {
     name: string;
     policyRef: string;
@@ -193,6 +201,7 @@ interface ClientVectors {
     policies: PolicyVector[];
     policyRejections: PolicyVector[];
     policyValidity: PolicyValidityVector[];
+    windows: WindowVector[];
     policyLog: PolicyLogVector[];
     placements: PlacementVector[];
     resolveAnswers: ResolveAnswerVector[];
@@ -355,6 +364,7 @@ describe("gua-client-verification.v1 vectors", () => {
                 "policies",
                 "policyRejections",
                 "policyValidity",
+                "windows",
                 "policyLog",
                 "placements",
                 "resolveAnswers",
@@ -502,6 +512,13 @@ describe("gua-client-verification.v1 vectors", () => {
 
         it.each(vectors.policyRejections)("$name is refused", (vector) => {
             expect(vector.verified).toBe(false);
+        });
+    });
+
+    describe("windows", () => {
+        it.each(vectors.windows)("$name", (vector) => {
+            const at = instantToEpochMs(vector.evaluatedAt);
+            expect(inEffect(vector.notBefore, vector.expiresAt, at)).toBe(vector.inEffect);
         });
     });
 

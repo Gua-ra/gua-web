@@ -7,7 +7,7 @@ Please see LICENSE files in the repository root for full details.
 
 import { type RosterHomeserver } from "./canonical";
 import { type VerifierCrypto } from "./ed25519";
-import { int64, list, object, optionalString, ParseError, parseInstant } from "./json";
+import { int64, list, object, optionalInstant, optionalString, ParseError, parseInstant } from "./json";
 import { CanonicalEncodingError, LengthPrefixedEncoder } from "./lengthPrefixed";
 import { type CheckResult, invalid, Reason } from "./report";
 
@@ -52,7 +52,7 @@ function parseSignature(value: unknown): MemberSignature {
     return { keyId: optionalString(s.keyId), signatureB64: optionalString(s.signatureB64) };
 }
 
-/** Strict: an unknown field, a wrong JSON type or a fractional sequence refuses the block. */
+/** Strict: an unknown field, a wrong JSON type, a fractional sequence or a bound that does not parse refuses it. */
 export function parseMemberBlock(value: unknown): MemberBlock {
     const m = strictObject(value, MEMBER_KEYS);
     return {
@@ -60,8 +60,8 @@ export function parseMemberBlock(value: unknown): MemberBlock {
         alg: optionalString(m.alg),
         keyId: optionalString(m.keyId),
         sequence: m.sequence === undefined ? 0 : int64(m.sequence),
-        notBefore: optionalString(m.notBefore),
-        notAfter: optionalString(m.notAfter),
+        notBefore: optionalInstant(m.notBefore),
+        notAfter: optionalInstant(m.notAfter),
         signatures: list(m.signatures ?? []).map(parseSignature),
     };
 }

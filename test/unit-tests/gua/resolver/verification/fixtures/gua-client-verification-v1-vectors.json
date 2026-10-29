@@ -1,7 +1,7 @@
 {
   "vectors" : "gua-client-verification.v1",
   "protocol" : "docs/verification/gua-resolver-verification-protocol.md",
-  "notes" : [ "The test keys are the Ed25519 example keys from RFC 8032, section 7.1. They are public, so never use them outside tests.", "The signatures were made with deterministic Ed25519, so they can be reproduced exactly. Some libraries, Apple CryptoKit among them, randomize Ed25519 signatures. With those, verify the signatures here and do not compare their bytes.", "canonicalUtf8 is the exact byte string that gets signed, written as a JSON string, and canonicalHex is the same bytes in hex. gua-roster.v1 separates fields with the control character U+001F.", "Timestamps appear in JSON as ISO-8601 UTC strings with 0 to 9 fractional digits. The signed bytes carry them as epoch milliseconds. Digits past the millisecond are dropped, not rounded.", "Rosters come in two forms. If no entry has searchVisibility, verify the legacy bytes, which leave out the search fields. If every entry has it, verify the v1 bytes. If only some entries have it, refuse the roster.", "The production roster is a copy of https://resolver.gua.global/roster as served on 2026-10-27. It is signed with the production authority key listed under keys.", "Each expected placement is the homeserver the Java reference verifier chooses for a new account from the verified roster and policy. No context carries verified claims, so an affiliation the client states without proof never changes the result.", "Placements are evaluated at their evaluatedAt instant, not at the current time. Weights are summed in 64 bits, so weights whose total passes 2^31 do not wrap.", "A policy bundle or delegation zone is in effect from notBefore, inclusive, until expiresAt, exclusive. A missing bound leaves that side open. policyValidity checks the bundle rule at its edges.", "A resolve answer is located by the strongest match in the roster, whatever the entry order: an ACTIVE entry with the same serverName, baseUrl and masIssuer, then any entry with all three, then any entry with the serverName. Ties go to the entry served first. expectedEntryId names the entry that decided the match.", "In the signed roster bytes a null id, serverName, baseUrl or masIssuer is the text null. The other optional fields are empty.", "expectedOutcome is the outcome a client reports for a rejected roster or policy. A placement's unsignedRuleAbove says whether a matching rule in a zone without a valid delegate signature outranks the rule that decided, which makes the placement check indeterminate(unsigned_rule).", "policyLog cases check a served bundle, or a 404 when servedPolicy is null, against all events in log.events and the checkpoint given in each case.", "Vectors refer to rosters and policies by their ref field." ],
+  "notes" : [ "The test keys are the Ed25519 example keys from RFC 8032, section 7.1. They are public, so never use them outside tests.", "The signatures were made with deterministic Ed25519, so they can be reproduced exactly. Some libraries, Apple CryptoKit among them, randomize Ed25519 signatures. With those, verify the signatures here and do not compare their bytes.", "canonicalUtf8 is the exact byte string that gets signed, written as a JSON string, and canonicalHex is the same bytes in hex. gua-roster.v1 separates fields with the control character U+001F.", "Timestamps appear in JSON as ISO-8601 UTC strings with 0 to 9 fractional digits. The signed bytes carry them as epoch milliseconds. Digits past the millisecond are dropped, not rounded.", "Rosters come in two forms. If no entry has searchVisibility, verify the legacy bytes, which leave out the search fields. If every entry has it, verify the v1 bytes. If only some entries have it, refuse the roster.", "The production roster is a copy of https://resolver.gua.global/roster as served on 2026-10-27. It is signed with the production authority key listed under keys.", "Each expected placement is the homeserver the Java reference verifier chooses for a new account from the verified roster and policy. No context carries verified claims, so an affiliation the client states without proof never changes the result.", "Placements are evaluated at their evaluatedAt instant, not at the current time. Weights are summed in 64 bits, so weights whose total passes 2^31 do not wrap.", "A policy bundle or delegation zone is in effect from notBefore, inclusive, until expiresAt, exclusive. A missing bound leaves that side open, and so does a bound at 1970-01-01T00:00:00Z, because the signed bytes write both as 0. policyValidity checks a bundle at its edges and windows checks the rule itself.", "A resolve answer is located by the strongest match in the roster, whatever the entry order: an ACTIVE entry with the same serverName, baseUrl and masIssuer, then any entry with all three, then any entry with the serverName. Ties go to the entry served first. expectedEntryId names the entry that decided the match.", "In the signed roster bytes a null id, serverName, baseUrl or masIssuer is the text null. The other optional fields are empty.", "expectedOutcome is the outcome a client reports for a rejected roster or policy. A placement's unsignedRuleAbove says whether a matching rule in a zone without a valid delegate signature outranks the rule that decided, which makes the placement check indeterminate(unsigned_rule).", "policyLog cases check a served bundle, or a 404 when servedPolicy is null, against all events in log.events and the checkpoint given in each case.", "Consistency proofs are checked as RFC 9162 section 2.1.4.2 describes, including its rule that a proof fails when hashes remain after the path is complete.", "Vectors refer to rosters and policies by their ref field." ],
   "keys" : {
     "rfc8032-test1" : {
       "usedAsKeyId" : "authority-a",
@@ -1335,6 +1335,15 @@
       "proof" : [ ],
       "valid" : false,
       "reason" : "Same size, different root: the history was rewritten."
+    }, {
+      "name" : "a proof with hashes left after the path ends",
+      "first" : 6,
+      "second" : 8,
+      "oldRootHex" : "9627cd5b618b053e2ef8f265c5a8311ae1901b05025d1e434f939e6ab8089c29",
+      "newRootHex" : "fd965c7d662a4b6f411d1273a52f449db5ba208964cd84fccb4854b5eb0c27ed",
+      "proof" : [ "ebd8acd163694255c76df2c5aa768119695594238681efa6fabff0c25e3aa6db", "e3f203a89cd90e2717b2f83fb184bc04493f6080010ed32f48a06e7fff1e975a", "b291694f971d0f75562e2e3758b7da22f0467c7d96045f6e3cff178e33cec7bf", "f38a131d0ac314933b3c6dbf8673bf0f78c005fc1b075ddfa2e2277a5e3c51c5" ],
+      "valid" : false,
+      "reason" : "RFC 9162 fails a proof once the path is complete and hashes remain. Without that rule this one proves a root no 8-leaf log has."
     } ]
   },
   "policies" : [ {
@@ -2015,6 +2024,49 @@
     "evaluatedAt" : "2030-01-01T00:00:00Z",
     "inEffect" : false
   } ],
+  "windows" : [ {
+    "name" : "inside both bounds",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : "2030-01-01T00:00:00Z",
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "inEffect" : true
+  }, {
+    "name" : "no expiresAt",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : null,
+    "evaluatedAt" : "2040-01-01T00:00:00Z",
+    "inEffect" : true
+  }, {
+    "name" : "an expiresAt at the epoch, which is signed as no expiresAt",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : "1970-01-01T00:00:00Z",
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "inEffect" : true
+  }, {
+    "name" : "a notBefore at the epoch, which is signed as no notBefore",
+    "notBefore" : "1970-01-01T00:00:00Z",
+    "expiresAt" : "2030-01-01T00:00:00Z",
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "inEffect" : true
+  }, {
+    "name" : "no bounds at all",
+    "notBefore" : null,
+    "expiresAt" : null,
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "inEffect" : true
+  }, {
+    "name" : "after expiresAt",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : "2030-01-01T00:00:00Z",
+    "evaluatedAt" : "2031-01-01T00:00:00Z",
+    "inEffect" : false
+  }, {
+    "name" : "before notBefore",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : "2030-01-01T00:00:00Z",
+    "evaluatedAt" : "2025-01-01T00:00:00Z",
+    "inEffect" : false
+  } ],
   "policyLog" : [ {
     "name" : "the served bundle is logged within the checkpoint",
     "servedPolicy" : {
@@ -2089,6 +2141,14 @@
     "checkpoint" : {
       "size" : 7,
       "rootHex" : "9627cd5b618b053e2ef8f265c5a8311ae1901b05025d1e434f939e6ab8089c29"
+    },
+    "expected" : "invalid(log_mismatch)"
+  }, {
+    "name" : "no policy is served and the first leaves do not hash to the signed root",
+    "servedPolicy" : null,
+    "checkpoint" : {
+      "size" : 3,
+      "rootHex" : "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd"
     },
     "expected" : "invalid(log_mismatch)"
   }, {

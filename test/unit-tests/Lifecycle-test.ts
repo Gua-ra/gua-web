@@ -7,6 +7,9 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import { Crypto } from "@peculiar/webcrypto";
+import { readFileSync } from "node:fs";
+import { webcrypto } from "node:crypto";
+import { join } from "node:path";
 import { logger } from "matrix-js-sdk/src/logger";
 import * as MatrixJs from "matrix-js-sdk/src/matrix";
 import { decodeBase64, encodeUnpaddedBase64 } from "matrix-js-sdk/src/matrix";
@@ -30,6 +33,9 @@ import { persistAccessTokenInStorage, persistRefreshTokenInStorage } from "../..
 import { encryptPickleKey } from "../../src/utils/tokens/pickling";
 import * as StorageManager from "../../src/utils/StorageManager.ts";
 import type BasePlatform from "../../src/BasePlatform.ts";
+import { localStorageCheckpointStore } from "../../src/gua/resolver/verification/checkpointStore";
+import { VerifierCrypto } from "../../src/gua/resolver/verification/ed25519";
+import { ResolverVerification } from "../../src/gua/resolver/verification/ResolverVerifier";
 
 const { logout, restoreSessionFromStorage, setLoggedIn } = Lifecycle;
 
@@ -1016,6 +1022,63 @@ describe("Lifecycle", () => {
             );
 
             expect(MatrixClientPeg.unset).not.toHaveBeenCalled();
+        });
+    });
+
+    // GUA FORK: the resolver verifier's log pins outlive the storage resets of sign-in and sign-out.
+    describe("clearStorage() and the resolver log pins", () => {
+        const vectors = JSON.parse(
+            readFileSync(
+                join(__dirname, "gua/resolver/verification/fixtures/gua-client-verification-v1-vectors.json"),
+                "utf8",
+            ),
+        );
+        const r1 = vectors.rosters.find((r: { ref?: string }) => r.ref === "r1");
+        const r2 = vectors.rosters.find((r: { ref?: string }) => r.ref === "r2");
+        const pins = localStorageCheckpointStore("https://resolver.example");
+
+        function verifyAgainstR1(): ReturnType<ResolverVerification["verify"]> {
+            return new ResolverVerification({
+                transport: {
+                    fetchRoster: async () => r1.roster,
+                    fetchLog: async () => ({ events: vectors.log.events }),
+                    fetchConsistency: async () => ({ proof: [] }),
+                    fetchRoutingPolicy: async () => null,
+                },
+                config: {
+                    environment: "dev",
+                    authorityKeys: [{ id: "authority-a", publicKey: r1.trustedKeys[0].publicKeySpkiB64 }],
+                    authorityThreshold: 1,
+                    policyKeys: [],
+                    policyThreshold: 1,
+                },
+                checkpoints: pins,
+                lock: (_signal, body) => body(),
+                crypto: new VerifierCrypto(webcrypto.subtle as unknown as SubtleCrypto),
+            }).verify(
+                { exists: false, homeserver: { serverName: "br.gua.test", baseUrl: "https://matrix.br.gua.test" } },
+                "+5511987654321",
+            );
+        }
+
+        beforeEach(() => {
+            jest.spyOn(MatrixJs, "createClient").mockReturnValue(mockClient);
+            jest.spyOn(logger, "info").mockImplementation(() => {});
+            localStorage.clear();
+        });
+
+        it.each([
+            ["sign-in", {}],
+            ["sign-out", { deleteEverything: true }],
+        ])("keeps the pin across the %s reset, so the next run compares against it", async (_reset, opts) => {
+            pins.save(r2.roster.logCheckpoint);
+            localStorage.setItem("mx_user_id", userId);
+
+            await Lifecycle.clearStorage(opts);
+            const report = await verifyAgainstR1();
+
+            expect(localStorage.getItem("mx_user_id")).toBeNull();
+            expect(report.logConsistency).toEqual({ outcome: "rollback" });
         });
     });
 });

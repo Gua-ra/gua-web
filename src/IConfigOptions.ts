@@ -61,7 +61,8 @@ export interface IConfigOptions {
     gua_resolver?: {
         base_url: string;
         // Report-only verification of resolver answers against the signed roster. Trust roots are the
-        // base64 SPKI Ed25519 keys the resolver publishes out of band; absent keys leave the verifier inert.
+        // base64 SPKI Ed25519 keys the resolver publishes out of band. Without them nothing is fetched and
+        // every answer reports no_trust_roots.
         verification?: {
             mode?: "off" | "report";
             // Labels the report line; anything else is logged as "unknown".
