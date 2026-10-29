@@ -20,6 +20,7 @@ import {
 } from "../../../../../src/gua/resolver/verification/canonical";
 import {
     bytesToHex,
+    concatBytes,
     decodeEd25519Spki,
     ED25519_SPKI_PREFIX_HEX,
     type TrustedKey,
@@ -305,6 +306,39 @@ async function expectKeyVector(key: KeyVector): Promise<void> {
     }
 }
 
+// gua-lp.v1 primitives no signed object the app checks uses yet; encoded here only to pin the vectors.
+function encodeBool(value: boolean): Uint8Array {
+    return new Uint8Array([value ? 1 : 0]);
+}
+
+function encodeStringList(values: string[]): Uint8Array {
+    const count = new Uint8Array(4);
+    new DataView(count.buffer).setUint32(0, values.length, false);
+    return concatBytes(count, ...values.map((v) => new LengthPrefixedEncoder().string(v).toBytes()));
+}
+
+function encodePrimitive(type: string, value: unknown): Uint8Array {
+    const encoder = new LengthPrefixedEncoder();
+    switch (type) {
+        case "string":
+            return encoder.string(value as string).toBytes();
+        case "int64":
+            return encoder.int64(BigInt(value as string)).toBytes();
+        case "optionalString":
+            return encoder.optionalString(value as string | null).toBytes();
+        case "stringSet":
+            return encoder.stringSet(value as string[]).toBytes();
+        case "enum":
+            return encoder.enumName(value as string).toBytes();
+        case "bool":
+            return encodeBool(value as boolean);
+        case "stringList":
+            return encodeStringList(value as string[]);
+        default:
+            throw new Error(`unknown primitive type ${type}`);
+    }
+}
+
 describe("gua-client-verification.v1 vectors", () => {
     it("covers every section of the file", () => {
         expect(vectors.vectors).toBe("gua-client-verification.v1");
@@ -553,33 +587,7 @@ describe("gua-lp.v1 vectors", () => {
 
     describe("primitives", () => {
         it.each(lp.primitives)("$name", (primitive) => {
-            const encoder = LengthPrefixedEncoder.raw();
-            switch (primitive.type) {
-                case "string":
-                    encoder.string(primitive.value as string);
-                    break;
-                case "int64":
-                    encoder.int64(BigInt(primitive.value as string));
-                    break;
-                case "bool":
-                    encoder.bool(primitive.value as boolean);
-                    break;
-                case "optionalString":
-                    encoder.optionalString(primitive.value as string | null);
-                    break;
-                case "stringSet":
-                    encoder.stringSet(primitive.value as string[]);
-                    break;
-                case "stringList":
-                    encoder.stringList(primitive.value as string[]);
-                    break;
-                case "enum":
-                    encoder.enumName(primitive.value as string);
-                    break;
-                default:
-                    throw new Error(`unknown primitive type ${primitive.type}`);
-            }
-            expect(bytesToHex(encoder.toBytes())).toBe(primitive.hex);
+            expect(bytesToHex(encodePrimitive(primitive.type, primitive.value))).toBe(primitive.hex);
         });
     });
 

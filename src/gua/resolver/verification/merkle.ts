@@ -61,7 +61,11 @@ export class MerkleTree {
     /** Merkle Tree Hash over leaf hashes; the empty tree is SHA-256 of nothing. */
     public async root(leafHashes: string[]): Promise<string> {
         if (leafHashes.length === 0) return this.crypto.sha256Hex(new Uint8Array(0));
-        const nodes = leafHashes.map((h) => hexToBytes(h) ?? new Uint8Array(0));
+        const nodes = leafHashes.map((h) => {
+            const node = hexToBytes(h);
+            if (!node) throw new Error("malformed leaf hash");
+            return node;
+        });
         return bytesToHex(await this.mth(nodes));
     }
 

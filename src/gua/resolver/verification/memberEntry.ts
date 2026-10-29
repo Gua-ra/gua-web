@@ -74,7 +74,8 @@ function epochMs(iso: string | null): number {
 
 /** CanonicalMemberEntry: the gua-member-entry.v1 bytes, signatures excluded. */
 export function memberEntryBytes(homeserver: MemberHomeserver, member: MemberBlock): Uint8Array {
-    return LengthPrefixedEncoder.begin(MEMBER_ENTRY_SCHEMA)
+    return new LengthPrefixedEncoder()
+        .string(MEMBER_ENTRY_SCHEMA)
         .string(homeserver.id)
         .string(homeserver.serverName)
         .string(homeserver.baseUrl)

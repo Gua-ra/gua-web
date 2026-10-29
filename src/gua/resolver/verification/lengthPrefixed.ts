@@ -47,24 +47,13 @@ function compareUnsigned(a: Uint8Array, b: Uint8Array): number {
 export class LengthPrefixedEncoder {
     private readonly parts: Uint8Array[] = [];
 
-    private constructor() {}
-
-    public static begin(schemaTag: string): LengthPrefixedEncoder {
-        if (!schemaTag) throw new CanonicalEncodingError("schema tag is required");
-        return new LengthPrefixedEncoder().string(schemaTag);
-    }
-
-    public static raw(): LengthPrefixedEncoder {
-        return new LengthPrefixedEncoder();
-    }
-
     private u32(value: number): void {
         const out = new Uint8Array(4);
         new DataView(out.buffer).setUint32(0, value, false);
         this.parts.push(out);
     }
 
-    public bytes(value: Uint8Array): this {
+    private bytes(value: Uint8Array): this {
         this.u32(value.length);
         this.parts.push(value);
         return this;
@@ -84,11 +73,6 @@ export class LengthPrefixedEncoder {
         return this;
     }
 
-    public bool(value: boolean): this {
-        this.parts.push(new Uint8Array([value ? 1 : 0]));
-        return this;
-    }
-
     public optionalString(value: string | null | undefined): this {
         if (value === null || value === undefined) {
             this.parts.push(new Uint8Array([0]));
@@ -101,12 +85,6 @@ export class LengthPrefixedEncoder {
     public enumName(value: string | null | undefined): this {
         if (!value) throw new CanonicalEncodingError("enum must not be null; use an optional field");
         return this.string(value);
-    }
-
-    public stringList(values: string[]): this {
-        this.u32(values.length);
-        for (const v of values) this.string(v);
-        return this;
     }
 
     public stringSet(values: string[]): this {
