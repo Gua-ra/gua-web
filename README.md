@@ -124,8 +124,12 @@ Copyright (c) 2017 Vector Creations Ltd
 Copyright (c) 2017-2025 New Vector Ltd
 Copyright (c) 2025-2026 Gua contributors
 
-Like upstream Element Web, this software is multi-licensed by New Vector Ltd (Element):
-under the GNU Affero General Public License (version 3 or later), under the GNU General
-Public License (version 3 or later), or under a paid-for Element Commercial License. See
+Upstream Element Web is multi-licensed by New Vector Ltd (Element): under the GNU Affero
+General Public License (version 3 or later), under the GNU General Public License (version 3
+or later), or under a paid-for Element Commercial License. See
 [LICENSE-AGPL-3.0](LICENSE-AGPL-3.0), [LICENSE-GPL-3.0](LICENSE-GPL-3.0), and
 [LICENSE-COMMERCIAL](LICENSE-COMMERCIAL) for the full terms.
+
+Gua's modifications are available under the GNU Affero General Public License version 3 only
+(`AGPL-3.0-only`). The Element Commercial License comes from Element and covers only code
+Element holds the copyright to. It does not extend to Gua's modifications.
