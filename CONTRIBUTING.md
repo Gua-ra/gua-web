@@ -24,7 +24,7 @@ yarn test     # Jest
 ```
 
 - New code comes with unit tests. End-to-end tests (`yarn test:playwright`) cover user-facing flows.
-- A new Gua file starts with `Copyright <year> Gua` followed by the SPDX line the existing Gua files carry (see `src/gua/config.ts`). A modified upstream file keeps its upstream notice.
+- A new Gua file starts with `Copyright <year> Gua` followed by `SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only` (see `src/gua/config.ts`). A modified upstream file keeps its upstream notice.
 
 ## Pull requests
 

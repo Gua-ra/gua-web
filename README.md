@@ -131,5 +131,6 @@ or later), or under a paid-for Element Commercial License. See
 [LICENSE-COMMERCIAL](LICENSE-COMMERCIAL) for the full terms.
 
 Gua's modifications are available under the GNU Affero General Public License version 3 only
-(`AGPL-3.0-only`). The Element Commercial License comes from Element and covers only code
-Element holds the copyright to. It does not extend to Gua's modifications.
+or the GNU General Public License version 3 only (`AGPL-3.0-only OR GPL-3.0-only`). The Element
+Commercial License comes from Element and covers only code Element holds the copyright to. It
+does not extend to Gua's modifications.
