@@ -995,7 +995,6 @@
                 "verify_this_device": "Verify this device"
             },
             "cancelled": "You cancelled verification.",
-            "cancelled_self": "You cancelled verification on your other device.",
             "cancelled_user": "%(displayName)s cancelled verification.",
             "cancelling": "Cancelling…",
             "complete_action": "Got It",

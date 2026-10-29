@@ -325,14 +325,13 @@ export default class VerificationPanel extends React.PureComponent<IProps, IStat
         let text: string;
         if (request.cancellationCode === "m.timeout") {
             text = _t("encryption|verification|timed_out") + ` ${startAgainInstruction}`;
+        } else if (request.isSelfVerification) {
+            // Gua: cancellingUserId is our own id whichever of our devices cancelled, so do not attribute it.
+            text = startAgainInstruction;
         } else if (request.cancellingUserId === request.otherUserId) {
-            if (request.isSelfVerification) {
-                text = _t("encryption|verification|cancelled_self");
-            } else {
-                text = _t("encryption|verification|cancelled_user", {
-                    displayName: (member as User).displayName || (member as RoomMember).name || member.userId,
-                });
-            }
+            text = _t("encryption|verification|cancelled_user", {
+                displayName: (member as User).displayName || (member as RoomMember).name || member.userId,
+            });
             text = `${text} ${startAgainInstruction}`;
         } else {
             text = _t("encryption|verification|cancelled") + ` ${startAgainInstruction}`;
