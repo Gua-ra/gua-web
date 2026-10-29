@@ -1,13 +1,13 @@
-name: Bug report for Element Web (in browser)
-description: File a bug report if you are using Element in a web browser like Firefox, Chrome, Edge, and so on.
-labels: [T-Defect]
+name: Bug report for Gua for Web
+description: Report a problem with Gua in a web browser like Firefox, Chrome, Edge, and so on.
+labels: [bug]
 body:
     - type: markdown
       attributes:
           value: |
               Thanks for taking the time to fill out this bug report!
 
-              Please report security issues by email to security@matrix.org
+              Do not report security problems here. Follow [SECURITY.md](https://github.com/Gua-ra/gua-web/blob/gua/main/SECURITY.md) instead.
     - type: textarea
       id: reproduction-steps
       attributes:
@@ -35,50 +35,30 @@ body:
       id: os
       attributes:
           label: Operating system
-          placeholder: Windows, macOS, Ubuntu, Arch Linux…
+          placeholder: e.g. Windows 11, macOS 15, Ubuntu 24.04
       validations:
           required: false
     - type: input
       id: browser
       attributes:
           label: Browser information
-          description: Which browser are you using? Which version?
-          placeholder: e.g. Chromium Version 92.0.4515.131
+          description: Which browser and version are you using?
+          placeholder: e.g. Firefox 130, Chrome 128
       validations:
           required: false
     - type: input
       id: webapp-url
       attributes:
-          label: URL for webapp
-          description: Which URL are you using to access the webapp? If a private server, tell us what version of Element Web you are using.
-          placeholder: e.g. develop.element.io, app.element.io
+          label: URL
+          description: Which URL are you using to open Gua? If it is your own deployment, say which version you run.
+          placeholder: e.g. https://chat.example.org
       validations:
           required: false
     - type: input
       id: version
       attributes:
           label: Application version
-          description: You can find the version information in Settings -> Help & About.
-          placeholder: e.g. Element version 1.7.34, olm version 3.2.3
+          description: Shown under Settings > Help & About.
+          placeholder: e.g. 1.11.110
       validations:
           required: false
-    - type: input
-      id: homeserver
-      attributes:
-          label: Homeserver
-          description: |
-              Which server is your account registered on? If it is a local or non-public homeserver, please tell us what is the homeserver implementation (ex: Synapse/Dendrite/etc.) and the version.
-          placeholder: e.g. matrix.org or Synapse 1.50.0rc1
-      validations:
-          required: false
-    - type: dropdown
-      id: rageshake
-      attributes:
-          label: Will you send logs?
-          description: |
-              Did you know that you can send a /rageshake command from the web application to submit logs for this issue? Trigger the defect, then type `/rageshake` into the message input area followed by a description of the problem and send the command. You will be able to add a link to this defect report and submit anonymous logs to the developers.
-          options:
-              - "Yes"
-              - "No"
-      validations:
-          required: true
