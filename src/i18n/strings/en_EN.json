@@ -1,92 +1,4 @@
 {
-    "gua": {
-        "footer": {
-            "developed_by": "Developed by %(name)s"
-        },
-        "phone": {
-            "title": "Enter your phone number",
-            "subtitle": "We'll send you a verification code by SMS.",
-            "number_label": "Phone number",
-            "invalid": "Enter a valid phone number."
-        },
-        "otp": {
-            "title": "Enter the code",
-            "subtitle": "We sent a 6-digit code to %(phone)s.",
-            "code_label": "Verification code",
-            "verify": "Verify",
-            "resend": "Resend code",
-            "resend_in": "Resend code in %(seconds)ss",
-            "change_phone": "Change phone number"
-        },
-        "profile": {
-            "title": "Create your profile",
-            "subtitle": "Pick a username and a display name.",
-            "username_label": "Username",
-            "display_name_label": "Display name",
-            "username_available": "Username available",
-            "username_taken": "That username is taken",
-            "username_invalid": "Use 3–30 letters, numbers, dots, dashes or underscores",
-            "username_checking": "Checking…",
-            "create_account": "Create account"
-        },
-        "pin": {
-            "challenge_title": "Enter your PIN",
-            "challenge_subtitle": "Two-step verification is on for this account.",
-            "label": "PIN",
-            "verify": "Verify",
-            "forgot": "Forgot PIN?",
-            "setup_create_title": "Create a PIN",
-            "setup_create_subtitle": "Choose a 6-digit PIN for two-step verification.",
-            "setup_confirm_title": "Confirm your PIN",
-            "setup_confirm_subtitle": "Re-enter your PIN to confirm.",
-            "mismatch": "PINs didn't match. Please try again.",
-            "skip": "Skip for now",
-            "continue": "Continue"
-        },
-        "two_step": {
-            "title": "Two-step verification",
-            "status_on": "Two-step verification is on. You'll be asked for your PIN when signing in on a new device.",
-            "status_off": "Add a PIN for extra security when signing in on a new device.",
-            "set_up": "Set up two-step verification",
-            "change_pin": "Change PIN",
-            "cancel": "Cancel",
-            "current_pin": "Current PIN",
-            "new_pin": "New PIN",
-            "phone_label": "Phone number",
-            "send_code": "Send code",
-            "otp_label": "Verification code",
-            "done": "Done",
-            "set_success": "Two-step verification enabled.",
-            "change_success": "Your PIN has been changed."
-        },
-        "reminder": {
-            "text": "Add a PIN to protect your account with two-step verification.",
-            "action": "Set up",
-            "dismiss": "Dismiss"
-        },
-        "deactivate": {
-            "intro": "Deactivating your account is permanent. To confirm it's you, we'll send a verification code to your phone.",
-            "erase": "Also erase all messages I have sent",
-            "send_code": "Send verification code",
-            "otp_label": "Verification code",
-            "confirm": "Deactivate account",
-            "cancel": "Cancel"
-        },
-        "errors": {
-            "not_configured": "Sign-in is not configured. Please contact support.",
-            "rate_limited": "Too many attempts. Please wait a moment and try again.",
-            "invalid_otp": "The code you entered is invalid or has expired.",
-            "invalid_pin": "That PIN is incorrect. Please try again.",
-            "pin_locked": "PIN locked due to too many wrong attempts. Try again later.",
-            "pin_change_cooldown": "For security, you can only change your PIN once per day.",
-            "pin_challenge_expired": "Your sign-in session expired. Please verify your phone again.",
-            "invalid_signup_token": "Your signup session has expired. Please verify your phone again.",
-            "username_taken": "That username is already taken. Please pick another.",
-            "phone_already_linked": "This phone number is already linked to another account.",
-            "invalid_reauth_token": "Your verification expired. Please request a new code.",
-            "generic": "Something went wrong. Please try again."
-        }
-    },
     "a11y": {
         "emoji_picker": "Emoji picker",
         "jump_first_invite": "Jump to first invite.",
@@ -1114,7 +1026,6 @@
                 "text": "Supply the ID and fingerprint of one of your own devices to verify it. NOTE this allows the other device to send and receive messages as you. IF SOMEONE TOLD YOU TO PASTE SOMETHING HERE, IT IS LIKELY YOU ARE BEING SCAMMED!",
                 "wrong_fingerprint": "Unable to verify device '%(deviceId)s' - the supplied fingerprint '%(fingerprint)s' does not match the device fingerprint, '%(fprint)s'"
             },
-            "no_key_or_device": "It looks like you don't have a Recovery Key or any other devices you can verify against. This device will not be able to access old encrypted messages. In order to verify your identity on this device, you'll need to reset your cryptographic identity.",
             "no_support_qr_emoji": "The device you are trying to verify doesn't support scanning a QR code or emoji verification, which is what %(brand)s supports. Try with a different client.",
             "other_party_cancelled": "The other party cancelled the verification.",
             "prompt_encrypted": "Verify all users in a room to ensure it's secure.",
@@ -1130,7 +1041,6 @@
             "request_toast_accept_user": "Verify User",
             "request_toast_decline_counter": "Ignore (%(counter)s)",
             "request_toast_detail": "%(deviceId)s from %(ip)s",
-            "reset_proceed_prompt": "Proceed with reset",
             "sas_caption_self": "Verify this device by confirming the following number appears on its screen.",
             "sas_caption_user": "Verify this user by confirming the following number appears on their screen.",
             "sas_description": "Compare a unique set of emoji if you don't have a camera on either device",
@@ -1351,6 +1261,92 @@
         "send_label": "Send",
         "sending": "Sending",
         "sent": "Sent"
+    },
+    "gua": {
+        "deactivate": {
+            "cancel": "Cancel",
+            "confirm": "Deactivate account",
+            "erase": "Also erase all messages I have sent",
+            "intro": "Deactivating your account is permanent. To confirm it's you, we'll send a verification code to your phone.",
+            "otp_label": "Verification code",
+            "send_code": "Send verification code"
+        },
+        "errors": {
+            "generic": "Something went wrong. Please try again.",
+            "invalid_otp": "The code you entered is invalid or has expired.",
+            "invalid_pin": "That PIN is incorrect. Please try again.",
+            "invalid_reauth_token": "Your verification expired. Please request a new code.",
+            "invalid_signup_token": "Your signup session has expired. Please verify your phone again.",
+            "not_configured": "Sign-in is not configured. Please contact support.",
+            "phone_already_linked": "This phone number is already linked to another account.",
+            "pin_challenge_expired": "Your sign-in session expired. Please verify your phone again.",
+            "pin_change_cooldown": "For security, you can only change your PIN once per day.",
+            "pin_locked": "PIN locked due to too many wrong attempts. Try again later.",
+            "rate_limited": "Too many attempts. Please wait a moment and try again.",
+            "username_taken": "That username is already taken. Please pick another."
+        },
+        "footer": {
+            "developed_by": "Developed by %(name)s"
+        },
+        "otp": {
+            "change_phone": "Change phone number",
+            "code_label": "Verification code",
+            "resend": "Resend code",
+            "resend_in": "Resend code in %(seconds)ss",
+            "subtitle": "We sent a 6-digit code to %(phone)s.",
+            "title": "Enter the code",
+            "verify": "Verify"
+        },
+        "phone": {
+            "number_label": "Phone number",
+            "subtitle": "We'll send you a verification code by SMS.",
+            "title": "Enter your phone number"
+        },
+        "pin": {
+            "challenge_subtitle": "Two-step verification is on for this account.",
+            "challenge_title": "Enter your PIN",
+            "forgot": "Forgot PIN?",
+            "label": "PIN",
+            "mismatch": "PINs didn't match. Please try again.",
+            "setup_confirm_subtitle": "Re-enter your PIN to confirm.",
+            "setup_confirm_title": "Confirm your PIN",
+            "setup_create_subtitle": "Choose a 6-digit PIN for two-step verification.",
+            "setup_create_title": "Create a PIN",
+            "skip": "Skip for now",
+            "verify": "Verify"
+        },
+        "profile": {
+            "create_account": "Create account",
+            "display_name_label": "Display name",
+            "subtitle": "Pick a username and a display name.",
+            "title": "Create your profile",
+            "username_available": "Username available",
+            "username_checking": "Checking…",
+            "username_invalid": "Use 3–30 letters, numbers, dots, dashes or underscores",
+            "username_label": "Username",
+            "username_taken": "That username is taken"
+        },
+        "reminder": {
+            "action": "Set up",
+            "dismiss": "Dismiss",
+            "text": "Add a PIN to protect your account with two-step verification."
+        },
+        "two_step": {
+            "cancel": "Cancel",
+            "change_pin": "Change PIN",
+            "change_success": "Your PIN has been changed.",
+            "current_pin": "Current PIN",
+            "done": "Done",
+            "new_pin": "New PIN",
+            "otp_label": "Verification code",
+            "phone_label": "Phone number",
+            "send_code": "Send code",
+            "set_success": "Two-step verification enabled.",
+            "set_up": "Set up two-step verification",
+            "status_off": "Add a PIN for extra security when signing in on a new device.",
+            "status_on": "Two-step verification is on. You'll be asked for your PIN when signing in on a new device.",
+            "title": "Two-step verification"
+        }
     },
     "identity_server": {
         "change": "Change identity server",
@@ -2985,6 +2981,7 @@
             "e2ee_default_disabled_warning": "Your server admin has disabled end-to-end encryption by default in private rooms & Direct Messages.",
             "enable_message_search": "Enable message search in encrypted rooms",
             "encryption_section": "Encryption",
+            "gua_encryption_description": "Messages on Gua are protected with end-to-end encryption. They are locked on your device before being sent and can only be unlocked by the people in the conversation.",
             "ignore_users_empty": "You have no ignored users.",
             "ignore_users_section": "Ignored users",
             "key_backup_algorithm": "Algorithm:",
@@ -3001,7 +2998,6 @@
             "message_search_indexing_idle": "Not currently indexing messages for any room.",
             "message_search_intro": "%(brand)s is securely caching encrypted messages locally for them to appear in search results:",
             "message_search_room_progress": "%(doneRooms)s out of %(totalRooms)s",
-            "gua_encryption_description": "Messages on Gua are protected with end-to-end encryption. They are locked on your device before being sent and can only be unlocked by the people in the conversation.",
             "message_search_section": "Message search",
             "message_search_sleep_time": "How fast should messages be downloaded.",
             "message_search_space_used": "Space used:",

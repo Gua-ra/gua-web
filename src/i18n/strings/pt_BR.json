@@ -6,8 +6,7 @@
         "phone": {
             "title": "Digite seu número de telefone",
             "subtitle": "Enviaremos um código de verificação por SMS.",
-            "number_label": "Número de telefone",
-            "invalid": "Digite um número de telefone válido."
+            "number_label": "Número de telefone"
         },
         "otp": {
             "title": "Digite o código",
@@ -40,8 +39,7 @@
             "setup_confirm_title": "Confirme seu PIN",
             "setup_confirm_subtitle": "Digite seu PIN novamente para confirmar.",
             "mismatch": "Os PINs não coincidem. Tente novamente.",
-            "skip": "Pular por enquanto",
-            "continue": "Continuar"
+            "skip": "Pular por enquanto"
         },
         "two_step": {
             "title": "Verificação em duas etapas",

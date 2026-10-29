@@ -16,10 +16,7 @@ describe("positionFailureMessage()", () => {
     // 3: TIMEOUT
     type TestCase = [number, string | undefined];
     it.each<TestCase>([
-        [
-            1,
-            "Element was denied permission to fetch your location. Please allow location access in your browser settings.",
-        ],
+        [1, "Gua was denied permission to fetch your location. Please allow location access in your browser settings."],
         [2, "Failed to fetch your location. Please try again later."],
         [3, "Timed out trying to fetch your location. Please try again later."],
         [4, "Unknown error fetching location. Please try again later."],
