@@ -1,7 +1,7 @@
 {
   "vectors" : "gua-client-verification.v1",
   "protocol" : "docs/verification/gua-resolver-verification-protocol.md",
-  "notes" : [ "Keys are the RFC 8032 section 7.1 Ed25519 test constants: published values that must never sign anything real.", "Ed25519 is deterministic in the reference implementation, so every signature made with a test key is reproducible; a port that signs with a randomized implementation verifies instead of comparing bytes.", "canonicalUtf8 is the canonical bytes as a JSON string; the field separator of gua-roster.v1 is the control character U+001F.", "Instants are transported as ISO-8601 UTC with 0 to 9 fractional digits; the canonical bytes carry epoch milliseconds, truncated.", "A roster whose entries all lack searchVisibility is encoded with form legacy; one whose entries all carry it with form v1; a mix is refused.", "The legacy production snapshot is public data served at https://resolver.gua.global/roster on 2026-10-27, with the production authority public key published out of band.", "Expected placements come from the reference verifier over the verified roster and policy for a context that carries no verified claims; self-asserted affiliations never route." ],
+  "notes" : [ "The test keys are the Ed25519 example keys from RFC 8032, section 7.1. They are public, so never use them outside tests.", "The signatures were made with deterministic Ed25519, so they can be reproduced exactly. Some libraries, Apple CryptoKit among them, randomize Ed25519 signatures. With those, verify the signatures here and do not compare their bytes.", "canonicalUtf8 is the exact byte string that gets signed, written as a JSON string, and canonicalHex is the same bytes in hex. gua-roster.v1 separates fields with the control character U+001F.", "Timestamps appear in JSON as ISO-8601 UTC strings with 0 to 9 fractional digits. The signed bytes carry them as epoch milliseconds. Digits past the millisecond are dropped, not rounded.", "Rosters come in two forms. If no entry has searchVisibility, verify the legacy bytes, which leave out the search fields. If every entry has it, verify the v1 bytes. If only some entries have it, refuse the roster.", "The production roster is a copy of https://resolver.gua.global/roster as served on 2026-10-27. It is signed with the production authority key listed under keys.", "Each expected placement is the homeserver the Java reference verifier chooses for a new account from the verified roster and policy. No context carries verified claims, so an affiliation the client states without proof never changes the result.", "Placements are evaluated at their evaluatedAt instant, not at the current time. Weights are summed in 64 bits, so weights whose total passes 2^31 do not wrap.", "A policy bundle or delegation zone is in effect from notBefore, inclusive, until expiresAt, exclusive. A missing bound leaves that side open. policyValidity checks the bundle rule at its edges.", "A resolve answer is located by the strongest match in the roster, whatever the entry order: an ACTIVE entry with the same serverName, baseUrl and masIssuer, then any entry with all three, then any entry with the serverName. Ties go to the entry served first. expectedEntryId names the entry that decided the match.", "In the signed roster bytes a null id, serverName, baseUrl or masIssuer is the text null. The other optional fields are empty.", "expectedOutcome is the outcome a client reports for a rejected roster or policy. A placement's unsignedRuleAbove says whether a matching rule in a zone without a valid delegate signature outranks the rule that decided, which makes the placement check indeterminate(unsigned_rule).", "policyLog cases check a served bundle, or a 404 when servedPolicy is null, against all events in log.events and the checkpoint given in each case.", "Vectors refer to rosters and policies by their ref field." ],
   "keys" : {
     "rfc8032-test1" : {
       "usedAsKeyId" : "authority-a",
@@ -42,7 +42,7 @@
       "usedAsKeyId" : "gua-authority-prod",
       "publicKeySpkiB64" : "MCowBQYDK2VwAyEAmrJntRXbxGkoPe92j1epyM3RBXcx4nmr2wIzL6eb0a0=",
       "publicKeyHex" : "9ab267b515dbc469283def768f57a9c8cdd1057731e279abdb02332fa79bd1ad",
-      "note" : "production authority key; no private half here, signatures are verified only"
+      "note" : "Production authority public key. This file holds no private key for it."
     }
   },
   "instants" : [ {
@@ -71,7 +71,8 @@
     "epochMs" : "1781678318231"
   } ],
   "rosters" : [ {
-    "name" : "one homeserver with a member attestation, threshold 1",
+    "name" : "one homeserver that signs its own entry; one authority signature required",
+    "ref" : "r1",
     "form" : "v1",
     "roster" : {
       "version" : 3,
@@ -128,7 +129,8 @@
       "authority-a" : "rfc8032-test1"
     }
   }, {
-    "name" : "three homeservers, claims, group visibility, a suspended entry, threshold 2 of 2",
+    "name" : "three homeservers with routing claims, group search visibility and one suspended entry; two of two authority signatures required",
+    "ref" : "r2",
     "form" : "v1",
     "roster" : {
       "version" : 7,
@@ -245,7 +247,8 @@
       "authority-b" : "rfc8032-test2"
     }
   }, {
-    "name" : "legacy form: entries carry no search fields",
+    "name" : "legacy form: no entry has search fields",
+    "ref" : "r4",
     "form" : "legacy",
     "roster" : {
       "version" : 2,
@@ -288,7 +291,8 @@
       "authority-a" : "rfc8032-test1"
     }
   }, {
-    "name" : "legacy form: production snapshot 2026-10-27",
+    "name" : "legacy form: the production roster of 2026-10-27",
+    "ref" : "prod-2026-10-27",
     "form" : "legacy",
     "roster" : {
       "version" : 1,
@@ -329,9 +333,269 @@
     "validSignatures" : 1,
     "verified" : true,
     "signatureKeyRefs" : { }
+  }, {
+    "name" : "two server names that each appear twice: a suspended entry served before an active one",
+    "ref" : "r5",
+    "form" : "v1",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-03T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-br-retired",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 1,
+          "acceptsNew" : false,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-02-01T00:00:00Z",
+        "status" : "SUSPENDED"
+      }, {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE"
+      }, {
+        "homeserver" : {
+          "id" : "hs-ca-retired",
+          "serverName" : "ca.gua.test",
+          "baseUrl" : "https://matrix.ca.gua.test",
+          "masIssuer" : "https://account.ca.gua.test",
+          "region" : null,
+          "weight" : 1,
+          "acceptsNew" : false,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-02-01T00:00:00Z",
+        "status" : "SUSPENDED"
+      }, {
+        "homeserver" : {
+          "id" : "hs-ca-moved",
+          "serverName" : "ca.gua.test",
+          "baseUrl" : "https://matrix2.ca.gua.test",
+          "masIssuer" : "https://account.ca.gua.test",
+          "region" : null,
+          "weight" : 3,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "lhcCXR+UU+n5/3ACVKgVBEkbjgxwQzf4oQ1qwiVcvPwmr2SA6oZ0KTyC8m7BTLcQd0xPxwGzPNRkYUMrM8qtDg=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=7\nissuedAt=1790985600000\nlog=b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad:7\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001FGROUP\u001FZ|a|b|é|😀|～\u001F1781678318255\u001FACTIVE\u001F[]\nhs-br-retired\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F1\u001Ffalse\u001F\u001FGLOBAL\u001F\u001F1769904000000\u001FSUSPENDED\u001F[]\nhs-ca-moved\u001Fca.gua.test\u001Fhttps://matrix2.ca.gua.test\u001Fhttps://account.ca.gua.test\u001F\u001F3\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\nhs-ca-retired\u001Fca.gua.test\u001Fhttps://matrix.ca.gua.test\u001Fhttps://account.ca.gua.test\u001F\u001F1\u001Ffalse\u001F\u001FGLOBAL\u001F\u001F1769904000000\u001FSUSPENDED\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d370a69737375656441743d313739303938353630303030300a6c6f673d623237306232373361613433363536623730326631643835316266373763353735366261313134626233393563306231663638666161316139623834646261643a370a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f47524f55501f5a7c617c627cc3a97cf09f98807cefbd9e1f313738313637383331383235351f4143544956451f5b5d0a68732d62722d726574697265641f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f311f66616c73651f1f474c4f42414c1f1f313736393930343030303030301f53555350454e4445441f5b5d0a68732d63612d6d6f7665641f63612e6775612e746573741f68747470733a2f2f6d6174726978322e63612e6775612e746573741f68747470733a2f2f6163636f756e742e63612e6775612e746573741f1f331f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a68732d63612d726574697265641f63612e6775612e746573741f68747470733a2f2f6d61747269782e63612e6775612e746573741f68747470733a2f2f6163636f756e742e63612e6775612e746573741f1f311f66616c73651f1f474c4f42414c1f1f313736393930343030303030301f53555350454e4445441f5b5d0a",
+    "sha256Hex" : "0e1347c7745fe5e4e19e684f1c5b44358d0b02fde72fb121ffe04ee76cd1aa02",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "signatureKeyRefs" : {
+      "authority-a" : "rfc8032-test1"
+    }
+  }, {
+    "name" : "two homeservers whose weights add up past 2^31",
+    "ref" : "r6",
+    "form" : "v1",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-04T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-heavy-a",
+          "serverName" : "heavy-a.gua.test",
+          "baseUrl" : "https://matrix.heavy-a.gua.test",
+          "masIssuer" : "https://account.heavy-a.gua.test",
+          "region" : null,
+          "weight" : 2000000000,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE"
+      }, {
+        "homeserver" : {
+          "id" : "hs-heavy-b",
+          "serverName" : "heavy-b.gua.test",
+          "baseUrl" : "https://matrix.heavy-b.gua.test",
+          "masIssuer" : "https://account.heavy-b.gua.test",
+          "region" : null,
+          "weight" : 2000000000,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "1yU/kj7ZebxgMIIL+YiiqOO8Kbu6/nIKWibFCz8Atc7r/GOT2NkmYkRSFKPILQlIu3XxvFsk0ANrZWMVoZ4bCA=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=7\nissuedAt=1791072000000\nlog=b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad:7\nhs-heavy-a\u001Fheavy-a.gua.test\u001Fhttps://matrix.heavy-a.gua.test\u001Fhttps://account.heavy-a.gua.test\u001F\u001F2000000000\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1781678318255\u001FACTIVE\u001F[]\nhs-heavy-b\u001Fheavy-b.gua.test\u001Fhttps://matrix.heavy-b.gua.test\u001Fhttps://account.heavy-b.gua.test\u001F\u001F2000000000\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d370a69737375656441743d313739313037323030303030300a6c6f673d623237306232373361613433363536623730326631643835316266373763353735366261313134626233393563306231663638666161316139623834646261643a370a68732d68656176792d611f68656176792d612e6775612e746573741f68747470733a2f2f6d61747269782e68656176792d612e6775612e746573741f68747470733a2f2f6163636f756e742e68656176792d612e6775612e746573741f1f323030303030303030301f747275651f1f474c4f42414c1f1f313738313637383331383235351f4143544956451f5b5d0a68732d68656176792d621f68656176792d622e6775612e746573741f68747470733a2f2f6d61747269782e68656176792d622e6775612e746573741f68747470733a2f2f6163636f756e742e68656176792d622e6775612e746573741f1f323030303030303030301f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a",
+    "sha256Hex" : "8390e6f970cb0230cb16c43b0b2d235a4760c427f783397edfd96ddff65ebdf6",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "signatureKeyRefs" : {
+      "authority-a" : "rfc8032-test1"
+    }
+  }, {
+    "name" : "an entry without an auth issuer",
+    "ref" : "r7",
+    "form" : "v1",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-05T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-no-issuer",
+          "serverName" : "plain.gua.test",
+          "baseUrl" : "https://matrix.plain.gua.test",
+          "masIssuer" : null,
+          "region" : null,
+          "weight" : 1,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "9W4vJ1IzmzECPKv+hI2YweobluSXqrBnSaU8hhCW0WTc3ufPCf6v6vly2EhCWKip6AKW4lWdBP4zNHcTZVFPAg=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=7\nissuedAt=1791158400000\nlog=b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad:7\nhs-no-issuer\u001Fplain.gua.test\u001Fhttps://matrix.plain.gua.test\u001Fnull\u001F\u001F1\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d370a69737375656441743d313739313135383430303030300a6c6f673d623237306232373361613433363536623730326631643835316266373763353735366261313134626233393563306231663638666161316139623834646261643a370a68732d6e6f2d6973737565721f706c61696e2e6775612e746573741f68747470733a2f2f6d61747269782e706c61696e2e6775612e746573741f6e756c6c1f1f311f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a",
+    "sha256Hex" : "64e5bdf5ea6ec1688e6d822d9789b5d64f063f4bd899970e4b06d6f931d44cb7",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "signatureKeyRefs" : {
+      "authority-a" : "rfc8032-test1"
+    }
+  }, {
+    "name" : "an invalid signature from a key followed by a valid one from the same key",
+    "form" : "v1",
+    "roster" : {
+      "version" : 3,
+      "issuedAt" : "2026-10-01T12:00:00.123456789Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE",
+        "member" : {
+          "schema" : "gua-member-entry.v1",
+          "alg" : "Ed25519",
+          "keyId" : "hs-br-1",
+          "sequence" : 1,
+          "notBefore" : "2026-09-01T00:00:00Z",
+          "notAfter" : "2027-09-01T00:00:00Z",
+          "signatures" : [ {
+            "keyId" : "hs-br-1",
+            "signatureB64" : "1nLx0yJDeZFExvr1K1mAra3rJ0NjicyHHckbZ8lrLebHGLvPi1k8AtlBpjbaOZ8sR3+PC1HscL4uiZvWk8wWCQ=="
+          } ]
+        }
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+        "size" : 3
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "+2ZlqOJ4oNaoBFC5XUxO9+S8eGlNt2bhbIt1T4WJ4fOzlwnn1xT4FzAjz31PRjMLIWy/TpUnSyK71hJaoUyPCg=="
+      }, {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "pLYiXt7eT4mwR/Qs/TRfmdLCS6UnKR3NXfipA0FSb+Jl6KFCGDPx7TzfNvp9f78A0/I68S1tSo1bgr6rdwtSCA=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=3\nissuedAt=1790856000123\nlog=1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a:3\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001FGROUP\u001FZ|a|b|é|😀|～\u001F1781678318255\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d330a69737375656441743d313739303835363030303132330a6c6f673d316666353265393336366539626538616238646230306634366533333939316334363739643739623739633133316236663836633064343836303032333835613a330a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f47524f55501f5a7c617c627cc3a97cf09f98807cefbd9e1f313738313637383331383235351f4143544956451f5b5d0a",
+    "sha256Hex" : "49422aa6da88d86f2e69af8e93c447238f8f8e60be5cc49ef131623db8a2b706",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "reason" : "A signature that fails does not use up its key, so the valid one still counts."
   } ],
   "rosterRejections" : [ {
-    "name" : "tampered baseUrl under the original signature",
+    "name" : "baseUrl changed after signing",
     "form" : "v1",
     "roster" : {
       "version" : 3,
@@ -384,7 +648,8 @@
     "threshold" : 1,
     "validSignatures" : 0,
     "verified" : false,
-    "reason" : "the canonical bytes changed, the signature no longer verifies"
+    "reason" : "The signed bytes changed, so the signature fails.",
+    "expectedOutcome" : "invalid(bad_signature)"
   }, {
     "name" : "signed by a key the client does not trust",
     "form" : "v1",
@@ -439,9 +704,10 @@
     "threshold" : 1,
     "validSignatures" : 0,
     "verified" : false,
-    "reason" : "authority-b is not in the trusted key set, zero votes"
+    "reason" : "Only authority-b signed and the client trusts only authority-a, so no signature counts.",
+    "expectedOutcome" : "invalid(unknown_key_id)"
   }, {
-    "name" : "one of two required signatures",
+    "name" : "one signature where two are required",
     "form" : "v1",
     "roster" : {
       "version" : 7,
@@ -550,9 +816,10 @@
     "threshold" : 2,
     "validSignatures" : 1,
     "verified" : false,
-    "reason" : "one valid vote, threshold 2"
+    "reason" : "One valid signature, two required.",
+    "expectedOutcome" : "invalid(threshold_not_met)"
   }, {
-    "name" : "the same key listed twice counts once",
+    "name" : "the same signature listed twice",
     "form" : "v1",
     "roster" : {
       "version" : 7,
@@ -664,9 +931,10 @@
     "threshold" : 2,
     "validSignatures" : 1,
     "verified" : false,
-    "reason" : "duplicate key id, one vote, threshold 2"
+    "reason" : "A key counts once however often it appears, so the second required signature is missing.",
+    "expectedOutcome" : "invalid(threshold_not_met)"
   }, {
-    "name" : "legacy bytes offered for a roster whose entries carry searchVisibility",
+    "name" : "a v1 roster checked against its legacy bytes",
     "form" : "legacy",
     "roster" : {
       "version" : 3,
@@ -719,9 +987,10 @@
     "threshold" : 1,
     "validSignatures" : 0,
     "verified" : false,
-    "reason" : "the form follows the served JSON, the signature covers the v1 bytes"
+    "reason" : "The signature covers the v1 bytes, so the legacy bytes fail. Check this vector with the form it names, not the form its JSON implies.",
+    "expectedOutcome" : "invalid(bad_signature)"
   }, {
-    "name" : "mixed field presence is refused before any signature check",
+    "name" : "some entries have searchVisibility and others do not",
     "form" : "mixed",
     "roster" : {
       "version" : 7,
@@ -819,11 +1088,12 @@
       } ]
     },
     "clientOnly" : true,
-    "reason" : "one entry has searchVisibility and another has not; a verifier does not guess the form"
+    "reason" : "The form is ambiguous, so the roster is refused before any signature is checked.",
+    "expectedOutcome" : "unverifiable(mixed_roster_form)"
   } ],
   "log" : {
-    "leafData" : "index|type|homeserverId or empty|payloadHash|recordedAt as epoch milliseconds",
-    "hashing" : "RFC 6962: leaf = SHA-256(0x00 || data), node = SHA-256(0x01 || left || right), empty tree = SHA-256 of nothing",
+    "leafData" : "Each leaf is the UTF-8 string index|type|homeserverId|payloadHash|recordedAt. homeserverId holds the event subject, such as hs-br or br-policy:v3, and is empty when null. recordedAt is in epoch milliseconds.",
+    "hashing" : "RFC 6962 hashing: a leaf is SHA-256(0x00 || data), an inner node is SHA-256(0x01 || left || right), and the root of the empty tree is the SHA-256 of zero bytes.",
     "events" : [ {
       "index" : 0,
       "type" : "ADMIT",
@@ -880,6 +1150,14 @@
       "recordedAt" : "2026-10-01T11:59:59.999999999Z",
       "leafDataUtf8" : "6|DIRECTORY_CHECKPOINT||18ef2c29cf885c0210074367b0b84120751217f7d40a26dce809606cb2ab9654|1790855999999",
       "leafHashHex" : "4cbb51f2d707e1f083ad1eb56cc5bbe3aacbf6037d81f010e7d710ebbc3fce8d"
+    }, {
+      "index" : 7,
+      "type" : "POLICY_PUBLISH",
+      "homeserverId" : "br-policy:v4",
+      "payloadHash" : "3062d144db277f4932ed4868ead008e4aa6c1814d3a9ce6a1e8e102e86a0b67d",
+      "recordedAt" : "2026-10-05T00:00:00Z",
+      "leafDataUtf8" : "7|POLICY_PUBLISH|br-policy:v4|3062d144db277f4932ed4868ead008e4aa6c1814d3a9ce6a1e8e102e86a0b67d|1791158400000",
+      "leafHashHex" : "de972731d0f474fe4e9b72cb0ad473e2a90fbb32167d2780d8e80d65e1cebbec"
     } ],
     "roots" : [ {
       "size" : 0,
@@ -905,6 +1183,9 @@
     }, {
       "size" : 7,
       "rootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad"
+    }, {
+      "size" : 8,
+      "rootHex" : "4d158effb6b68af05cc01eaaa42ede02ad8126183cbc69a1e0297be330b7e0c6"
     } ],
     "consistencyProofs" : [ {
       "first" : 0,
@@ -992,32 +1273,32 @@
       "valid" : true
     } ],
     "invalidConsistencyProofs" : [ {
-      "name" : "new root tampered",
+      "name" : "the new root was changed",
       "first" : 3,
       "second" : 7,
       "oldRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
       "newRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dba0",
       "proof" : [ "7bebe58d5b0c3b0fb052e5e757a7d2b70891ebb771aae05e66d9e9ddc4414911", "1777fd1942d4b4f50e5aa61832e5bba9c7c31725b0863bbda629d6960d1653f3", "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd", "f89383366c3dead9ce109f9a8f91e29e4fbda03d2166ef6a38ef19a71914f8b6" ],
       "valid" : false,
-      "reason" : "the recomputed new root differs"
+      "reason" : "The proof leads to a different new root."
     }, {
-      "name" : "pinned checkpoint is not an ancestor",
+      "name" : "the pinned root is not part of the new tree",
       "first" : 3,
       "second" : 7,
       "oldRootHex" : "f38a131d0ac314933b3c6dbf8673bf0f78c005fc1b075ddfa2e2277a5e3c51c5",
       "newRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
       "proof" : [ "7bebe58d5b0c3b0fb052e5e757a7d2b70891ebb771aae05e66d9e9ddc4414911", "1777fd1942d4b4f50e5aa61832e5bba9c7c31725b0863bbda629d6960d1653f3", "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd", "f89383366c3dead9ce109f9a8f91e29e4fbda03d2166ef6a38ef19a71914f8b6" ],
       "valid" : false,
-      "reason" : "the recomputed old root differs from the pinned one"
+      "reason" : "The proof leads to a different old root than the one pinned."
     }, {
-      "name" : "proof for another pair",
+      "name" : "a proof made for other sizes",
       "first" : 3,
       "second" : 5,
       "oldRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
       "newRootHex" : "a2093eb2f695b7072bba8b49a564ef161bb2f24a63dcd52abe2a405a0a7b7fdf",
       "proof" : [ "d53c3583739bb785a3714a6df946d1943b1232075544f2f6266425dbf80f02f0", "b291694f971d0f75562e2e3758b7da22f0467c7d96045f6e3cff178e33cec7bf" ],
       "valid" : false,
-      "reason" : "a proof is bound to its sizes"
+      "reason" : "The proof was made for sizes 2 and 5, not 3 and 5."
     }, {
       "name" : "rollback: the served tree is smaller than the pinned one",
       "first" : 7,
@@ -1026,16 +1307,16 @@
       "newRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
       "proof" : [ ],
       "valid" : false,
-      "reason" : "second < first is a rollback and is refused without computing anything"
+      "reason" : "A tree that shrank is a rollback. Refuse it without checking the proof."
     }, {
-      "name" : "proof truncated",
+      "name" : "proof with its last hash removed",
       "first" : 3,
       "second" : 7,
       "oldRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
       "newRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
       "proof" : [ "7bebe58d5b0c3b0fb052e5e757a7d2b70891ebb771aae05e66d9e9ddc4414911", "1777fd1942d4b4f50e5aa61832e5bba9c7c31725b0863bbda629d6960d1653f3", "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd" ],
       "valid" : false,
-      "reason" : "too few nodes"
+      "reason" : "The proof is too short."
     }, {
       "name" : "equal sizes with a non-empty proof",
       "first" : 3,
@@ -1044,7 +1325,7 @@
       "newRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
       "proof" : [ "7bebe58d5b0c3b0fb052e5e757a7d2b70891ebb771aae05e66d9e9ddc4414911", "1777fd1942d4b4f50e5aa61832e5bba9c7c31725b0863bbda629d6960d1653f3", "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd", "f89383366c3dead9ce109f9a8f91e29e4fbda03d2166ef6a38ef19a71914f8b6" ],
       "valid" : false,
-      "reason" : "equal sizes need equal roots and an empty proof"
+      "reason" : "Two trees of the same size need the same root and an empty proof."
     }, {
       "name" : "equal sizes with different roots",
       "first" : 3,
@@ -1053,11 +1334,12 @@
       "newRootHex" : "f38a131d0ac314933b3c6dbf8673bf0f78c005fc1b075ddfa2e2277a5e3c51c5",
       "proof" : [ ],
       "valid" : false,
-      "reason" : "same size, different history"
+      "reason" : "Same size, different root: the history was rewritten."
     } ]
   },
   "policies" : [ {
-    "name" : "governance-signed bundle, both delegated zones signed, one zone unsigned",
+    "name" : "signed by a policy key; two zones carry delegate signatures and one does not",
+    "ref" : "br-policy v3",
     "bundle" : {
       "schemaVersion" : "gua-routing-policy.v1",
       "policyId" : "br-policy",
@@ -1188,7 +1470,8 @@
     "verified" : true,
     "delegateVerifiedZones" : [ "edu-zone", "sp-zone" ]
   }, {
-    "name" : "delegate signature missing for sp-zone: the bundle verifies, its sp rules do not apply",
+    "name" : "no delegate signature for sp-zone: the bundle verifies but its sp-zone rules are ignored",
+    "ref" : "br-policy v3 without the sp-zone delegate signature",
     "bundle" : {
       "schemaVersion" : "gua-routing-policy.v1",
       "policyId" : "br-policy",
@@ -1316,7 +1599,7 @@
     "delegateVerifiedZones" : [ "edu-zone" ]
   } ],
   "policyRejections" : [ {
-    "name" : "signed by the operational authority key instead of a governance key",
+    "name" : "signed by the roster authority key, which is not a policy key",
     "bundle" : {
       "schemaVersion" : "gua-routing-policy.v1",
       "policyId" : "br-policy",
@@ -1446,9 +1729,10 @@
     "threshold" : 1,
     "verified" : false,
     "delegateVerifiedZones" : [ "edu-zone", "sp-zone" ],
-    "reason" : "a client has no fallback from policy keys to authority keys"
+    "reason" : "Policies are checked against the policy keys only. The roster authority key does not count.",
+    "expectedOutcome" : "invalid(unknown_key_id)"
   }, {
-    "name" : "tampered rule target under the original signatures",
+    "name" : "a rule target changed after signing",
     "bundle" : {
       "schemaVersion" : "gua-routing-policy.v1",
       "policyId" : "br-policy",
@@ -1578,9 +1862,10 @@
     "threshold" : 1,
     "verified" : false,
     "delegateVerifiedZones" : [ "edu-zone" ],
-    "reason" : "the canonical bytes changed"
+    "reason" : "The signed bytes changed, so the signature fails.",
+    "expectedOutcome" : "invalid(bad_signature)"
   }, {
-    "name" : "no policy keys configured verifies nothing",
+    "name" : "no policy keys configured",
     "bundle" : {
       "schemaVersion" : "gua-routing-policy.v1",
       "policyId" : "br-policy",
@@ -1706,10 +1991,117 @@
     "threshold" : 1,
     "verified" : false,
     "delegateVerifiedZones" : [ "edu-zone", "sp-zone" ],
-    "reason" : "an empty trusted key set accepts no bundle"
+    "reason" : "With no trusted policy keys, no bundle can verify.",
+    "expectedOutcome" : "unverifiable(no_policy_keys)"
+  } ],
+  "policyValidity" : [ {
+    "name" : "1 ms before notBefore",
+    "policyRef" : "br-policy v3",
+    "evaluatedAt" : "2025-12-31T23:59:59.999Z",
+    "inEffect" : false
+  }, {
+    "name" : "at notBefore",
+    "policyRef" : "br-policy v3",
+    "evaluatedAt" : "2026-01-01T00:00:00Z",
+    "inEffect" : true
+  }, {
+    "name" : "1 ms before expiresAt",
+    "policyRef" : "br-policy v3",
+    "evaluatedAt" : "2029-12-31T23:59:59.999Z",
+    "inEffect" : true
+  }, {
+    "name" : "at expiresAt",
+    "policyRef" : "br-policy v3",
+    "evaluatedAt" : "2030-01-01T00:00:00Z",
+    "inEffect" : false
+  } ],
+  "policyLog" : [ {
+    "name" : "the served bundle is logged within the checkpoint",
+    "servedPolicy" : {
+      "policyId" : "br-policy",
+      "version" : 3,
+      "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9"
+    },
+    "checkpoint" : {
+      "size" : 7,
+      "rootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad"
+    },
+    "expected" : "valid"
+  }, {
+    "name" : "the served bundle is logged only past the checkpoint",
+    "servedPolicy" : {
+      "policyId" : "br-policy",
+      "version" : 3,
+      "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9"
+    },
+    "checkpoint" : {
+      "size" : 3,
+      "rootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a"
+    },
+    "expected" : "unverifiable(policy_newer_than_checkpoint)"
+  }, {
+    "name" : "a newer version of the served policy is logged",
+    "servedPolicy" : {
+      "policyId" : "br-policy",
+      "version" : 3,
+      "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9"
+    },
+    "checkpoint" : {
+      "size" : 8,
+      "rootHex" : "4d158effb6b68af05cc01eaaa42ede02ad8126183cbc69a1e0297be330b7e0c6"
+    },
+    "expected" : "unverifiable(policy_superseded)"
+  }, {
+    "name" : "the served bundle is not in the log",
+    "servedPolicy" : {
+      "policyId" : "br-policy",
+      "version" : 3,
+      "sha256Hex" : "4c97229c8e0496828f320e4304fe4fc3234d8fd9121c036628a02cb675f12fc0"
+    },
+    "checkpoint" : {
+      "size" : 7,
+      "rootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad"
+    },
+    "expected" : "invalid(policy_not_logged)"
+  }, {
+    "name" : "no policy is served and none is logged",
+    "servedPolicy" : null,
+    "checkpoint" : {
+      "size" : 3,
+      "rootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a"
+    },
+    "expected" : "notPresent"
+  }, {
+    "name" : "no policy is served although one is logged",
+    "servedPolicy" : null,
+    "checkpoint" : {
+      "size" : 7,
+      "rootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad"
+    },
+    "expected" : "unverifiable(policy_not_served)"
+  }, {
+    "name" : "the first leaves do not hash to the signed root",
+    "servedPolicy" : {
+      "policyId" : "br-policy",
+      "version" : 3,
+      "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9"
+    },
+    "checkpoint" : {
+      "size" : 7,
+      "rootHex" : "9627cd5b618b053e2ef8f265c5a8311ae1901b05025d1e434f939e6ab8089c29"
+    },
+    "expected" : "invalid(log_mismatch)"
+  }, {
+    "name" : "the checkpoint is larger than the log",
+    "servedPolicy" : null,
+    "checkpoint" : {
+      "size" : 9,
+      "rootHex" : "4d158effb6b68af05cc01eaaa42ede02ad8126183cbc69a1e0297be330b7e0c6"
+    },
+    "expected" : "invalid(log_mismatch)"
   } ],
   "placements" : [ {
-    "name" : "signed policy rule wins",
+    "name" : "a signed policy rule decides",
     "rosterRef" : "r2",
     "policyRef" : "br-policy v3",
     "context" : {
@@ -1718,9 +2110,10 @@
     "evaluatedAt" : "2026-10-27T00:00:00Z",
     "expectedHomeserverId" : "hs-br",
     "expectedRule" : "PolicyRoutingRule",
-    "expectedRuleId" : "r-sp"
+    "expectedRuleId" : "r-sp",
+    "unsignedRuleAbove" : false
   }, {
-    "name" : "policy rule before a matching roster claim",
+    "name" : "a policy rule takes precedence over a matching roster claim",
     "rosterRef" : "r2",
     "policyRef" : "br-policy v3",
     "context" : {
@@ -1732,9 +2125,10 @@
     "evaluatedAt" : "2026-10-27T00:00:00Z",
     "expectedHomeserverId" : "hs-br",
     "expectedRule" : "PolicyRoutingRule",
-    "expectedRuleId" : "r-sp"
+    "expectedRuleId" : "r-sp",
+    "unsignedRuleAbove" : false
   }, {
-    "name" : "roster claim with carrier context",
+    "name" : "a roster claim matches when the carrier is known",
     "rosterRef" : "r2",
     "policyRef" : "br-policy v3",
     "context" : {
@@ -1746,9 +2140,10 @@
     "evaluatedAt" : "2026-10-27T00:00:00Z",
     "expectedHomeserverId" : "hs-br",
     "expectedRule" : "ClaimRule",
-    "expectedRuleId" : "roster-claim:hs-br:10"
+    "expectedRuleId" : "roster-claim:hs-br:10",
+    "unsignedRuleAbove" : false
   }, {
-    "name" : "claim needs the carrier context: phone alone falls through",
+    "name" : "without the carrier the claim does not match, so the fallback decides",
     "rosterRef" : "r2",
     "policyRef" : "br-policy v3",
     "context" : {
@@ -1758,6 +2153,7 @@
     "expectedHomeserverId" : "hs-ca",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5519991112222\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 7,
@@ -1771,7 +2167,7 @@
       "stableHash" : 1185978974
     }
   }, {
-    "name" : "rule in a zone without a delegate signature is ignored",
+    "name" : "a rule in a zone without a delegate signature is ignored",
     "rosterRef" : "r2",
     "policyRef" : "br-policy v3",
     "context" : {
@@ -1781,6 +2177,7 @@
     "expectedHomeserverId" : "hs-ca",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : true,
     "fallback" : {
       "routingKeyUtf8" : "phone=+14165550123\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 7,
@@ -1794,7 +2191,7 @@
       "stableHash" : -1250360802
     }
   }, {
-    "name" : "self-asserted affiliation never routes",
+    "name" : "an affiliation the client states without proof is ignored",
     "rosterRef" : "r2",
     "policyRef" : "br-policy v3",
     "context" : {
@@ -1805,11 +2202,12 @@
       }
     },
     "evaluatedAt" : "2026-10-27T00:00:00Z",
-    "expectedHomeserverId" : "hs-ca",
+    "expectedHomeserverId" : "hs-br",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
     "fallback" : {
-      "routingKeyUtf8" : "phone=+5521999990000\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=usp.br\nattrs=email_domain=usp.br|",
+      "routingKeyUtf8" : "phone=+5521999990000\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 7,
       "candidates" : [ {
         "id" : "hs-br",
@@ -1818,10 +2216,10 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
-      "stableHash" : 1770194013
+      "stableHash" : -109238087
     }
   }, {
-    "name" : "missing sp delegate signature: the prefix rule does not apply",
+    "name" : "without the sp-zone delegate signature the prefix rule is ignored",
     "rosterRef" : "r2",
     "policyRef" : "br-policy v3 without the sp-zone delegate signature",
     "context" : {
@@ -1831,6 +2229,7 @@
     "expectedHomeserverId" : "hs-ca",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : true,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5511987654321\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 7,
@@ -1844,7 +2243,7 @@
       "stableHash" : -1098823203
     }
   }, {
-    "name" : "no policy: weighted fallback",
+    "name" : "no policy: the weighted fallback decides",
     "rosterRef" : "r2",
     "policyRef" : null,
     "context" : {
@@ -1854,6 +2253,7 @@
     "expectedHomeserverId" : "hs-ca",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5511987654321\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 7,
@@ -1867,7 +2267,7 @@
       "stableHash" : -1098823203
     }
   }, {
-    "name" : "single candidate",
+    "name" : "only one homeserver accepts new accounts",
     "rosterRef" : "r1",
     "policyRef" : null,
     "context" : {
@@ -1877,6 +2277,7 @@
     "expectedHomeserverId" : "hs-br",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5511987654321\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 3,
@@ -1897,6 +2298,7 @@
     "expectedHomeserverId" : "hs-ca",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5521990000000\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 7,
@@ -1920,6 +2322,7 @@
     "expectedHomeserverId" : "hs-br",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5521990001237\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 7,
@@ -1943,6 +2346,7 @@
     "expectedHomeserverId" : "hs-br",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5521990002474\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 7,
@@ -1966,6 +2370,7 @@
     "expectedHomeserverId" : "hs-br",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5521990003711\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 7,
@@ -1989,6 +2394,7 @@
     "expectedHomeserverId" : "hs-br",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5521990004948\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 7,
@@ -2012,6 +2418,7 @@
     "expectedHomeserverId" : "hs-br",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5521990006185\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 7,
@@ -2035,6 +2442,7 @@
     "expectedHomeserverId" : "hs-ca",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5521990007422\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 7,
@@ -2058,6 +2466,7 @@
     "expectedHomeserverId" : "hs-br",
     "expectedRule" : "WeightedFallbackRule",
     "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5521990008659\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
       "rosterVersion" : 7,
@@ -2070,25 +2479,123 @@
       } ],
       "stableHash" : 208330305
     }
+  }, {
+    "name" : "weights that add up past 2^31, sample 0",
+    "rosterRef" : "r6",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990000000"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-heavy-b",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990000000\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-heavy-a",
+        "weight" : 2000000000
+      }, {
+        "id" : "hs-heavy-b",
+        "weight" : 2000000000
+      } ],
+      "stableHash" : -507715408
+    }
+  }, {
+    "name" : "weights that add up past 2^31, sample 1",
+    "rosterRef" : "r6",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990001237"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-heavy-a",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990001237\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-heavy-a",
+        "weight" : 2000000000
+      }, {
+        "id" : "hs-heavy-b",
+        "weight" : 2000000000
+      } ],
+      "stableHash" : 1062227922
+    }
+  }, {
+    "name" : "weights that add up past 2^31, sample 2",
+    "rosterRef" : "r6",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990002474"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-heavy-a",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990002474\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-heavy-a",
+        "weight" : 2000000000
+      }, {
+        "id" : "hs-heavy-b",
+        "weight" : 2000000000
+      } ],
+      "stableHash" : -2136463671
+    }
+  }, {
+    "name" : "weights that add up past 2^31, sample 3",
+    "rosterRef" : "r6",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990003711"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-heavy-a",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990003711\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-heavy-a",
+        "weight" : 2000000000
+      }, {
+        "id" : "hs-heavy-b",
+        "weight" : 2000000000
+      } ],
+      "stableHash" : 139680792
+    }
   } ],
   "resolveAnswers" : [ {
-    "name" : "active entry, identical fields",
+    "name" : "matches an active entry exactly",
     "rosterRef" : "r2",
     "answer" : {
       "serverName" : "br.gua.test",
       "baseUrl" : "https://matrix.br.gua.test",
       "masIssuer" : "https://account.br.gua.test"
     },
-    "expected" : "ACTIVE_MATCH"
+    "expected" : "ACTIVE_MATCH",
+    "expectedEntryId" : "hs-br"
   }, {
-    "name" : "suspended entry",
+    "name" : "matches a suspended entry",
     "rosterRef" : "r2",
     "answer" : {
       "serverName" : "old.gua.test",
       "baseUrl" : "https://matrix.old.gua.test",
       "masIssuer" : "https://account.old.gua.test"
     },
-    "expected" : "INACTIVE"
+    "expected" : "INACTIVE",
+    "expectedEntryId" : "hs-old"
   }, {
     "name" : "known server name, different base URL",
     "rosterRef" : "r2",
@@ -2097,7 +2604,8 @@
       "baseUrl" : "https://matrix.evil.test",
       "masIssuer" : "https://account.br.gua.test"
     },
-    "expected" : "FIELD_MISMATCH"
+    "expected" : "FIELD_MISMATCH",
+    "expectedEntryId" : "hs-br"
   }, {
     "name" : "known server name, different auth issuer",
     "rosterRef" : "r2",
@@ -2106,7 +2614,8 @@
       "baseUrl" : "https://matrix.br.gua.test",
       "masIssuer" : "https://account.evil.test"
     },
-    "expected" : "FIELD_MISMATCH"
+    "expected" : "FIELD_MISMATCH",
+    "expectedEntryId" : "hs-br"
   }, {
     "name" : "unknown server name",
     "rosterRef" : "r2",
@@ -2115,15 +2624,57 @@
       "baseUrl" : "https://matrix.br.gua.test",
       "masIssuer" : "https://account.br.gua.test"
     },
-    "expected" : "NOT_IN_ROSTER"
+    "expected" : "NOT_IN_ROSTER",
+    "expectedEntryId" : null
   }, {
-    "name" : "production snapshot, identical fields",
+    "name" : "matches the production entry exactly",
     "rosterRef" : "prod-2026-10-27",
     "answer" : {
       "serverName" : "gua.global",
       "baseUrl" : "https://server.gua.global",
       "masIssuer" : "https://account.gua.global"
     },
-    "expected" : "ACTIVE_MATCH"
+    "expected" : "ACTIVE_MATCH",
+    "expectedEntryId" : "prod"
+  }, {
+    "name" : "an active entry wins over a suspended one served earlier",
+    "rosterRef" : "r5",
+    "answer" : {
+      "serverName" : "br.gua.test",
+      "baseUrl" : "https://matrix.br.gua.test",
+      "masIssuer" : "https://account.br.gua.test"
+    },
+    "expected" : "ACTIVE_MATCH",
+    "expectedEntryId" : "hs-br"
+  }, {
+    "name" : "a suspended entry with all three fields wins over an active one with another base URL",
+    "rosterRef" : "r5",
+    "answer" : {
+      "serverName" : "ca.gua.test",
+      "baseUrl" : "https://matrix.ca.gua.test",
+      "masIssuer" : "https://account.ca.gua.test"
+    },
+    "expected" : "INACTIVE",
+    "expectedEntryId" : "hs-ca-retired"
+  }, {
+    "name" : "with no entry matching all three fields, the first entry with the server name decides",
+    "rosterRef" : "r5",
+    "answer" : {
+      "serverName" : "ca.gua.test",
+      "baseUrl" : "https://matrix.evil.test",
+      "masIssuer" : "https://account.ca.gua.test"
+    },
+    "expected" : "FIELD_MISMATCH",
+    "expectedEntryId" : "hs-ca-retired"
+  }, {
+    "name" : "an answer without an auth issuer matches an entry without one",
+    "rosterRef" : "r7",
+    "answer" : {
+      "serverName" : "plain.gua.test",
+      "baseUrl" : "https://matrix.plain.gua.test",
+      "masIssuer" : null
+    },
+    "expected" : "ACTIVE_MATCH",
+    "expectedEntryId" : "hs-no-issuer"
   } ]
 }

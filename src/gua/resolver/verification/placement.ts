@@ -8,30 +8,42 @@ Please see LICENSE files in the repository root for full details.
 import {
     activeEntries,
     compareUtf16,
-    instantToEpochMs,
     nz,
     type RosterClaim,
     type RosterHomeserver,
     type SignedRoster,
 } from "./canonical";
 import { utf8Bytes, type VerifierCrypto } from "./ed25519";
-import { type DelegationZone, isRuleEnabled, type RoutingPolicyBundle, type RoutingPolicyRule } from "./policy";
+import {
+    type DelegationZone,
+    inEffect,
+    isRuleEnabled,
+    type RoutingPolicyBundle,
+    type RoutingPolicyRule,
+} from "./policy";
 
-/** What the client knows about a placement: the phone, and nothing a verified claims envelope would add. */
+/**
+ * What a public client can state about a placement. Affiliations and attributes count only inside a verified claims
+ * envelope, which a public client never has, so the server drops them before routing and so does this context.
+ */
 export interface PlacementContext {
     phone: string | null;
     country: string | null;
     mccmnc: string | null;
     carrier: string | null;
     regionHint: string | null;
-    affiliations: string[];
-    attributes: Record<string, string>;
 }
 
 export interface PlacementDecision {
-    homeserverId: string;
+    homeserver: RosterHomeserver;
     rule: "PolicyRoutingRule" | "ClaimRule" | "WeightedFallbackRule";
     ruleId: string;
+}
+
+export interface Placement {
+    decision: PlacementDecision | null;
+    /** A matching rule ranked above the decision was left out only because its zone lacks a delegate signature. */
+    unsignedRuleAbove: boolean;
 }
 
 /** A policy whose authority signatures verified, with the zones whose delegate signatures verified. */
@@ -41,15 +53,7 @@ export interface VerifiedPolicy {
 }
 
 export function phoneContext(phone: string): PlacementContext {
-    return {
-        phone,
-        country: null,
-        mccmnc: null,
-        carrier: null,
-        regionHint: null,
-        affiliations: [],
-        attributes: {},
-    };
+    return { phone, country: null, mccmnc: null, carrier: null, regionHint: null };
 }
 
 /** PlacementContext.canonicalRoutingKey: the bucketing key the weighted fallback hashes. */
@@ -59,17 +63,14 @@ export function routingKey(ctx: PlacementContext): string {
     key += `mccmnc=${nz(ctx.mccmnc)}\n`;
     key += `carrier=${nz(ctx.carrier)}\n`;
     key += `region=${nz(ctx.regionHint)}\n`;
-    key += `affiliations=${[...ctx.affiliations].sort(compareUtf16).join("|")}\n`;
-    key += "attrs=";
-    for (const k of Object.keys(ctx.attributes).sort(compareUtf16)) key += `${k}=${ctx.attributes[k]}|`;
-    return key;
+    return key + "affiliations=\nattrs=";
 }
 
 export function placementCandidates(roster: SignedRoster): RosterHomeserver[] {
     return activeEntries(roster)
         .map((e) => e.homeserver)
         .filter((h) => h.acceptsNew)
-        .sort((a, b) => compareUtf16(a.id, b.id));
+        .sort((a, b) => compareUtf16(nz(a.id), nz(b.id)));
 }
 
 /** WeightedFallbackRule.stableHash: the first four bytes of the digest as a signed 32-bit integer. */
@@ -111,12 +112,6 @@ function isRemote(claim: RosterClaim): boolean {
     return claim.remoteClaimUrl !== null && claim.remoteClaimUrl.trim() !== "";
 }
 
-function zoneActive(zone: DelegationZone | undefined, nowEpochMs: number): boolean {
-    if (!zone) return false;
-    if (zone.notBefore !== null && instantToEpochMs(zone.notBefore) > nowEpochMs) return false;
-    return zone.expiresAt === null || instantToEpochMs(zone.expiresAt) > nowEpochMs;
-}
-
 /** Institution and OIDC rules need signature-verified claims, which a public client never carries. */
 function ruleMatches(rule: RoutingPolicyRule, ctx: PlacementContext): boolean {
     return (
@@ -127,41 +122,56 @@ function ruleMatches(rule: RoutingPolicyRule, ctx: PlacementContext): boolean {
     );
 }
 
+/**
+ * PolicyRoutingRule: enabled rules by priority, then id; the first that is delegate-signed, inside its zone's window,
+ * matching and aimed at a candidate decides. Delegate signatures are covered neither by the bundle signatures nor by
+ * the POLICY_PUBLISH hash, so a resolver can strip one to hide a rule: a matching unsigned rule above is reported.
+ */
 function policyRule(
     policy: VerifiedPolicy,
     ctx: PlacementContext,
     roster: SignedRoster,
     nowEpochMs: number,
-): PlacementDecision | null {
+): Placement {
     const targets = new Map(placementCandidates(roster).map((h) => [h.id, h]));
     const zones = new Map<string, DelegationZone>();
     for (const zone of policy.bundle.delegationZones) {
         if (zone.id !== null && !zones.has(zone.id)) zones.set(zone.id, zone);
     }
-    const applicable = policy.bundle.rules
+    const ranked = policy.bundle.rules
         .filter(isRuleEnabled)
-        .filter((r) => r.delegatedZoneId !== null && policy.delegateVerifiedZones.has(r.delegatedZoneId))
-        .filter((r) => zoneActive(zones.get(r.delegatedZoneId!), nowEpochMs))
         .sort((a, b) => a.priority - b.priority || compareUtf16(nz(a.id), nz(b.id)));
-    for (const rule of applicable) {
-        if (!ruleMatches(rule, ctx)) continue;
-        const target = rule.targetHomeserverId === null ? undefined : targets.get(rule.targetHomeserverId);
-        if (target) return { homeserverId: target.id, rule: "PolicyRoutingRule", ruleId: nz(rule.id) };
+    let unsignedRuleAbove = false;
+    for (const rule of ranked) {
+        const zone = rule.delegatedZoneId === null ? undefined : zones.get(rule.delegatedZoneId);
+        if (!zone || !inEffect(zone.notBefore, zone.expiresAt, nowEpochMs) || !ruleMatches(rule, ctx)) continue;
+        if (!policy.delegateVerifiedZones.has(zone.id!)) {
+            unsignedRuleAbove = true;
+            continue;
+        }
+        const target = targets.get(rule.targetHomeserverId);
+        if (target) {
+            return {
+                decision: { homeserver: target, rule: "PolicyRoutingRule", ruleId: nz(rule.id) },
+                unsignedRuleAbove,
+            };
+        }
     }
-    return null;
+    return { decision: null, unsignedRuleAbove };
 }
 
 function claimRule(ctx: PlacementContext, roster: SignedRoster): PlacementDecision | null {
-    let best: { homeserverId: string; priority: number } | null = null;
+    let best: { homeserver: RosterHomeserver; priority: number } | null = null;
     for (const entry of activeEntries(roster)) {
         if (!entry.homeserver.acceptsNew) continue;
         for (const claim of entry.claims) {
             if (isRemote(claim) || !claimMatches(claim, ctx)) continue;
-            const candidate = { homeserverId: entry.homeserver.id, priority: claim.priority };
+            const candidate = { homeserver: entry.homeserver, priority: claim.priority };
             if (
                 best === null ||
                 candidate.priority - best.priority < 0 ||
-                (candidate.priority === best.priority && compareUtf16(candidate.homeserverId, best.homeserverId) < 0)
+                (candidate.priority === best.priority &&
+                    compareUtf16(nz(candidate.homeserver.id), nz(best.homeserver.id)) < 0)
             ) {
                 best = candidate;
             }
@@ -169,9 +179,9 @@ function claimRule(ctx: PlacementContext, roster: SignedRoster): PlacementDecisi
     }
     if (!best) return null;
     return {
-        homeserverId: best.homeserverId,
+        homeserver: best.homeserver,
         rule: "ClaimRule",
-        ruleId: `roster-claim:${best.homeserverId}:${best.priority}`,
+        ruleId: `roster-claim:${best.homeserver.id}:${best.priority}`,
     };
 }
 
@@ -183,6 +193,7 @@ async function weightedFallback(
     const candidates = placementCandidates(roster);
     if (candidates.length === 0) return null;
     const hash = await stableHash(crypto, ctx, roster.version, candidates);
+    // Weights are int32, so this sum is exact in a double, as Java's 64-bit sum is: it never wraps.
     const totalWeight = candidates.reduce((sum, hs) => sum + Math.max(0, hs.weight), 0);
     let chosen = candidates[candidates.length - 1];
     if (totalWeight <= 0) {
@@ -198,7 +209,7 @@ async function weightedFallback(
             }
         }
     }
-    return { homeserverId: chosen.id, rule: "WeightedFallbackRule", ruleId: "weighted-fallback" };
+    return { homeserver: chosen, rule: "WeightedFallbackRule", ruleId: "weighted-fallback" };
 }
 
 /** The resolver's placement pipeline over verified artifacts: policy rules, roster claims, weighted fallback. */
@@ -208,10 +219,11 @@ export async function reproducePlacement(
     roster: SignedRoster,
     policy: VerifiedPolicy | null,
     nowEpochMs: number,
-): Promise<PlacementDecision | null> {
-    if (policy) {
-        const decision = policyRule(policy, ctx, roster, nowEpochMs);
-        if (decision) return decision;
-    }
-    return claimRule(ctx, roster) ?? (await weightedFallback(crypto, ctx, roster));
+): Promise<Placement> {
+    const byPolicy = policy
+        ? policyRule(policy, ctx, roster, nowEpochMs)
+        : { decision: null, unsignedRuleAbove: false };
+    if (byPolicy.decision) return byPolicy;
+    const decision = claimRule(ctx, roster) ?? (await weightedFallback(crypto, ctx, roster));
+    return { decision, unsignedRuleAbove: byPolicy.unsignedRuleAbove };
 }

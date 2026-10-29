@@ -12,11 +12,11 @@ import { join } from "node:path";
 import {
     canonicalRosterBytes,
     canonicalRosterText,
+    checkRosterSignature,
     detectRosterForm,
-    instantToEpochMs,
     locateHomeserver,
-    parseInstant,
     parseSignedRoster,
+    type SignedRoster,
 } from "../../../../../src/gua/resolver/verification/canonical";
 import {
     bytesToHex,
@@ -26,15 +26,15 @@ import {
     TrustedKeySet,
     VerifierCrypto,
 } from "../../../../../src/gua/resolver/verification/ed25519";
+import { instantToEpochMs, parseInstant } from "../../../../../src/gua/resolver/verification/json";
 import { LengthPrefixedEncoder } from "../../../../../src/gua/resolver/verification/lengthPrefixed";
 import {
     memberEntryBytes,
-    MemberEntryVerifier,
-    parseMemberBlock,
     type MemberHomeserver,
-    type PriorMemberEntry,
+    parseMemberBlock,
+    verifyMemberEntry,
 } from "../../../../../src/gua/resolver/verification/memberEntry";
-import { MerkleTree } from "../../../../../src/gua/resolver/verification/merkle";
+import { MerkleTree, parseLogEvents } from "../../../../../src/gua/resolver/verification/merkle";
 import {
     type PlacementContext,
     placementCandidates,
@@ -47,9 +47,15 @@ import {
     canonicalDelegatedRulesBytes,
     canonicalPolicyBytes,
     canonicalPolicyText,
+    delegateVerifiedZones,
+    inEffect,
     parseRoutingPolicy,
-    PolicyVerifier,
+    policyLogOutcome,
+    policySignatureFailure,
+    type PublishedPolicy,
+    type RoutingPolicyBundle,
 } from "../../../../../src/gua/resolver/verification/policy";
+import { formatOutcome } from "../../../../../src/gua/resolver/verification/report";
 
 // jsdom has no SubtleCrypto; the verifier reads globalThis.crypto.subtle exactly as a browser would.
 Object.defineProperty(globalThis, "crypto", { value: webcrypto, configurable: true });
@@ -70,6 +76,7 @@ interface TrustedKeyVector {
 
 interface RosterVector {
     name: string;
+    ref?: string;
     form: "v1" | "legacy" | "mixed";
     roster: unknown;
     canonicalUtf8: string;
@@ -80,6 +87,7 @@ interface RosterVector {
     validSignatures: number;
     verified: boolean;
     clientOnly?: boolean;
+    expectedOutcome?: string;
 }
 
 interface LogEventVector {
@@ -104,6 +112,7 @@ interface ConsistencyVector {
 
 interface PolicyVector {
     name: string;
+    ref?: string;
     bundle: unknown;
     canonicalUtf8: string;
     canonicalHex: string;
@@ -113,6 +122,21 @@ interface PolicyVector {
     threshold: number;
     verified: boolean;
     delegateVerifiedZones: string[];
+    expectedOutcome?: string;
+}
+
+interface PolicyLogVector {
+    name: string;
+    servedPolicy: PublishedPolicy | null;
+    checkpoint: { size: number; rootHex: string };
+    expected: string;
+}
+
+interface PolicyValidityVector {
+    name: string;
+    policyRef: string;
+    evaluatedAt: string;
+    inEffect: boolean;
 }
 
 interface PlacementVector {
@@ -132,6 +156,7 @@ interface PlacementVector {
     expectedHomeserverId: string;
     expectedRule: string;
     expectedRuleId: string;
+    unsignedRuleAbove: boolean;
     fallback?: {
         routingKeyUtf8: string;
         rosterVersion: number;
@@ -145,6 +170,7 @@ interface ResolveAnswerVector {
     rosterRef: string;
     answer: { serverName: string; baseUrl: string; masIssuer: string | null };
     expected: string;
+    expectedEntryId: string | null;
 }
 
 interface ClientVectors {
@@ -165,6 +191,8 @@ interface ClientVectors {
     };
     policies: PolicyVector[];
     policyRejections: PolicyVector[];
+    policyValidity: PolicyValidityVector[];
+    policyLog: PolicyLogVector[];
     placements: PlacementVector[];
     resolveAnswers: ResolveAnswerVector[];
 }
@@ -177,7 +205,7 @@ interface MemberEntryVector {
     notAfterEpochMs?: number;
     canonicalHex?: string;
     sha256Hex?: string;
-    previous?: PriorMemberEntry;
+    previous?: unknown;
     reason?: string;
 }
 
@@ -208,29 +236,36 @@ function trustedKeys(list: TrustedKeyVector[]): TrustedKey[] {
     return list.map((k) => ({ id: k.id, publicKey: k.publicKeySpkiB64 }));
 }
 
+function byRef<T extends { ref?: string }>(list: T[], ref: string): T {
+    const vector = list.find((v) => v.ref === ref);
+    if (!vector) throw new Error(`unknown reference ${ref}`);
+    return vector;
+}
+
 function base64(bytes: Uint8Array): string {
     return btoa(String.fromCharCode(...bytes));
 }
 
-async function countVotes(
-    roster: ReturnType<typeof parseSignedRoster>,
-    bytes: Uint8Array,
-    keys: TrustedKeyVector[],
-): Promise<number> {
+async function countVotes(roster: SignedRoster, bytes: Uint8Array, keys: TrustedKeyVector[]): Promise<number> {
     const keySet = await TrustedKeySet.load(crypto, trustedKeys(keys));
-    const votes = await keySet.countVotes(
-        bytes,
-        roster.authoritySignatures.map((s) => ({ keyId: s.authorityKeyId, signatureB64: s.signatureB64 })),
-    );
-    return votes.valid;
+    return (await keySet.countVotes(bytes, roster.authoritySignatures)).valid;
 }
 
-function rosterByRef(refs: Record<string, RosterVector>, ref: string): RosterVector {
-    const vector = refs[ref];
-    if (!vector) throw new Error(`unknown roster reference ${ref}`);
-    return vector;
+/** Checked with the form the vector names, which for one rejection is not the form its JSON implies. */
+async function rosterSignatureOutcome(vector: RosterVector): Promise<string> {
+    const keySet = await TrustedKeySet.load(crypto, trustedKeys(vector.trustedKeys ?? []));
+    const roster = parseSignedRoster(vector.roster);
+    return formatOutcome(await checkRosterSignature(roster, vector.form, keySet, vector.threshold));
 }
 
+/** The policy signature step's outcome, "valid" when it passes. */
+async function policySignatureOutcome(bundle: RoutingPolicyBundle, vector: PolicyVector): Promise<string> {
+    const keySet = await TrustedKeySet.load(crypto, trustedKeys(vector.trustedKeys));
+    const failure = await policySignatureFailure(keySet, bundle, canonicalPolicyBytes(bundle), vector.threshold);
+    return failure ? formatOutcome(failure) : "valid";
+}
+
+/** No context carries verified claims, so the stated affiliations and attributes are dropped, as the server does. */
 function placementContext(vector: PlacementVector): PlacementContext {
     return {
         phone: vector.context.phone,
@@ -238,17 +273,13 @@ function placementContext(vector: PlacementVector): PlacementContext {
         mccmnc: vector.context.mccmnc ?? null,
         carrier: vector.context.carrier ?? null,
         regionHint: vector.context.regionHint ?? null,
-        affiliations: vector.context.affiliations ?? [],
-        attributes: vector.context.attributes ?? {},
     };
 }
 
 async function verifiedPolicy(vector: PolicyVector): Promise<VerifiedPolicy> {
     const bundle = parseRoutingPolicy(vector.bundle);
-    const keySet = await TrustedKeySet.load(crypto, trustedKeys(vector.trustedKeys));
-    const verifier = new PolicyVerifier(crypto, keySet, vector.threshold);
-    expect(await verifier.isVerified(bundle)).toBe(true);
-    return { bundle, delegateVerifiedZones: await verifier.delegateVerifiedZones(bundle) };
+    expect(await policySignatureOutcome(bundle, vector)).toBe("valid");
+    return { bundle, delegateVerifiedZones: await delegateVerifiedZones(crypto, bundle) };
 }
 
 async function expectKeyVector(key: KeyVector): Promise<void> {
@@ -262,7 +293,7 @@ async function expectKeyVector(key: KeyVector): Promise<void> {
     if (key.privateKeyPkcs8B64) {
         const privateKey = await webcrypto.subtle.importKey(
             "pkcs8",
-            decodeEd25519Pkcs8(key.privateKeyPkcs8B64),
+            Uint8Array.from(atob(key.privateKeyPkcs8B64), (c) => c.charCodeAt(0)),
             { name: "Ed25519" },
             false,
             ["sign"],
@@ -272,10 +303,6 @@ async function expectKeyVector(key: KeyVector): Promise<void> {
         expect(await crypto.verify(imported!, message, base64(signature))).toBe(true);
         expect(await crypto.verify(imported!, new Uint8Array([2]), base64(signature))).toBe(false);
     }
-}
-
-function decodeEd25519Pkcs8(b64: string): Uint8Array {
-    return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 }
 
 describe("gua-client-verification.v1 vectors", () => {
@@ -293,6 +320,8 @@ describe("gua-client-verification.v1 vectors", () => {
                 "log",
                 "policies",
                 "policyRejections",
+                "policyValidity",
+                "policyLog",
                 "placements",
                 "resolveAnswers",
             ].sort(),
@@ -327,27 +356,36 @@ describe("gua-client-verification.v1 vectors", () => {
             const valid = await countVotes(roster, bytes, vector.trustedKeys);
             expect(valid).toBe(vector.validSignatures);
             expect(valid >= vector.threshold).toBe(vector.verified);
+            expect(await rosterSignatureOutcome(vector)).toBe("valid");
 
-            const memberVerifier = new MemberEntryVerifier(crypto);
             for (const entry of roster.entries) {
                 if (entry.member === undefined) continue;
-                const result = await memberVerifier.verify(
-                    entry.homeserver,
-                    entry.member,
-                    instantToEpochMs(roster.issuedAt),
-                );
-                expect(result).toMatchObject({ outcome: "valid" });
+                const at = instantToEpochMs(roster.issuedAt);
+                expect(await verifyMemberEntry(crypto, entry.homeserver, entry.member, at)).toEqual({
+                    outcome: "valid",
+                });
             }
         });
     });
 
+    it("encodes a null id, serverName and baseUrl as the text null, as it does a null masIssuer", () => {
+        const roster = JSON.parse(JSON.stringify(byRef(vectors.rosters, "r7").roster));
+        Object.assign(roster.entries[0].homeserver, { id: null, serverName: null, baseUrl: null });
+        const entryLine = canonicalRosterText(parseSignedRoster(roster), "v1").split("\n")[4];
+
+        expect(entryLine.startsWith("null\u001fnull\u001fnull\u001fnull\u001f")).toBe(true);
+    });
+
     describe("rosterRejections", () => {
-        it.each(vectors.rosterRejections.filter((v) => v.clientOnly))("$name", (vector) => {
-            expect(vector.form).toBe("mixed");
+        it.each(vectors.rosterRejections)("$name: $expectedOutcome", async (vector) => {
+            expect(await rosterSignatureOutcome(vector)).toBe(vector.expectedOutcome);
+        });
+
+        it.each(vectors.rosterRejections.filter((v) => v.clientOnly))("$name: detected as mixed", (vector) => {
             expect(detectRosterForm(parseSignedRoster(vector.roster))).toBe("mixed");
         });
 
-        it.each(vectors.rosterRejections.filter((v) => !v.clientOnly))("$name", async (vector) => {
+        it.each(vectors.rosterRejections.filter((v) => !v.clientOnly))("$name: bytes and votes", async (vector) => {
             expect(vector.verified).toBe(false);
             const roster = parseSignedRoster(vector.roster);
             const bytes = canonicalRosterBytes(roster, vector.form as "v1" | "legacy");
@@ -422,10 +460,8 @@ describe("gua-client-verification.v1 vectors", () => {
                 );
                 expect(bytesToHex(delegated)).toBe(zone.canonicalHex);
             }
-            const keySet = await TrustedKeySet.load(crypto, trustedKeys(vector.trustedKeys));
-            const verifier = new PolicyVerifier(crypto, keySet, vector.threshold);
-            expect(await verifier.isVerified(bundle)).toBe(vector.verified);
-            expect([...(await verifier.delegateVerifiedZones(bundle))].sort()).toEqual(
+            expect(await policySignatureOutcome(bundle, vector)).toBe(vector.expectedOutcome ?? "valid");
+            expect([...(await delegateVerifiedZones(crypto, bundle))].sort()).toEqual(
                 [...vector.delegateVerifiedZones].sort(),
             );
         });
@@ -435,44 +471,51 @@ describe("gua-client-verification.v1 vectors", () => {
         });
     });
 
-    describe("placements", () => {
-        const rosters: Record<string, RosterVector> = { r1: vectors.rosters[0], r2: vectors.rosters[1] };
-        const policies: Record<string, PolicyVector> = {
-            "br-policy v3": vectors.policies[0],
-            "br-policy v3 without the sp-zone delegate signature": vectors.policies[1],
-        };
+    describe("policyLog", () => {
+        it.each(vectors.policyLog)("$name: $expected", async (vector) => {
+            const events = parseLogEvents({ events: vectors.log.events });
+            const checkpoint = { merkleRoot: vector.checkpoint.rootHex, size: vector.checkpoint.size };
+            const outcome = await policyLogOutcome(crypto, vector.servedPolicy, checkpoint, events);
+            expect(formatOutcome(outcome)).toBe(vector.expected);
+        });
+    });
 
+    describe("policyValidity", () => {
+        it.each(vectors.policyValidity)("$name", (vector) => {
+            const bundle = parseRoutingPolicy(byRef(vectors.policies, vector.policyRef).bundle);
+            const at = instantToEpochMs(vector.evaluatedAt);
+            expect(inEffect(bundle.notBefore, bundle.expiresAt, at)).toBe(vector.inEffect);
+        });
+    });
+
+    describe("placements", () => {
         it.each(vectors.placements)("$name", async (vector) => {
-            const rosterVector = rosterByRef(rosters, vector.rosterRef);
+            const rosterVector = byRef(vectors.rosters, vector.rosterRef);
             const roster = parseSignedRoster(rosterVector.roster);
             const bytes = canonicalRosterBytes(roster, rosterVector.form as "v1" | "legacy");
             expect(await countVotes(roster, bytes, rosterVector.trustedKeys)).toBeGreaterThanOrEqual(
                 rosterVector.threshold,
             );
+            const policy =
+                vector.policyRef === null ? null : await verifiedPolicy(byRef(vectors.policies, vector.policyRef));
 
-            let policy: VerifiedPolicy | null = null;
-            if (vector.policyRef !== null) {
-                const policyVector = policies[vector.policyRef];
-                if (!policyVector) throw new Error(`unknown policy reference ${vector.policyRef}`);
-                policy = await verifiedPolicy(policyVector);
-            }
-
-            const decision = await reproducePlacement(
+            const { decision, unsignedRuleAbove } = await reproducePlacement(
                 crypto,
                 placementContext(vector),
                 roster,
                 policy,
                 instantToEpochMs(vector.evaluatedAt),
             );
-            expect(decision).toEqual({
+            expect({ homeserverId: decision?.homeserver.id, rule: decision?.rule, ruleId: decision?.ruleId }).toEqual({
                 homeserverId: vector.expectedHomeserverId,
                 rule: vector.expectedRule,
                 ruleId: vector.expectedRuleId,
             });
+            expect(unsignedRuleAbove).toBe(vector.unsignedRuleAbove);
         });
 
         it.each(vectors.placements.filter((v) => v.fallback))("$name: weighted fallback inputs", async (vector) => {
-            const roster = parseSignedRoster(rosterByRef(rosters, vector.rosterRef).roster);
+            const roster = parseSignedRoster(byRef(vectors.rosters, vector.rosterRef).roster);
             const context = placementContext(vector);
             const fallback = vector.fallback!;
             expect(routingKey(context)).toBe(fallback.routingKeyUtf8);
@@ -484,17 +527,12 @@ describe("gua-client-verification.v1 vectors", () => {
     });
 
     describe("resolveAnswers", () => {
-        const rosters: Record<string, RosterVector> = {
-            "r2": vectors.rosters[1],
-            "prod-2026-10-27": vectors.rosters[3],
-        };
-
         it.each(vectors.resolveAnswers)("$name", (vector) => {
-            const roster = parseSignedRoster(rosterByRef(rosters, vector.rosterRef).roster);
-            const answer = vector.answer;
-            expect(locateHomeserver(answer.serverName, answer.baseUrl, answer.masIssuer ?? null, roster).match).toBe(
-                vector.expected,
-            );
+            const roster = parseSignedRoster(byRef(vectors.rosters, vector.rosterRef).roster);
+            const { serverName, baseUrl, masIssuer } = vector.answer;
+            const located = locateHomeserver({ serverName, baseUrl, masIssuer: masIssuer ?? null }, roster);
+            expect(located.match).toBe(vector.expected);
+            expect(located.entry?.homeserver.id ?? null).toBe(vector.expectedEntryId);
         });
     });
 });
@@ -554,25 +592,16 @@ describe("gua-lp.v1 vectors", () => {
             expect(bytesToHex(bytes)).toBe(vector.canonicalHex);
             expect(await crypto.sha256Hex(bytes)).toBe(vector.sha256Hex);
 
-            const result = await new MemberEntryVerifier(crypto).verify(
-                vector.homeserver,
-                vector.member,
-                vector.notBeforeEpochMs!,
-                vector.previous ?? null,
-            );
-            expect(result).toEqual({ outcome: "valid", entryHash: vector.sha256Hex });
+            const at = vector.notBeforeEpochMs!;
+            expect(await verifyMemberEntry(crypto, vector.homeserver, vector.member, at)).toEqual({ outcome: "valid" });
         });
     });
 
     describe("rejections", () => {
-        it.each(lp.rejections)("$name", async (vector) => {
+        // A rejection that needs a previously accepted entry tests key continuity, which v1 does not check.
+        it.each(lp.rejections.filter((v) => v.previous === undefined))("$name", async (vector) => {
             const at = instantToEpochMs("2026-10-27T00:00:00Z");
-            const result = await new MemberEntryVerifier(crypto).verify(
-                vector.homeserver,
-                vector.member,
-                at,
-                vector.previous ?? null,
-            );
+            const result = await verifyMemberEntry(crypto, vector.homeserver, vector.member, at);
             expect(result.outcome).toBe("invalid");
         });
     });

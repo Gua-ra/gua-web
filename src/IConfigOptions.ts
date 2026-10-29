@@ -64,6 +64,8 @@ export interface IConfigOptions {
         // base64 SPKI Ed25519 keys the resolver publishes out of band; absent keys leave the verifier inert.
         verification?: {
             mode?: "off" | "report";
+            // Labels the report line; anything else is logged as "unknown".
+            environment?: "dev" | "prod";
             authority_keys: { id: string; public_key: string }[];
             authority_threshold?: number;
             policy_keys?: { id: string; public_key: string }[];

@@ -5,20 +5,15 @@ SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
 Please see LICENSE files in the repository root for full details.
 */
 
+import { Reason } from "./report";
+
 /** X.509 SubjectPublicKeyInfo prefix for an Ed25519 key: the 32 raw key bytes follow it. */
 export const ED25519_SPKI_PREFIX_HEX = "302a300506032b6570032100";
-export const ED25519_SPKI_LENGTH = 44;
-export const ED25519_SIGNATURE_LENGTH = 64;
+const ED25519_SPKI_LENGTH = 44;
+const ED25519_SIGNATURE_LENGTH = 64;
 
 const BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const BASE64_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
-
-export class CryptoUnsupportedError extends Error {
-    public constructor() {
-        super("WebCrypto Ed25519 is not available");
-        this.name = "CryptoUnsupportedError";
-    }
-}
 
 export function utf8Bytes(text: string): Uint8Array {
     return new TextEncoder().encode(text);
@@ -74,16 +69,12 @@ export function concatBytes(...parts: Uint8Array[]): Uint8Array {
     return out;
 }
 
-export function webCrypto(): SubtleCrypto | undefined {
-    return globalThis.crypto?.subtle;
-}
-
-/** Ed25519 and SHA-256 through WebCrypto; absent support surfaces as CryptoUnsupportedError. */
+/** Ed25519 and SHA-256 through WebCrypto. */
 export class VerifierCrypto {
-    public constructor(private readonly subtle: SubtleCrypto | undefined = webCrypto()) {}
+    public constructor(private readonly subtle: SubtleCrypto | null = globalThis.crypto?.subtle ?? null) {}
 
     public async sha256(data: Uint8Array): Promise<Uint8Array> {
-        if (!this.subtle) throw new CryptoUnsupportedError();
+        if (!this.subtle) throw new Error("SubtleCrypto is not available");
         return new Uint8Array(await this.subtle.digest("SHA-256", data));
     }
 
@@ -91,15 +82,18 @@ export class VerifierCrypto {
         return bytesToHex(await this.sha256(data));
     }
 
-    /** Import a base64 SPKI key; null when the encoding is not an Ed25519 SPKI. */
+    /** Null unless the key is an Ed25519 SPKI the platform imports. */
     public async importPublicKey(publicKeyB64: string): Promise<CryptoKey | null> {
         const der = decodeEd25519Spki(publicKeyB64);
-        if (!der) return null;
-        if (!this.subtle) throw new CryptoUnsupportedError();
+        return der ? this.importSpki(der) : null;
+    }
+
+    public async importSpki(der: Uint8Array): Promise<CryptoKey | null> {
+        if (!this.subtle) return null;
         try {
             return await this.subtle.importKey("spki", der, { name: "Ed25519" }, false, ["verify"]);
         } catch {
-            throw new CryptoUnsupportedError();
+            return null;
         }
     }
 
@@ -120,6 +114,11 @@ export interface TrustedKey {
     publicKey: string;
 }
 
+export interface Signature {
+    keyId: string;
+    signatureB64: string;
+}
+
 export interface SignatureVotes {
     /** Distinct trusted key ids whose signature verifies. */
     valid: number;
@@ -132,27 +131,31 @@ export class TrustedKeySet {
     private constructor(
         private readonly crypto: VerifierCrypto,
         private readonly keys: Map<string, CryptoKey>,
+        public readonly refused: number,
     ) {}
 
-    /** A key that is not an Ed25519 SPKI is dropped; the caller decides what an empty set means. */
+    /**
+     * A key that is not an Ed25519 SPKI is skipped. A well-formed key the platform will not import is counted in
+     * `refused`: when no key imports, that is how a platform without Ed25519 shows up.
+     */
     public static async load(crypto: VerifierCrypto, keys: TrustedKey[]): Promise<TrustedKeySet> {
         const imported = new Map<string, CryptoKey>();
+        let refused = 0;
         for (const k of keys) {
-            if (!k.id || imported.has(k.id)) continue;
-            const key = await crypto.importPublicKey(k.publicKey);
+            const der = decodeEd25519Spki(k.publicKey);
+            if (!k.id || imported.has(k.id) || !der) continue;
+            const key = await crypto.importSpki(der);
             if (key) imported.set(k.id, key);
+            else refused++;
         }
-        return new TrustedKeySet(crypto, imported);
+        return new TrustedKeySet(crypto, imported, refused);
     }
 
     public get size(): number {
         return this.keys.size;
     }
 
-    public async countVotes(
-        message: Uint8Array,
-        signatures: { keyId: string; signatureB64: string }[],
-    ): Promise<SignatureVotes> {
+    public async countVotes(message: Uint8Array, signatures: Signature[]): Promise<SignatureVotes> {
         const counted = new Set<string>();
         let known = 0;
         for (const s of signatures) {
@@ -164,4 +167,11 @@ export class TrustedKeySet {
         }
         return { valid: counted.size, known };
     }
+}
+
+/** Why too few signatures verified, or null when the threshold is met; a threshold below one counts as one. */
+export function signatureFailure(votes: SignatureVotes, threshold: number): Reason | null {
+    if (votes.valid >= Math.max(1, threshold)) return null;
+    if (votes.known === 0) return Reason.UnknownKeyId;
+    return votes.valid === 0 ? Reason.BadSignature : Reason.ThresholdNotMet;
 }

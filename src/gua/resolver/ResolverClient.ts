@@ -6,6 +6,7 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import SdkConfig from "../../SdkConfig";
+import { readJsonBody } from "./verification/json";
 
 /**
  * A homeserver as advertised by the Gua resolver: where a phone's account lives (login) or should be
@@ -28,6 +29,8 @@ export interface HomeserverResolution {
     exists?: boolean;
     /** The homeserver to authenticate against (login) or create the account on (register). */
     homeserver: ResolvedHomeserver;
+    /** The roster version the resolver decided against, when the answer says. */
+    rosterVersion?: number;
 }
 
 export class ResolverError extends Error {
@@ -67,7 +70,12 @@ export default class ResolverClient {
             throw new ResolverError(`Routing service error (${response.status}).`);
         }
 
-        let body: { exists?: boolean; homeserver?: ResolvedHomeserver | null; registerAt?: ResolvedHomeserver | null };
+        let body: {
+            exists?: boolean;
+            homeserver?: ResolvedHomeserver | null;
+            registerAt?: ResolvedHomeserver | null;
+            rosterVersion?: unknown;
+        };
         try {
             body = await response.json();
         } catch (e) {
@@ -77,7 +85,8 @@ export default class ResolverClient {
         if (!ref) {
             throw new ResolverError("The routing service returned an unexpected response.");
         }
-        return { exists: body.exists, homeserver: ref };
+        const rosterVersion = Number.isSafeInteger(body.rosterVersion) ? (body.rosterVersion as number) : undefined;
+        return { exists: body.exists, homeserver: ref, rosterVersion };
     }
 
     /** The signed roster (`GET /roster`), as served. */
@@ -100,6 +109,7 @@ export default class ResolverClient {
         return this.getJson("/policy/routing", signal, true);
     }
 
+    /** A body that is too large, nested too deeply or not JSON rejects with the verifier's ParseError. */
     private async getJson(path: string, signal?: AbortSignal, nullOnNotFound = false): Promise<unknown> {
         let response: Response;
         try {
@@ -111,10 +121,6 @@ export default class ResolverClient {
         if (!response.ok) {
             throw new ResolverError(`Routing service error (${response.status}).`);
         }
-        try {
-            return await response.json();
-        } catch (e) {
-            throw new ResolverError(`Could not parse the routing service response: ${String(e)}`);
-        }
+        return readJsonBody(response.body);
     }
 }

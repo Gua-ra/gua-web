@@ -9,7 +9,7 @@ import { type LogCheckpoint } from "./canonical";
 
 const KEY_PREFIX = "gua_resolver_log_checkpoint:";
 
-/** The last transparency-log checkpoint this client accepted for one resolver. */
+/** The last transparency-log checkpoint this client accepted for one resolver. Both methods throw when storage fails. */
 export interface CheckpointStore {
     load(): LogCheckpoint | null;
     save(checkpoint: LogCheckpoint): void;
@@ -19,24 +19,17 @@ export function localStorageCheckpointStore(resolverBaseUrl: string): Checkpoint
     const key = KEY_PREFIX + resolverBaseUrl;
     return {
         load(): LogCheckpoint | null {
+            const raw = window.localStorage.getItem(key);
+            if (!raw) return null;
             try {
-                const raw = window.localStorage.getItem(key);
-                if (!raw) return null;
-                const parsed: unknown = JSON.parse(raw);
-                if (typeof parsed !== "object" || parsed === null) return null;
-                const { merkleRoot, size } = parsed as Record<string, unknown>;
-                if (typeof merkleRoot !== "string" || typeof size !== "number" || !Number.isInteger(size)) return null;
-                return { merkleRoot, size };
+                const { merkleRoot, size } = JSON.parse(raw);
+                return typeof merkleRoot === "string" && Number.isSafeInteger(size) ? { merkleRoot, size } : null;
             } catch {
                 return null;
             }
         },
         save(checkpoint: LogCheckpoint): void {
-            try {
-                window.localStorage.setItem(key, JSON.stringify(checkpoint));
-            } catch {
-                // Storage can be absent or full; without a pin the next run reports firstSeen again.
-            }
+            window.localStorage.setItem(key, JSON.stringify(checkpoint));
         },
     };
 }

@@ -6,9 +6,11 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import { bytesToHex, concatBytes, hexToBytes, utf8Bytes, type VerifierCrypto } from "./ed25519";
+import { instantToEpochMs, int64, list, object, optionalString, ParseError, string } from "./json";
 
 const LEAF_PREFIX = new Uint8Array([0x00]);
 const NODE_PREFIX = new Uint8Array([0x01]);
+const SHA256_HEX = /^[0-9a-f]{64}$/;
 
 export interface LogEvent {
     index: number;
@@ -16,6 +18,28 @@ export interface LogEvent {
     homeserverId: string | null;
     payloadHash: string;
     recordedAtEpochMs: number;
+}
+
+/** The events of `/roster/log` in served order: the leaves are hashed in that order, never re-sorted. */
+export function parseLogEvents(document: unknown): LogEvent[] {
+    return list(object(document).events).map((value) => {
+        const e = object(value);
+        return {
+            index: int64(e.index),
+            type: string(e.type),
+            homeserverId: optionalString(e.homeserverId),
+            payloadHash: string(e.payloadHash),
+            recordedAtEpochMs: instantToEpochMs(string(e.recordedAt)),
+        };
+    });
+}
+
+export function parseProof(document: unknown): string[] {
+    return list(object(document).proof).map((value) => {
+        const hash = string(value);
+        if (!SHA256_HEX.test(hash)) throw new ParseError("expected a SHA-256 digest");
+        return hash;
+    });
 }
 
 /** RFC 6962 hashing over the resolver's transparency log; every hash is lowercase hex. */

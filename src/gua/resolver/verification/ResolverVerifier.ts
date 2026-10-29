@@ -8,40 +8,56 @@ Please see LICENSE files in the repository root for full details.
 import { logger } from "matrix-js-sdk/src/logger";
 
 import SdkConfig from "../../../SdkConfig";
-import { type ValidatedServerConfig } from "../../../utils/ValidatedServerConfig";
-import { type HomeserverResolution, type ResolvedHomeserver } from "../ResolverClient";
+import ResolverClient, { type HomeserverResolution } from "../ResolverClient";
 import {
-    canonicalRosterBytes,
+    type AnswerFields,
+    checkRosterSignature,
     detectRosterForm,
-    locateHomeserver,
-    parseInstant,
-    parseSignedRoster,
+    hasAnswerFields,
     type LocatedHomeserver,
+    locateHomeserver,
     type LogCheckpoint,
-    type RosterEntry,
+    parseSignedRoster,
     type SignedRoster,
 } from "./canonical";
 import { type CheckpointStore, localStorageCheckpointStore } from "./checkpointStore";
-import { CryptoUnsupportedError, type TrustedKey, TrustedKeySet, VerifierCrypto } from "./ed25519";
-import { MemberEntryVerifier } from "./memberEntry";
-import { type LogEvent, MerkleTree } from "./merkle";
+import { type TrustedKey, TrustedKeySet, VerifierCrypto } from "./ed25519";
+import { ParseError } from "./json";
+import { verifyMemberEntry } from "./memberEntry";
+import { type LogEvent, MerkleTree, parseLogEvents, parseProof } from "./merkle";
 import { phoneContext, reproducePlacement, type VerifiedPolicy } from "./placement";
-import { canonicalPolicyBytes, parseRoutingPolicy, PolicyVerifier, type RoutingPolicyBundle } from "./policy";
 import {
-    allUnverifiable,
-    check,
+    canonicalPolicyBytes,
+    delegateVerifiedZones,
+    inEffect,
+    parseRoutingPolicy,
+    policyLogOutcome,
+    policySignatureFailure,
+    type PublishedPolicy,
+    type RoutingPolicyBundle,
+} from "./policy";
+import {
+    CHECK_ORDER,
+    type CheckName,
+    type CheckResult,
+    type Environment,
+    formatReport,
+    indeterminate,
+    invalid,
     overallOutcome,
-    type Reason,
-    type ReportChecks,
-    reportLogFields,
+    Reason,
     type ResolverVerificationReport,
     type RosterForm,
+    unverifiable,
 } from "./report";
 
-export type ResolverVerificationMode = "off" | "report";
+const DEFAULT_BUDGET_MS = 10_000;
+const MAX_LOG_SIZE = 4096;
+const ARTIFACT_CHECKS: readonly CheckName[] = ["rosterSignature", "logConsistency", "policy"];
+const ANSWER_CHECKS: readonly CheckName[] = ["homeserverMatch", "memberEntry", "placement"];
 
 export interface ResolverVerificationConfig {
-    mode: ResolverVerificationMode;
+    environment: Environment;
     authorityKeys: TrustedKey[];
     authorityThreshold: number;
     policyKeys: TrustedKey[];
@@ -56,43 +72,27 @@ export interface VerifierTransport {
     fetchRoutingPolicy(signal?: AbortSignal): Promise<unknown | null>;
 }
 
-export interface VerificationInput {
+/** Runs `body` holding the lock of one resolver base URL, which every tab and verifier instance shares. */
+export type ResolverLock = <T>(signal: AbortSignal, body: () => Promise<T>) => Promise<T>;
+
+export interface VerifierOptions {
     transport: VerifierTransport;
     config: ResolverVerificationConfig;
-    resolution: HomeserverResolution;
-    phone: string;
-    /** The OIDC issuer discovery produced for the resolved homeserver, once discovery settles. */
-    discoveredIssuer?: Promise<string | undefined>;
     checkpoints: CheckpointStore;
-    environment: string;
+    /** Null where Web Locks is missing: the pin is then never touched. */
+    lock: ResolverLock | null;
+    /** Wall-clock time for validity windows; the budget runs on the monotonic clock. */
     now?: () => number;
     crypto?: VerifierCrypto;
     budgetMs?: number;
 }
 
-const DEFAULT_BUDGET_MS = 10_000;
-const PENDING: Reason = "internal_error";
+type Context = Required<VerifierOptions>;
 
-let lastReport: ResolverVerificationReport | undefined;
-
-export function lastResolverVerificationReport(): ResolverVerificationReport | undefined {
-    return lastReport;
-}
-
-/** Trust roots come only from config.json; an absent block leaves the verifier inert. */
-export function readVerificationConfig(): ResolverVerificationConfig {
-    const raw = SdkConfig.get("gua_resolver")?.verification;
-    const keys = (list?: readonly { id: string; public_key: string }[]): TrustedKey[] =>
-        (Array.isArray(list) ? list : [])
-            .filter((k) => typeof k?.id === "string" && typeof k?.public_key === "string")
-            .map((k) => ({ id: k.id, publicKey: k.public_key }));
-    return {
-        mode: raw?.mode === "off" ? "off" : "report",
-        authorityKeys: keys(raw?.authority_keys),
-        authorityThreshold: threshold(raw?.authority_threshold),
-        policyKeys: keys(raw?.policy_keys),
-        policyThreshold: threshold(raw?.policy_threshold),
-    };
+function trustedKeys(list?: readonly { id: string; public_key: string }[]): TrustedKey[] {
+    return (Array.isArray(list) ? list : [])
+        .filter((k) => typeof k?.id === "string" && typeof k?.public_key === "string")
+        .map((k) => ({ id: k.id, publicKey: k.public_key }));
 }
 
 /** A positive integer, else one signature: a malformed value must never compare as met. */
@@ -100,207 +100,157 @@ function threshold(value: unknown): number {
     return typeof value === "number" && Number.isInteger(value) && value >= 1 ? value : 1;
 }
 
-/** A label for the report, never a hostname: the authority key id without its common prefix. */
-export function environmentLabel(config: ResolverVerificationConfig): string {
-    const id = config.authorityKeys[0]?.id;
-    return id ? id.replace(/^gua-authority-/, "") : "unconfigured";
-}
-
-/**
- * Run the report-only verification detached from the sign-in path. Nothing here is awaited by routing and
- * nothing here can throw into it.
- */
-export function startResolverVerification(
-    client: VerifierTransport & { baseUrl: string },
-    resolution: HomeserverResolution,
-    phone: string,
-    discovery: Promise<ValidatedServerConfig>,
-): void {
-    try {
-        const config = readVerificationConfig();
-        if (config.mode === "off") return;
-        void verifyResolution({
-            transport: client,
-            config,
-            resolution,
-            phone,
-            discoveredIssuer: discovery.then(
-                (c) => c.delegatedAuthentication?.issuer,
-                () => undefined,
-            ),
-            checkpoints: localStorageCheckpointStore(client.baseUrl),
-            environment: environmentLabel(config),
-        }).catch(() => undefined);
-    } catch {
-        // Report-only: a fault in the verifier never reaches the sign-in path.
-    }
-}
-
-export async function verifyResolution(input: VerificationInput): Promise<ResolverVerificationReport> {
-    const now = input.now ?? Date.now;
-    const started = now();
-    const run = new Verification(input, now);
-    await run.execute();
-    const report: ResolverVerificationReport = {
-        environment: input.environment,
-        rosterVersion: run.rosterVersion,
-        rosterForm: run.rosterForm,
-        ...run.checks,
-        overall: overallOutcome(run.checks),
-        durationMs: Math.max(0, now() - started),
+/** Trust roots and the environment label come only from config.json. */
+export function readVerificationConfig(): ResolverVerificationConfig {
+    const raw = SdkConfig.get("gua_resolver")?.verification;
+    const environment = raw?.environment;
+    return {
+        environment: environment === "dev" || environment === "prod" ? environment : "unknown",
+        authorityKeys: trustedKeys(raw?.authority_keys),
+        authorityThreshold: threshold(raw?.authority_threshold),
+        policyKeys: trustedKeys(raw?.policy_keys),
+        policyThreshold: threshold(raw?.policy_threshold),
     };
-    lastReport = report;
-    logger.info("Gua resolver verification", reportLogFields(report));
-    return report;
 }
 
-class Verification {
-    public checks: ReportChecks = allUnverifiable("no_trust_roots");
-    public rosterVersion: number | null = null;
+function webLock(baseUrl: string): ResolverLock | null {
+    const locks: LockManager | undefined = globalThis.navigator?.locks;
+    if (!locks) return null;
+    return (signal, body) => locks.request(`gua-resolver-verification:${baseUrl}`, { signal }, body);
+}
+
+/** What the other checks report when the roster signature is not valid. */
+function reasonAfterRoster(signature: CheckResult): Reason {
+    return signature.outcome === "unverifiable" ? signature.reason : Reason.RosterUnverified;
+}
+
+/** Each check settles once. Waiters resume when it does; a deadline or a flush settles whatever is left. */
+class Checks {
+    private readonly results = new Map<CheckName, CheckResult>();
+    private readonly waiters = new Map<CheckName, ((result: CheckResult) => void)[]>();
+
+    public get(name: CheckName): CheckResult | undefined {
+        return this.results.get(name);
+    }
+
+    public settle(name: CheckName, result: CheckResult): void {
+        if (this.results.has(name)) return;
+        this.results.set(name, result);
+        for (const wake of this.waiters.get(name) ?? []) wake(result);
+        this.waiters.delete(name);
+    }
+
+    public settleAll(names: readonly CheckName[], result: CheckResult): void {
+        for (const name of names) this.settle(name, result);
+    }
+
+    public settled(name: CheckName): Promise<CheckResult> {
+        const result = this.results.get(name);
+        if (result) return Promise.resolve(result);
+        return new Promise((resolve) => this.waiters.set(name, [...(this.waiters.get(name) ?? []), resolve]));
+    }
+}
+
+/** The checks that do not depend on a /resolve answer: roster signature, log consistency and policy. */
+class ArtifactsRun {
+    public readonly checks = new Checks();
     public rosterForm: RosterForm | null = null;
-
-    private readonly crypto: VerifierCrypto;
+    public roster: SignedRoster | null = null;
+    public policy: VerifiedPolicy | null = null;
     private readonly abort = new AbortController();
-    private readonly deadline: number;
 
-    public constructor(
-        private readonly input: VerificationInput,
-        private readonly now: () => number,
-    ) {
-        this.crypto = input.crypto ?? new VerifierCrypto();
-        this.deadline = now() + (input.budgetMs ?? DEFAULT_BUDGET_MS);
+    public constructor(private readonly context: Context) {
+        const timer = setTimeout(() => {
+            this.abort.abort();
+            this.checks.settleAll(ARTIFACT_CHECKS, unverifiable(Reason.Timeout));
+        }, context.budgetMs);
+        void this.run()
+            .catch(() => this.checks.settleAll(ARTIFACT_CHECKS, unverifiable(Reason.InternalError)))
+            .finally(() => clearTimeout(timer));
     }
 
-    public async execute(): Promise<void> {
-        const timer = setTimeout(() => this.abort.abort(), Math.max(0, this.deadline - this.now()));
-        try {
-            await this.run();
-        } catch (e) {
-            this.settlePending(e instanceof CryptoUnsupportedError ? "crypto_unsupported" : "internal_error");
-        } finally {
-            clearTimeout(timer);
-        }
+    public get running(): boolean {
+        return ARTIFACT_CHECKS.some((name) => !this.checks.get(name));
     }
 
-    private settlePending(reason: Reason): void {
-        for (const name of Object.keys(this.checks) as (keyof ReportChecks)[]) {
-            if (this.checks[name].outcome === "unverifiable" && this.checks[name].reason === PENDING) {
-                this.checks[name] = check("unverifiable", reason);
-            }
-        }
+    public get rosterVersion(): number | null {
+        return this.checks.get("rosterSignature")?.outcome === "valid" ? this.roster!.version : null;
     }
 
-    private settleFrom(firstCheck: keyof ReportChecks, reason: Reason): void {
-        let reached = false;
-        for (const name of Object.keys(this.checks) as (keyof ReportChecks)[]) {
-            if (name === firstCheck) reached = true;
-            if (reached) this.checks[name] = check("unverifiable", reason);
-        }
+    public async settled(): Promise<void> {
+        await Promise.all(ARTIFACT_CHECKS.map((name) => this.checks.settled(name)));
     }
 
     private async run(): Promise<void> {
-        const { config, transport, resolution } = this.input;
-        if (config.authorityKeys.length === 0) return;
-        this.checks = allUnverifiable(PENDING);
-        const authority = await TrustedKeySet.load(this.crypto, config.authorityKeys);
+        const { config, lock } = this.context;
+        const authority = await TrustedKeySet.load(this.context.crypto, config.authorityKeys);
         if (authority.size === 0) {
-            this.checks = allUnverifiable("no_trust_roots");
-            return;
+            const reason = authority.refused > 0 ? Reason.CryptoUnsupported : Reason.NoTrustRoots;
+            return this.rosterFailed(unverifiable(reason));
         }
+        if (lock) {
+            await lock(this.abort.signal, () => this.verifyRosterAndPin(authority));
+        } else {
+            await this.verifyRoster(authority);
+            if (this.roster) this.checks.settle("logConsistency", unverifiable(Reason.StorageUnavailable));
+        }
+        if (this.roster) this.checks.settle("policy", await this.checkPolicy(this.roster.logCheckpoint));
+    }
 
-        let document: unknown;
-        try {
-            document = await transport.fetchRoster(this.abort.signal);
-        } catch {
-            this.settleFrom("rosterSignature", "roster_unavailable");
-            return;
+    /** One lock from the roster fetch to the pin write, so no run can pin from a stale roster or move the pin back. */
+    private async verifyRosterAndPin(authority: TrustedKeySet): Promise<void> {
+        await this.verifyRoster(authority);
+        if (this.roster) {
+            this.checks.settle("logConsistency", await this.checkLogConsistency(this.roster.logCheckpoint));
         }
+    }
+
+    private async verifyRoster(authority: TrustedKeySet): Promise<void> {
         let roster: SignedRoster;
         try {
-            roster = parseSignedRoster(document);
-        } catch {
-            this.settleFrom("rosterSignature", "parse_error");
-            return;
+            roster = parseSignedRoster(await this.context.transport.fetchRoster(this.abort.signal));
+        } catch (e) {
+            return this.rosterFailed(unverifiable(this.fetchFailure(e, Reason.RosterUnavailable)));
         }
-        this.rosterVersion = roster.version;
         const form = detectRosterForm(roster);
         this.rosterForm = form;
-        if (form === "mixed") {
-            this.settleFrom("rosterSignature", "mixed_roster_form");
-            return;
-        }
-
-        const votes = await authority.countVotes(
-            canonicalRosterBytes(roster, form),
-            roster.authoritySignatures.map((s) => ({ keyId: s.authorityKeyId, signatureB64: s.signatureB64 })),
-        );
-        if (votes.valid < Math.max(1, config.authorityThreshold)) {
-            const reason: Reason =
-                votes.known === 0 ? "unknown_key_id" : votes.valid === 0 ? "bad_signature" : "threshold_not_met";
-            this.checks.rosterSignature = check("invalid", reason);
-            this.settleFrom("homeserverMatch", "roster_unverified");
-            return;
-        }
-        this.checks.rosterSignature = check("valid");
-
-        const answer = resolution.homeserver;
-        const located = locateHomeserver(answer.serverName, answer.baseUrl, answer.masIssuer ?? null, roster);
-        this.checks.homeserverMatch = check(located.match);
-
-        await this.checkMember(located.entry);
-        await this.checkLogConsistency(roster.logCheckpoint);
-        const policy = await this.checkPolicy(roster.logCheckpoint);
-        if (policy !== undefined) await this.checkPlacement(roster, policy, answer);
-        await this.checkDiscoveredIssuer(located);
+        const signature = await checkRosterSignature(roster, form, authority, this.context.config.authorityThreshold);
+        if (signature.outcome !== "valid") return this.rosterFailed(signature);
+        this.roster = roster;
+        this.checks.settle("rosterSignature", signature);
     }
 
-    /** Runs last: homeserver discovery can outlast the artifact fetches and must not starve them. */
-    private async checkDiscoveredIssuer(located: LocatedHomeserver): Promise<void> {
-        if (!this.input.discoveredIssuer || located.match !== "ACTIVE_MATCH") return;
-        const issuer = await this.untilDeadline(this.input.discoveredIssuer);
-        const rosterIssuer = located.entry?.homeserver.masIssuer ?? null;
-        if (issuer !== undefined && rosterIssuer !== null && !sameIssuer(issuer, rosterIssuer)) {
-            this.checks.homeserverMatch = check("FIELD_MISMATCH");
-        }
+    /** Nothing more is fetched for a roster that did not verify. */
+    private rosterFailed(signature: CheckResult): void {
+        this.checks.settle("rosterSignature", signature);
+        this.checks.settleAll(["logConsistency", "policy"], unverifiable(reasonAfterRoster(signature)));
     }
 
-    private async checkMember(entry: RosterEntry | null): Promise<void> {
-        if (!entry) {
-            this.checks.memberEntry = check("unverifiable");
-            return;
-        }
-        const result = await new MemberEntryVerifier(this.crypto).verify(entry.homeserver, entry.member, this.now());
-        this.checks.memberEntry = check(result.outcome, result.reason);
+    private fetchFailure(error: unknown, unavailable: Reason): Reason {
+        if (this.abort.signal.aborted) return Reason.Timeout;
+        return error instanceof ParseError ? Reason.ParseError : unavailable;
     }
 
-    private async checkLogConsistency(served: LogCheckpoint): Promise<void> {
-        const pinned = this.input.checkpoints.load();
-        if (!pinned || pinned.size === 0) {
-            this.checks.logConsistency = check("firstSeen");
-            this.input.checkpoints.save(served);
-            return;
+    private async checkLogConsistency(served: LogCheckpoint): Promise<CheckResult> {
+        let pinned: LogCheckpoint | null;
+        try {
+            pinned = this.context.checkpoints.load();
+        } catch {
+            return unverifiable(Reason.StorageUnavailable);
         }
+        if (!pinned || pinned.size === 0) return this.pin(served, { outcome: "firstSeen" });
+        if (served.size < pinned.size) return { outcome: "rollback" };
         if (served.size === pinned.size) {
-            this.checks.logConsistency = check(served.merkleRoot === pinned.merkleRoot ? "consistent" : "inconsistent");
-            return;
-        }
-        if (served.size < pinned.size) {
-            this.checks.logConsistency = check("rollback");
-            return;
+            return { outcome: served.merkleRoot === pinned.merkleRoot ? "consistent" : "inconsistent" };
         }
         let proof: string[];
         try {
-            proof = parseProof(
-                await this.input.transport.fetchConsistency(pinned.size, served.size, this.abort.signal),
-            );
+            const document = await this.context.transport.fetchConsistency(pinned.size, served.size, this.abort.signal);
+            proof = parseProof(document);
         } catch (e) {
-            this.checks.logConsistency = check(
-                "unverifiable",
-                e instanceof ParseError ? "parse_error" : "log_unavailable",
-            );
-            return;
+            return unverifiable(this.fetchFailure(e, Reason.LogUnavailable));
         }
-        const merkle = new MerkleTree(this.crypto);
+        const merkle = new MerkleTree(this.context.crypto);
         const consistent = await merkle.verifyConsistency(
             pinned.size,
             served.size,
@@ -308,160 +258,203 @@ class Verification {
             served.merkleRoot,
             proof,
         );
-        this.checks.logConsistency = check(consistent ? "consistent" : "inconsistent");
-        if (consistent) this.input.checkpoints.save(served);
+        return consistent ? this.pin(served, { outcome: "consistent" }) : { outcome: "inconsistent" };
     }
 
-    /** Returns the verified policy, null when none is served, undefined when placement cannot be reproduced. */
-    private async checkPolicy(served: LogCheckpoint): Promise<VerifiedPolicy | null | undefined> {
-        const { config, transport } = this.input;
+    private pin(checkpoint: LogCheckpoint, result: CheckResult): CheckResult {
+        if (this.abort.signal.aborted) return unverifiable(Reason.Timeout);
+        try {
+            this.context.checkpoints.save(checkpoint);
+        } catch {
+            return unverifiable(Reason.StorageUnavailable);
+        }
+        return result;
+    }
+
+    private async checkPolicy(checkpoint: LogCheckpoint): Promise<CheckResult> {
         let document: unknown;
         try {
-            document = await transport.fetchRoutingPolicy(this.abort.signal);
-        } catch {
-            return this.policyUnverifiable("policy_unavailable");
+            document = await this.context.transport.fetchRoutingPolicy(this.abort.signal);
+        } catch (e) {
+            return unverifiable(this.fetchFailure(e, Reason.PolicyUnavailable));
         }
-        if (document === null) {
-            this.checks.policy = check("notPresent");
-            return null;
-        }
+        if (document === null) return this.policyLogStep(null, checkpoint);
         let bundle: RoutingPolicyBundle;
         try {
             bundle = parseRoutingPolicy(document);
         } catch {
-            return this.policyUnverifiable("parse_error");
+            return unverifiable(Reason.ParseError);
         }
-        const keys = await TrustedKeySet.load(this.crypto, config.policyKeys);
-        if (keys.size === 0) return this.policyUnverifiable("no_policy_keys");
-
         const canonical = canonicalPolicyBytes(bundle);
-        const votes = await keys.countVotes(
-            canonical,
-            bundle.signatures.map((s) => ({ keyId: s.authorityKeyId, signatureB64: s.signatureB64 })),
-        );
-        if (votes.valid < Math.max(1, config.policyThreshold)) {
-            const reason: Reason =
-                votes.known === 0 ? "unknown_key_id" : votes.valid === 0 ? "bad_signature" : "threshold_not_met";
-            return this.policyInvalid(reason);
+        const rejected = await this.policySignatureStep(bundle, canonical);
+        if (rejected) return rejected;
+        const { policyId, version } = bundle;
+        const sha256Hex = await this.context.crypto.sha256Hex(canonical);
+        const logged = await this.policyLogStep({ policyId, version, sha256Hex }, checkpoint);
+        if (logged.outcome === "valid") {
+            this.policy = { bundle, delegateVerifiedZones: await delegateVerifiedZones(this.context.crypto, bundle) };
         }
+        return logged;
+    }
 
+    /** Signed by the policy keys and in effect now, before anything is fetched from the log. */
+    private async policySignatureStep(bundle: RoutingPolicyBundle, canonical: Uint8Array): Promise<CheckResult | null> {
+        const { config, crypto, now } = this.context;
+        const keys = await TrustedKeySet.load(crypto, config.policyKeys);
+        const unsigned = await policySignatureFailure(keys, bundle, canonical, config.policyThreshold);
+        if (unsigned) return unsigned;
+        return inEffect(bundle.notBefore, bundle.expiresAt, now()) ? null : invalid(Reason.OutsideWindow);
+    }
+
+    private async policyLogStep(served: PublishedPolicy | null, checkpoint: LogCheckpoint): Promise<CheckResult> {
+        if (checkpoint.size > MAX_LOG_SIZE) return unverifiable(Reason.LogTooLarge);
         let events: LogEvent[];
         try {
-            events = parseLogEvents(await transport.fetchLog(this.abort.signal));
+            events = parseLogEvents(await this.context.transport.fetchLog(this.abort.signal));
         } catch (e) {
-            return this.policyUnverifiable(e instanceof ParseError ? "parse_error" : "log_unavailable");
+            return unverifiable(this.fetchFailure(e, Reason.LogUnavailable));
         }
-        // Only leaves under the signed checkpoint count; a tail past it is nothing the authority signed.
-        if (events.length < served.size) return this.policyInvalid("log_mismatch");
-        const covered = events.slice(0, served.size);
-        const merkle = new MerkleTree(this.crypto);
-        const leaves: string[] = [];
-        for (const event of covered) leaves.push(await merkle.leafHash(MerkleTree.leafData(event)));
-        if ((await merkle.root(leaves)) !== served.merkleRoot) return this.policyInvalid("log_mismatch");
-        const policyHash = await this.crypto.sha256Hex(canonical);
-        if (!covered.some((e) => e.type === "POLICY_PUBLISH" && e.payloadHash === policyHash)) {
-            return this.policyInvalid("policy_not_logged");
-        }
-
-        this.checks.policy = check("valid");
-        const verifier = new PolicyVerifier(this.crypto, keys, config.policyThreshold);
-        return { bundle, delegateVerifiedZones: await verifier.delegateVerifiedZones(bundle) };
-    }
-
-    private policyUnverifiable(reason: Reason): undefined {
-        this.checks.policy = check("unverifiable", reason);
-        this.checks.placement = check("unverifiable", "policy_unverified");
-        return undefined;
-    }
-
-    /** A refused policy is the failing check; reproducing a decision over it would mean nothing. */
-    private policyInvalid(reason: Reason): undefined {
-        this.checks.policy = check("invalid", reason);
-        this.checks.placement = check("notApplicable");
-        return undefined;
-    }
-
-    private async checkPlacement(
-        roster: SignedRoster,
-        policy: VerifiedPolicy | null,
-        answer: ResolvedHomeserver,
-    ): Promise<void> {
-        const decision = await reproducePlacement(
-            this.crypto,
-            phoneContext(this.input.phone),
-            roster,
-            policy,
-            this.now(),
-        );
-        const reproduced = decision ? roster.entries.find((e) => e.homeserver.id === decision.homeserverId) : undefined;
-        const same =
-            reproduced !== undefined &&
-            reproduced.homeserver.serverName === answer.serverName &&
-            reproduced.homeserver.baseUrl === answer.baseUrl &&
-            reproduced.homeserver.masIssuer === (answer.masIssuer ?? null);
-        if (same) {
-            this.checks.placement = check("match");
-            return;
-        }
-        // Without a decision trace a directory hit is not reproducible, so only a declared placement can mismatch.
-        this.checks.placement = check(this.input.resolution.exists === false ? "mismatch" : "indeterminate");
-    }
-
-    private untilDeadline<T>(promise: Promise<T>): Promise<T | undefined> {
-        return new Promise((resolve) => {
-            const timer = setTimeout(() => resolve(undefined), Math.max(0, this.deadline - this.now()));
-            promise.then(
-                (value) => {
-                    clearTimeout(timer);
-                    resolve(value);
-                },
-                () => {
-                    clearTimeout(timer);
-                    resolve(undefined);
-                },
-            );
-        });
+        return policyLogOutcome(this.context.crypto, served, checkpoint, events);
     }
 }
 
-class ParseError extends Error {}
+/** homeserverMatch, memberEntry and placement for one /resolve answer, and the one report line it logs. */
+class AnswerRun {
+    private readonly checks = new Checks();
+    private readonly started = performance.now();
+    private readonly answer: AnswerFields;
+    private report: ResolverVerificationReport | null = null;
 
-const SHA256_HEX = /^[0-9a-f]{64}$/;
-
-function sameIssuer(a: string, b: string): boolean {
-    return a.replace(/\/+$/, "") === b.replace(/\/+$/, "");
-}
-
-function parseProof(document: unknown): string[] {
-    const proof = (document as { proof?: unknown } | null)?.proof;
-    if (!Array.isArray(proof) || proof.some((p) => typeof p !== "string" || !SHA256_HEX.test(p))) {
-        throw new ParseError("proof");
+    public constructor(
+        private readonly artifacts: ArtifactsRun,
+        private readonly resolution: HomeserverResolution,
+        private readonly phone: string,
+        private readonly context: Context,
+    ) {
+        const { serverName, baseUrl, masIssuer } = resolution.homeserver;
+        this.answer = { serverName, baseUrl, masIssuer: masIssuer ?? null };
     }
-    return proof as string[];
-}
 
-function parseLogEvents(document: unknown): LogEvent[] {
-    const events = (document as { events?: unknown } | null)?.events;
-    if (!Array.isArray(events)) throw new ParseError("events");
-    const parsed = events.map((e): LogEvent => {
-        const raw = e as Record<string, unknown>;
-        const recordedAt = typeof raw.recordedAt === "string" ? parseInstant(raw.recordedAt) : null;
-        if (
-            typeof raw.index !== "number" ||
-            typeof raw.type !== "string" ||
-            typeof raw.payloadHash !== "string" ||
-            (raw.homeserverId !== null && raw.homeserverId !== undefined && typeof raw.homeserverId !== "string") ||
-            !recordedAt
-        ) {
-            throw new ParseError("event");
+    public async complete(): Promise<ResolverVerificationReport> {
+        const timer = setTimeout(() => this.finish(), this.context.budgetMs);
+        await Promise.all([
+            this.run().catch(() => this.checks.settleAll(ANSWER_CHECKS, unverifiable(Reason.InternalError))),
+            this.artifacts.settled(),
+        ]);
+        clearTimeout(timer);
+        return this.finish();
+    }
+
+    /** Logs the report once, as it stands: a check still running is unverifiable(timeout). */
+    public finish(): ResolverVerificationReport {
+        if (!this.report) {
+            this.report = this.snapshot();
+            logger.info(formatReport(this.report));
+        }
+        return this.report;
+    }
+
+    private snapshot(): ResolverVerificationReport {
+        const checks = {} as Record<CheckName, CheckResult>;
+        for (const name of CHECK_ORDER) {
+            checks[name] = this.artifacts.checks.get(name) ?? this.checks.get(name) ?? unverifiable(Reason.Timeout);
         }
         return {
-            index: raw.index,
-            type: raw.type,
-            homeserverId: (raw.homeserverId as string | null | undefined) ?? null,
-            payloadHash: raw.payloadHash,
-            recordedAtEpochMs: recordedAt.epochMs,
+            ...checks,
+            environment: this.context.config.environment,
+            rosterVersion: this.artifacts.rosterVersion,
+            rosterForm: this.artifacts.rosterForm,
+            overall: overallOutcome(checks),
+            durationMs: Math.round(performance.now() - this.started),
         };
-    });
-    return parsed.sort((a, b) => a.index - b.index);
+    }
+
+    private async run(): Promise<void> {
+        const signature = await this.artifacts.checks.settled("rosterSignature");
+        const roster = this.artifacts.roster;
+        if (signature.outcome !== "valid" || !roster) {
+            this.checks.settleAll(ANSWER_CHECKS, unverifiable(reasonAfterRoster(signature)));
+            return;
+        }
+        const located = locateHomeserver(this.answer, roster);
+        this.checks.settle("homeserverMatch", { outcome: located.match });
+        // A directory lookup cannot be reproduced, so an existing account's placement is never compared.
+        if (this.resolution.exists !== false) this.checks.settle("placement", indeterminate(Reason.ExistingAccount));
+        this.checks.settle("memberEntry", await this.checkMember(located));
+        if (this.resolution.exists === false) this.checks.settle("placement", await this.checkPlacement(roster));
+    }
+
+    private async checkMember(located: LocatedHomeserver): Promise<CheckResult> {
+        if (located.match === "FIELD_MISMATCH" || located.match === "NOT_IN_ROSTER") {
+            return unverifiable(Reason.NoMatchingEntry);
+        }
+        const { homeserver, member } = located.entry;
+        return verifyMemberEntry(this.context.crypto, homeserver, member, this.context.now());
+    }
+
+    private async checkPlacement(roster: SignedRoster): Promise<CheckResult> {
+        const policy = await this.artifacts.checks.settled("policy");
+        if (policy.outcome !== "valid" && policy.outcome !== "notPresent") return unverifiable(Reason.PolicyUnverified);
+        const { crypto, now } = this.context;
+        const placement = await reproducePlacement(
+            crypto,
+            phoneContext(this.phone),
+            roster,
+            this.artifacts.policy,
+            now(),
+        );
+        if (placement.unsignedRuleAbove) return indeterminate(Reason.UnsignedRule);
+        if (placement.decision && hasAnswerFields(placement.decision.homeserver, this.answer)) {
+            return { outcome: "match" };
+        }
+        // The resolver may have decided against another roster; only an answer naming this one can be a mismatch.
+        return this.resolution.rosterVersion === roster.version
+            ? { outcome: "mismatch" }
+            : indeterminate(Reason.Unattributed);
+    }
+}
+
+/**
+ * Report-only verification of resolver answers. prepare() verifies the roster, log and policy when the phone step
+ * opens, verify() checks each /resolve answer against them, and flush() logs every unfinished report before the page
+ * leaves for sign-in. None of it delays or changes sign-in.
+ */
+export class ResolverVerification {
+    private readonly context: Context;
+    private artifacts: ArtifactsRun | null = null;
+    private readonly pending = new Set<AnswerRun>();
+
+    public constructor(options: VerifierOptions) {
+        this.context = { now: Date.now, crypto: new VerifierCrypto(), budgetMs: DEFAULT_BUDGET_MS, ...options };
+    }
+
+    /** Null when no resolver is configured or verification is turned off. */
+    public static fromConfig(): ResolverVerification | null {
+        const resolver = ResolverClient.fromConfig();
+        if (!resolver || SdkConfig.get("gua_resolver")?.verification?.mode === "off") return null;
+        return new ResolverVerification({
+            transport: resolver,
+            config: readVerificationConfig(),
+            checkpoints: localStorageCheckpointStore(resolver.baseUrl),
+            lock: webLock(resolver.baseUrl),
+        });
+    }
+
+    /** Starts on the artifacts unless a run is still under way; the last run's results serve later answers. */
+    public prepare(): void {
+        if (!this.artifacts?.running) this.artifacts = new ArtifactsRun(this.context);
+    }
+
+    /** Logs exactly one report for this answer, when its checks settle or at flush(), whichever comes first. */
+    public verify(resolution: HomeserverResolution, phone: string): Promise<ResolverVerificationReport> {
+        this.artifacts ??= new ArtifactsRun(this.context);
+        const run = new AnswerRun(this.artifacts, resolution, phone, this.context);
+        this.pending.add(run);
+        return run.complete().finally(() => this.pending.delete(run));
+    }
+
+    /** Synchronous, so it can run immediately before navigation without delaying it. */
+    public flush(): void {
+        for (const run of this.pending) run.finish();
+    }
 }

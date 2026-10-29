@@ -5,17 +5,24 @@ SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
 Please see LICENSE files in the repository root for full details.
 */
 
-import { compareUtf16, instantToEpochMs, nz, parseInstant } from "./canonical";
-import { type TrustedKeySet, utf8Bytes, type VerifierCrypto } from "./ed25519";
+import { compareUtf16, type LogCheckpoint, nz } from "./canonical";
+import { type Signature, signatureFailure, type TrustedKeySet, utf8Bytes, type VerifierCrypto } from "./ed25519";
+import {
+    instantToEpochMs,
+    int32,
+    int64,
+    list,
+    object,
+    optionalInstant,
+    optionalString,
+    optionalStringList,
+    ParseError,
+} from "./json";
+import { type LogEvent, MerkleTree } from "./merkle";
+import { type CheckResult, invalid, Reason, unverifiable } from "./report";
 
 const FIELD_SEPARATOR = "\u001f";
-
-export class PolicyParseError extends Error {
-    public constructor(message: string) {
-        super(message);
-        this.name = "PolicyParseError";
-    }
-}
+const POLICY_PUBLISH = "POLICY_PUBLISH";
 
 export interface DelegationZone {
     id: string | null;
@@ -53,115 +60,88 @@ export interface RoutingPolicyBundle {
     delegationZones: DelegationZone[];
     rules: RoutingPolicyRule[];
     fallback: { type: string | null; enabled: boolean } | null;
-    signatures: { authorityKeyId: string; signatureB64: string }[];
-    delegateSignatures: { zoneId: string | null; delegateKeyId: string | null; signatureB64: string | null }[];
+    signatures: Signature[];
+    delegateSignatures: DelegateSignature[];
 }
 
-type Json = Record<string, unknown>;
-
-function asObject(value: unknown, what: string): Json {
-    if (typeof value !== "object" || value === null || Array.isArray(value)) {
-        throw new PolicyParseError(`${what} is not an object`);
-    }
-    return value as Json;
-}
-
-function asList(value: unknown, what: string): unknown[] {
-    if (value === undefined || value === null) return [];
-    if (!Array.isArray(value)) throw new PolicyParseError(`${what} is not a list`);
-    return value;
-}
-
-function optionalString(value: unknown, what: string): string | null {
-    if (value === undefined || value === null) return null;
-    if (typeof value !== "string") throw new PolicyParseError(`${what} is not a string`);
-    return value;
-}
-
-function optionalInstant(value: unknown, what: string): string | null {
-    const text = optionalString(value, what);
-    if (text !== null && !parseInstant(text)) throw new PolicyParseError(`${what} is not an instant`);
-    return text;
-}
-
-function integer(value: unknown, what: string): number {
-    if (value === undefined || value === null) return 0;
-    if (typeof value !== "number" || !Number.isFinite(value)) throw new PolicyParseError(`${what} is not a number`);
-    return Math.trunc(value);
-}
-
-function optionalStringList(value: unknown, what: string): string[] | null {
-    if (value === undefined || value === null) return null;
-    return asList(value, what).map((v, i) => optionalString(v, `${what}[${i}]`) ?? "");
+export interface DelegateSignature {
+    zoneId: string | null;
+    delegateKeyId: string | null;
+    signatureB64: string | null;
 }
 
 function parseZone(value: unknown): DelegationZone {
-    const z = asObject(value, "zone");
+    const z = object(value);
     return {
-        id: optionalString(z.id, "zone.id"),
-        scopeType: optionalString(z.scopeType, "zone.scopeType"),
-        scopeValue: optionalString(z.scopeValue, "zone.scopeValue"),
-        delegatedAuthority: optionalString(z.delegatedAuthority, "zone.delegatedAuthority"),
-        delegateKeyId: optionalString(z.delegateKeyId, "zone.delegateKeyId"),
-        delegatePublicKey: optionalString(z.delegatePublicKey, "zone.delegatePublicKey"),
-        allowedHomeserverIds: optionalStringList(z.allowedHomeserverIds, "zone.allowedHomeserverIds"),
-        notBefore: optionalInstant(z.notBefore, "zone.notBefore"),
-        expiresAt: optionalInstant(z.expiresAt, "zone.expiresAt"),
+        id: optionalString(z.id),
+        scopeType: optionalString(z.scopeType),
+        scopeValue: optionalString(z.scopeValue),
+        delegatedAuthority: optionalString(z.delegatedAuthority),
+        delegateKeyId: optionalString(z.delegateKeyId),
+        delegatePublicKey: optionalString(z.delegatePublicKey),
+        allowedHomeserverIds: optionalStringList(z.allowedHomeserverIds),
+        notBefore: optionalInstant(z.notBefore),
+        expiresAt: optionalInstant(z.expiresAt),
     };
 }
 
 function parseRule(value: unknown): RoutingPolicyRule {
-    const r = asObject(value, "rule");
-    if (r.enabled !== undefined && r.enabled !== null && typeof r.enabled !== "boolean") {
-        throw new PolicyParseError("rule.enabled is not a boolean");
-    }
+    const r = object(value);
+    const enabled = r.enabled ?? null;
+    if (enabled !== null && typeof enabled !== "boolean") throw new ParseError("expected a boolean");
     return {
-        id: optionalString(r.id, "rule.id"),
-        priority: integer(r.priority, "rule.priority"),
-        matchType: optionalString(r.matchType, "rule.matchType"),
-        matchValue: optionalString(r.matchValue, "rule.matchValue"),
-        oidcIssuer: optionalString(r.oidcIssuer, "rule.oidcIssuer"),
-        oidcClaim: optionalString(r.oidcClaim, "rule.oidcClaim"),
-        targetHomeserverId: optionalString(r.targetHomeserverId, "rule.targetHomeserverId"),
-        delegatedZoneId: optionalString(r.delegatedZoneId, "rule.delegatedZoneId"),
-        reason: optionalString(r.reason, "rule.reason"),
-        assignmentPolicy: optionalString(r.assignmentPolicy, "rule.assignmentPolicy"),
-        enabled: (r.enabled as boolean | undefined | null) ?? null,
+        id: optionalString(r.id),
+        priority: int32(r.priority ?? 0),
+        matchType: optionalString(r.matchType),
+        matchValue: optionalString(r.matchValue),
+        oidcIssuer: optionalString(r.oidcIssuer),
+        oidcClaim: optionalString(r.oidcClaim),
+        targetHomeserverId: optionalString(r.targetHomeserverId),
+        delegatedZoneId: optionalString(r.delegatedZoneId),
+        reason: optionalString(r.reason),
+        assignmentPolicy: optionalString(r.assignmentPolicy),
+        enabled,
+    };
+}
+
+function parseSignature(value: unknown): Signature {
+    const s = object(value);
+    return { keyId: optionalString(s.authorityKeyId) ?? "", signatureB64: optionalString(s.signatureB64) ?? "" };
+}
+
+function parseDelegateSignature(value: unknown): DelegateSignature {
+    const s = object(value);
+    return {
+        zoneId: optionalString(s.zoneId),
+        delegateKeyId: optionalString(s.delegateKeyId),
+        signatureB64: optionalString(s.signatureB64),
     };
 }
 
 export function parseRoutingPolicy(document: unknown): RoutingPolicyBundle {
-    const d = asObject(document, "policy");
-    const fallback = d.fallback === undefined || d.fallback === null ? null : asObject(d.fallback, "policy.fallback");
+    const d = object(document);
+    const fallback = d.fallback === undefined || d.fallback === null ? null : object(d.fallback);
     return {
-        schemaVersion: optionalString(d.schemaVersion, "policy.schemaVersion"),
-        policyId: optionalString(d.policyId, "policy.policyId"),
-        version: integer(d.version, "policy.version"),
-        issuedAt: optionalInstant(d.issuedAt, "policy.issuedAt"),
-        notBefore: optionalInstant(d.notBefore, "policy.notBefore"),
-        expiresAt: optionalInstant(d.expiresAt, "policy.expiresAt"),
-        delegationZones: asList(d.delegationZones, "policy.delegationZones").map(parseZone),
-        rules: asList(d.rules, "policy.rules").map(parseRule),
-        fallback:
-            fallback === null
-                ? null
-                : { type: optionalString(fallback.type, "fallback.type"), enabled: fallback.enabled === true },
-        signatures: asList(d.signatures, "policy.signatures").map((s, i) => {
-            const sig = asObject(s, `signatures[${i}]`);
-            return {
-                authorityKeyId: optionalString(sig.authorityKeyId, "signature.authorityKeyId") ?? "",
-                signatureB64: optionalString(sig.signatureB64, "signature.signatureB64") ?? "",
-            };
-        }),
-        delegateSignatures: asList(d.delegateSignatures, "policy.delegateSignatures").map((s, i) => {
-            const sig = asObject(s, `delegateSignatures[${i}]`);
-            return {
-                zoneId: optionalString(sig.zoneId, "delegateSignature.zoneId"),
-                delegateKeyId: optionalString(sig.delegateKeyId, "delegateSignature.delegateKeyId"),
-                signatureB64: optionalString(sig.signatureB64, "delegateSignature.signatureB64"),
-            };
-        }),
+        schemaVersion: optionalString(d.schemaVersion),
+        policyId: optionalString(d.policyId),
+        version: int64(d.version ?? 0),
+        issuedAt: optionalInstant(d.issuedAt),
+        notBefore: optionalInstant(d.notBefore),
+        expiresAt: optionalInstant(d.expiresAt),
+        delegationZones: list(d.delegationZones ?? []).map(parseZone),
+        rules: list(d.rules ?? []).map(parseRule),
+        fallback: fallback && { type: optionalString(fallback.type), enabled: fallback.enabled === true },
+        signatures: list(d.signatures ?? []).map(parseSignature),
+        delegateSignatures: list(d.delegateSignatures ?? []).map(parseDelegateSignature),
     };
+}
+
+/** A bundle or zone is in effect from notBefore, inclusive, until expiresAt, exclusive; a missing bound is open. */
+export function inEffect(notBefore: string | null, expiresAt: string | null, atEpochMs: number): boolean {
+    return (
+        (notBefore === null || instantToEpochMs(notBefore) <= atEpochMs) &&
+        (expiresAt === null || atEpochMs < instantToEpochMs(expiresAt))
+    );
 }
 
 function epoch(iso: string | null): number {
@@ -263,45 +243,84 @@ export function canonicalDelegatedRulesBytes(
 }
 
 /**
- * RoutingPolicyVerifier as a client runs it: the configured policy keys are the only authority trust root,
- * and a rule is trusted only when its zone's delegate signed the rules under the key the authority attested.
+ * The zones whose delegate signed their rules under the key the authority attested. A delegate key that is malformed
+ * or that the platform will not import verifies no zone.
  */
-export class PolicyVerifier {
-    public constructor(
-        private readonly crypto: VerifierCrypto,
-        private readonly keys: TrustedKeySet,
-        private readonly threshold: number,
-    ) {}
-
-    public async isVerified(bundle: RoutingPolicyBundle): Promise<boolean> {
-        const votes = await this.keys.countVotes(
-            canonicalPolicyBytes(bundle),
-            bundle.signatures.map((s) => ({ keyId: s.authorityKeyId, signatureB64: s.signatureB64 })),
-        );
-        return votes.valid >= Math.max(1, this.threshold);
-    }
-
-    public async delegateVerifiedZones(bundle: RoutingPolicyBundle): Promise<Set<string>> {
-        const verified = new Set<string>();
-        for (const zone of bundle.delegationZones) {
-            if (zone.id === null || blank(zone.delegateKeyId) || blank(zone.delegatePublicKey)) continue;
-            const delegateKey = await this.crypto.importPublicKey(zone.delegatePublicKey!);
-            if (!delegateKey) continue;
-            const canonical = canonicalDelegatedRulesBytes(bundle.policyId, bundle.version, zone.id, bundle.rules);
-            for (const sig of bundle.delegateSignatures) {
-                if (sig.zoneId !== zone.id || sig.delegateKeyId !== zone.delegateKeyId || sig.signatureB64 === null) {
-                    continue;
-                }
-                if (await this.crypto.verify(delegateKey, canonical, sig.signatureB64)) {
-                    verified.add(zone.id);
-                    break;
-                }
+export async function delegateVerifiedZones(crypto: VerifierCrypto, bundle: RoutingPolicyBundle): Promise<Set<string>> {
+    const verified = new Set<string>();
+    for (const zone of bundle.delegationZones) {
+        if (zone.id === null || blank(zone.delegateKeyId) || blank(zone.delegatePublicKey)) continue;
+        const delegateKey = await crypto.importPublicKey(zone.delegatePublicKey!);
+        if (!delegateKey) continue;
+        const canonical = canonicalDelegatedRulesBytes(bundle.policyId, bundle.version, zone.id, bundle.rules);
+        for (const sig of bundle.delegateSignatures) {
+            if (sig.zoneId !== zone.id || sig.delegateKeyId !== zone.delegateKeyId || sig.signatureB64 === null) {
+                continue;
+            }
+            if (await crypto.verify(delegateKey, canonical, sig.signatureB64)) {
+                verified.add(zone.id);
+                break;
             }
         }
-        return verified;
     }
+    return verified;
 }
 
 function blank(value: string | null): boolean {
     return value === null || value.trim() === "";
+}
+
+/** Signed by the threshold of policy keys, with no fallback to the authority keys. Null when that holds. */
+export async function policySignatureFailure(
+    keys: TrustedKeySet,
+    bundle: RoutingPolicyBundle,
+    canonical: Uint8Array,
+    threshold: number,
+): Promise<CheckResult | null> {
+    if (keys.size === 0) return unverifiable(Reason.NoPolicyKeys);
+    const failure = signatureFailure(await keys.countVotes(canonical, bundle.signatures), threshold);
+    return failure ? invalid(failure) : null;
+}
+
+/** What the log has to say about a served bundle: its id, version and the SHA-256 of its canonical bytes. */
+export interface PublishedPolicy {
+    policyId: string | null;
+    version: number;
+    sha256Hex: string;
+}
+
+/** The version a POLICY_PUBLISH leaf names for this policy id. Its subject is "<policyId>:v<version>". */
+function publishedVersion(event: LogEvent, policyId: string | null): number | null {
+    const subject = event.homeserverId ?? "";
+    const at = subject.lastIndexOf(":v");
+    if (at < 0 || subject.slice(0, at) !== policyId) return null;
+    const version = subject.slice(at + 2);
+    return /^\d+$/.test(version) ? Number(version) : null;
+}
+
+/**
+ * The policy check's log step for a served bundle, or for a 404 when `served` is null. The leaves the signed
+ * checkpoint covers must hash to its root in served order; a 404 is no policy only while none of them is a
+ * POLICY_PUBLISH, since otherwise a published policy is being withheld.
+ */
+export async function policyLogOutcome(
+    crypto: VerifierCrypto,
+    served: PublishedPolicy | null,
+    checkpoint: LogCheckpoint,
+    events: LogEvent[],
+): Promise<CheckResult> {
+    if (events.length < checkpoint.size) return invalid(Reason.LogMismatch);
+    const covered = events.slice(0, checkpoint.size);
+    const merkle = new MerkleTree(crypto);
+    const leaves: string[] = [];
+    for (const event of covered) leaves.push(await merkle.leafHash(MerkleTree.leafData(event)));
+    if ((await merkle.root(leaves)) !== checkpoint.merkleRoot) return invalid(Reason.LogMismatch);
+    const publications = covered.filter((e) => e.type === POLICY_PUBLISH);
+    if (!served) return publications.length > 0 ? unverifiable(Reason.PolicyNotServed) : { outcome: "notPresent" };
+
+    const position = events.findIndex((e) => e.type === POLICY_PUBLISH && e.payloadHash === served.sha256Hex);
+    if (position === -1) return invalid(Reason.PolicyNotLogged);
+    if (position >= checkpoint.size) return unverifiable(Reason.PolicyNewerThanCheckpoint);
+    const superseded = publications.some((e) => (publishedVersion(e, served.policyId) ?? -1) > served.version);
+    return superseded ? unverifiable(Reason.PolicySuperseded) : { outcome: "valid" };
 }
