@@ -87,8 +87,7 @@ export default function GuaAuthFlow({ onLoggedIn, serverConfig }: Props): JSX.El
     const [resendNonce, setResendNonce] = useState(0);
     const [pinResetNonce, setPinResetNonce] = useState(0);
 
-    // GUA: verify the resolver's roster, log and policy while the phone step is shown, and keep them fresh, so the
-    // redirect that follows the answer does not cut the checks off.
+    // Verify while the phone step is shown, so the redirect after the answer does not cut the checks off.
     const showsPhoneEntry = (!!client || hasDelegatedOidc) && step.kind === "phone";
     useEffect(() => {
         if (!showsPhoneEntry || !verification) return;
@@ -125,7 +124,7 @@ export default function GuaAuthFlow({ onLoggedIn, serverConfig }: Props): JSX.El
                     effectiveConfig.delegatedAuthentication,
                     SdkConfig.get().oidc_static_clients,
                 );
-                // Leaving the page drops any verification still running, so its report is logged now.
+                // Leaving the page drops any verification still running, so its report is logged before the redirect.
                 verification?.flush();
                 await startGuaPhoneOidcLogin(
                     effectiveConfig.delegatedAuthentication,

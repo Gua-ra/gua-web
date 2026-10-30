@@ -5,7 +5,6 @@ SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
 Please see LICENSE files in the repository root for full details.
 */
 
-/** The only reasons a report carries; the formatter and the tests read them from here. */
 export enum Reason {
     NoTrustRoots = "no_trust_roots",
     CryptoUnsupported = "crypto_unsupported",
@@ -130,7 +129,7 @@ export function formatOutcome(result: CheckResult | OverallOutcome): string {
     return result.outcome;
 }
 
-/** Outcome codes, the roster version and form and the environment label only: no phone, URL or server name. */
+/** Codes and labels only: never a phone, URL or server name. */
 export function formatReport(report: ResolverVerificationReport): string {
     const fields = [
         `environment=${report.environment}`,

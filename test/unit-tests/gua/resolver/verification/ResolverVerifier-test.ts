@@ -45,7 +45,7 @@ import {
     type VerifierTransport,
 } from "../../../../../src/gua/resolver/verification/ResolverVerifier";
 
-// jsdom has no SubtleCrypto; the verifier reads globalThis.crypto.subtle exactly as a browser would.
+// jsdom has no SubtleCrypto.
 Object.defineProperty(globalThis, "crypto", { value: webcrypto, configurable: true });
 
 type Json = Record<string, any>;
@@ -128,7 +128,7 @@ const config: ResolverVerificationConfig = {
     policyThreshold: policy.threshold,
 };
 
-/** Trusts authority-a alone, which signed r1, r2, r5 and every roster these tests sign. */
+/** authority-a signed r1, r2, r5 and every roster these tests sign. */
 const authorityA: ResolverVerificationConfig = {
     ...config,
     authorityKeys: trustedKeys(r1.trustedKeys),
@@ -164,7 +164,6 @@ function memoryStore(initial: LogCheckpoint | null = null): MemoryStore {
     return store;
 }
 
-/** Web Locks for one name: each holder runs after the previous one has finished. */
 function memoryLock(): ResolverLock {
     let tail: Promise<unknown> = Promise.resolve();
     return (_signal, body) => {
@@ -178,7 +177,6 @@ interface StubTransport extends VerifierTransport {
     calls: string[];
 }
 
-/** Serves roster r2, the full log and policy br-policy v3 unless overridden; every call is recorded by name. */
 function stubTransport(overrides: Partial<VerifierTransport> = {}): StubTransport {
     const calls: string[] = [];
     const impl: VerifierTransport = {
@@ -245,7 +243,6 @@ function everyCheck(result: CheckResult): Json {
     };
 }
 
-/** A roster that is not valid, for any reason but missing trust roots or crypto, leaves the rest roster_unverified. */
 function rosterFailure(reason: Reason): Json {
     return { ...everyCheck(unverifiable(Reason.RosterUnverified)), rosterSignature: unverifiable(reason) };
 }
@@ -261,14 +258,12 @@ function base64(bytes: Uint8Array): string {
     return btoa(String.fromCharCode(...bytes));
 }
 
-/** Signs with an RFC 8032 test key from the vectors' keys section. */
 async function sign(keyName: string, message: Uint8Array): Promise<string> {
     const pkcs8 = Uint8Array.from(atob(vectors.keys[keyName].privateKeyPkcs8B64!), (c) => c.charCodeAt(0));
     const key = await webcrypto.subtle.importKey("pkcs8", pkcs8, { name: "Ed25519" }, false, ["sign"]);
     return base64(new Uint8Array(await webcrypto.subtle.sign({ name: "Ed25519" }, key, message)));
 }
 
-/** The roster as authority-a (RFC 8032 test 1) would sign it after the edit. */
 async function signedRoster(roster: Json): Promise<Json> {
     const parsed = parseSignedRoster(roster);
     const bytes = canonicalRosterBytes(parsed, detectRosterForm(parsed) as "v1" | "legacy");
@@ -278,7 +273,6 @@ async function signedRoster(roster: Json): Promise<Json> {
     };
 }
 
-/** WebCrypto that will not import the keys `refuses` picks, as a browser can refuse a key it does not support. */
 function refusingSubtle(refuses: (spki: Uint8Array) => boolean): SubtleCrypto {
     const subtle = webcrypto.subtle as unknown as SubtleCrypto;
     return {
@@ -312,7 +306,6 @@ function streamOf(bytes: Uint8Array): ReadableStream<Uint8Array> {
     });
 }
 
-/** A resolver whose /roster answers 200 with this body and every other document 404. */
 function rosterServedAs(body: Uint8Array): ResolverClient {
     globalThis.fetch = jest.fn(async (url: string) => {
         const found = url === "https://resolver.example/roster";
@@ -1075,7 +1068,6 @@ describe("ResolverVerification", () => {
                 transport.calls.filter((c) => c === "policy").length;
             const bothRostersVerify = { ...config, authorityThreshold: 1 };
 
-            /** A fetch that never answers; `cut()` turns true once the run's deadline aborts it. */
             function hangingFetch(): { fetch: (signal?: AbortSignal) => Promise<never>; cut: () => boolean } {
                 let aborted = false;
                 const fetch = (signal?: AbortSignal): Promise<never> =>
@@ -1088,8 +1080,7 @@ describe("ResolverVerification", () => {
                 return { fetch, cut: () => aborted };
             }
 
-            /** A verification whose first run has settled, on a wall clock the test moves. */
-            async function settled(
+            async function settledVerification(
                 transport: StubTransport,
                 options: Partial<VerifierOptions> = {},
             ): Promise<{ verification: ResolverVerification; advance: (ms: number) => void }> {
@@ -1102,7 +1093,7 @@ describe("ResolverVerification", () => {
 
             it("keeps the run when prepared again within five minutes of it settling", async () => {
                 const transport = stubTransport();
-                const { verification, advance } = await settled(transport);
+                const { verification, advance } = await settledVerification(transport);
 
                 advance(5 * 60_000);
                 verification.prepare();
@@ -1114,7 +1105,7 @@ describe("ResolverVerification", () => {
 
             it("starts a new run when prepared again more than five minutes after it settled", async () => {
                 const transport = stubTransport();
-                const { verification, advance } = await settled(transport);
+                const { verification, advance } = await settledVerification(transport);
 
                 advance(5 * 60_000 + 1);
                 verification.prepare();
@@ -1200,7 +1191,7 @@ describe("ResolverVerification", () => {
 
             it("checks an answer against the current run however long ago it settled", async () => {
                 const transport = stubTransport();
-                const { verification, advance } = await settled(transport);
+                const { verification, advance } = await settledVerification(transport);
 
                 advance(60 * 60_000);
                 await verification.verify(brAnswer, PHONE);
@@ -1218,7 +1209,7 @@ describe("ResolverVerification", () => {
                     // The refresh settles as soon as its policy, null here, fails to parse.
                     fetchRoutingPolicy: async () => (policyFetches(transport) === 1 ? policy.bundle : null),
                 });
-                const { verification, advance } = await settled(transport, { config: bothRostersVerify });
+                const { verification, advance } = await settledVerification(transport, { config: bothRostersVerify });
                 advance(5 * 60_000 + 1);
                 verification.prepare();
                 await until(() => rosterFetches(transport) === 2);
@@ -1240,7 +1231,7 @@ describe("ResolverVerification", () => {
                             ? Promise.resolve(r2.roster)
                             : new Promise((resolve) => (releaseRoster = () => resolve(r1.roster))),
                 });
-                const { verification, advance } = await settled(transport, { config: bothRostersVerify });
+                const { verification, advance } = await settledVerification(transport, { config: bothRostersVerify });
                 advance(10 * 60_000 + 1);
                 verification.prepare();
                 await until(() => rosterFetches(transport) === 2);
@@ -1259,7 +1250,7 @@ describe("ResolverVerification", () => {
                         return fetches === 1 ? r2.roster : r1.roster;
                     },
                 });
-                const { verification, advance } = await settled(transport, { config: bothRostersVerify });
+                const { verification, advance } = await settledVerification(transport, { config: bothRostersVerify });
                 advance(5 * 60_000 + 1);
                 verification.prepare();
                 await until(() => rosterFetches(transport) === 2);

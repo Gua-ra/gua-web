@@ -20,15 +20,11 @@ const CLOSE_ARRAY = 0x5d;
 const OPEN_OBJECT = 0x7b;
 const CLOSE_OBJECT = 0x7d;
 
-/** A served document that is not JSON of the expected shape. */
 export class ParseError extends Error {}
 
 export type JsonObject = Record<string, unknown>;
 
-/**
- * Refuses a body over 2 MiB or nested more than 64 levels before decoding it, so a hostile document can exhaust
- * neither memory nor the parser's stack.
- */
+/** Checks size and depth before decoding, so a hostile body exhausts neither memory nor the parser's stack. */
 export async function readJsonBody(body: ReadableStream<Uint8Array> | null): Promise<unknown> {
     const bytes = await readAtMost(body, MAX_BODY_BYTES);
     if (nestingExceeds(bytes, MAX_DEPTH)) throw new ParseError("nested too deeply");
@@ -56,7 +52,7 @@ async function readAtMost(body: ReadableStream<Uint8Array> | null, limit: number
     }
 }
 
-/** One pass over the bytes, skipping string contents; it must not recurse, or the check itself could overflow. */
+/** Must not recurse, or the check itself could overflow the stack. */
 function nestingExceeds(bytes: Uint8Array, max: number): boolean {
     let depth = 0;
     let inString = false;
@@ -95,7 +91,6 @@ export function optionalString(value: unknown): string | null {
     return value === undefined || value === null ? null : string(value);
 }
 
-/** A field that may be left out but not sent as null. */
 export function absentOrString(value: unknown): string | null {
     return value === undefined ? null : string(value);
 }
@@ -119,14 +114,13 @@ export function int64(value: unknown): number {
     return value;
 }
 
-/** Java ints: a value outside int32 is refused rather than wrapped. */
 export function int32(value: unknown): number {
     const n = int64(value);
     if (n < INT32_MIN || n > INT32_MAX) throw new ParseError("expected a 32-bit integer");
     return n;
 }
 
-/** Log sizes and indexes. The consistency check shifts them as 32-bit integers, which would never end past 2^31. */
+/** The consistency check shifts log sizes as int32 and would never end past 2^31. */
 export function uint31(value: unknown): number {
     const n = int64(value);
     if (n < 0 || n > INT32_MAX) throw new ParseError("expected a log size");
@@ -134,13 +128,10 @@ export function uint31(value: unknown): number {
 }
 
 export interface ParsedInstant {
-    /** Epoch milliseconds, the fraction truncated to three digits. */
     epochMs: number;
-    /** False when the fraction carries non-zero digits beyond milliseconds. */
     exactMillis: boolean;
 }
 
-/** ISO-8601 UTC with 0 to 9 fractional digits, computed with integer arithmetic only. */
 export function parseInstant(iso: string): ParsedInstant | null {
     const m = INSTANT_PATTERN.exec(iso);
     if (!m) return null;

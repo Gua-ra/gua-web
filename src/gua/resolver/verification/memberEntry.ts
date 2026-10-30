@@ -52,7 +52,6 @@ function parseSignature(value: unknown): MemberSignature {
     return { keyId: absentOrString(s.keyId), signatureB64: absentOrString(s.signatureB64) };
 }
 
-/** Strict: an unknown field, a wrong JSON type, a null or a fractional sequence refuses the block. */
 export function parseMemberBlock(value: unknown): MemberBlock {
     const m = strictObject(value, MEMBER_KEYS);
     return {
@@ -72,7 +71,6 @@ function epochMs(iso: string | null): number {
     return parsed.epochMs;
 }
 
-/** CanonicalMemberEntry: the gua-member-entry.v1 bytes, signatures excluded. */
 export function memberEntryBytes(homeserver: MemberHomeserver, member: MemberBlock): Uint8Array {
     return new LengthPrefixedEncoder()
         .string(MEMBER_ENTRY_SCHEMA)
@@ -115,7 +113,6 @@ function signaturesWellFormed(signatures: MemberSignature[]): boolean {
     return signatures.length > 0;
 }
 
-/** The member's self-signature over its own roster entry, at device time `atEpochMs`. */
 export async function verifyMemberEntry(
     crypto: VerifierCrypto,
     homeserver: MemberHomeserver,

@@ -23,7 +23,7 @@ import { makeDelegatedAuthConfig } from "../../../../test-utils/oidc";
 
 jest.mock("../../../../../src/gua/oidc/startPhoneOidcLogin", () => ({ startGuaPhoneOidcLogin: jest.fn() }));
 
-// jsdom has no SubtleCrypto; the verifier reads globalThis.crypto.subtle exactly as a browser would.
+// jsdom has no SubtleCrypto.
 Object.defineProperty(globalThis, "crypto", { value: webcrypto, configurable: true });
 
 interface KeyVector {
@@ -62,7 +62,6 @@ function jsonResponse(value: unknown): Response {
     return { ok: true, status: 200, body, json: async () => value } as unknown as Response;
 }
 
-/** The resolver: /resolve answers at once, the signed documents only once `documentsReady` settles. */
 function resolverFetch(documentsReady: Promise<void>): jest.Mock {
     return jest.fn(async (url: string) => {
         if (url === `${RESOLVER}/resolve`) return jsonResponse({ exists: false, registerAt: br });
@@ -119,8 +118,7 @@ describe("GuaAuthFlow", () => {
         );
     }
 
-    /** Submits the phone and returns the report lines logged by the time the browser would leave for sign-in. */
-    async function signIn(): Promise<string[]> {
+    async function reportLinesAtRedirect(): Promise<string[]> {
         let linesAtRedirect: string[] = [];
         jest.mocked(startGuaPhoneOidcLogin).mockImplementation(async () => {
             linesAtRedirect = reportLines();
@@ -160,7 +158,7 @@ describe("GuaAuthFlow", () => {
         );
         renderFlow();
 
-        const lines = await signIn();
+        const lines = await reportLinesAtRedirect();
         releaseDocuments();
 
         expect(lines).toEqual([expect.stringContaining("rosterSignature=unverifiable(timeout)")]);
@@ -179,7 +177,7 @@ describe("GuaAuthFlow", () => {
         renderFlow();
         await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledWith(`${RESOLVER}/roster/log`, expect.anything()));
 
-        const lines = await signIn();
+        const lines = await reportLinesAtRedirect();
 
         // jsdom has no Web Locks, so the pin is left alone.
         expect(lines).toEqual([

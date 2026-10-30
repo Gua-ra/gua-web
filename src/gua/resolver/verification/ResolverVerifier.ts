@@ -68,7 +68,6 @@ export interface ResolverVerificationConfig {
     policyThreshold: number;
 }
 
-/** Anonymous reads of the resolver's public documents, as parsed JSON; a 404 on the policy is NOT_FOUND. */
 export interface VerifierTransport {
     fetchRoster(signal?: AbortSignal): Promise<unknown>;
     fetchLog(signal?: AbortSignal): Promise<unknown>;
@@ -76,7 +75,7 @@ export interface VerifierTransport {
     fetchRoutingPolicy(signal?: AbortSignal): Promise<unknown>;
 }
 
-/** Runs `body` holding the lock of one resolver base URL, which every tab and verifier instance shares. */
+/** One lock per resolver base URL, shared by every tab and verifier instance. */
 export type ResolverLock = <T>(signal: AbortSignal, body: () => Promise<T>) => Promise<T>;
 
 export interface VerifierOptions {
@@ -85,7 +84,6 @@ export interface VerifierOptions {
     checkpoints: CheckpointStore;
     /** Null where Web Locks is missing: the pin is then never touched. */
     lock: ResolverLock | null;
-    /** Wall-clock time for validity windows; the budget runs on the monotonic clock. */
     now?: () => number;
     crypto?: VerifierCrypto;
     budgetMs?: number;
@@ -99,7 +97,7 @@ function trustedKeys(list?: readonly { id: string; public_key: string }[]): Trus
         .map((k) => ({ id: k.id, publicKey: k.public_key }));
 }
 
-/** A positive integer, else one signature: a malformed value must never compare as met. */
+/** A malformed value must never compare as met. */
 function threshold(value: unknown): number {
     return typeof value === "number" && Number.isInteger(value) && value >= 1 ? value : 1;
 }
@@ -123,15 +121,13 @@ function webLock(baseUrl: string): ResolverLock | null {
     return (signal, body) => locks.request(`gua-resolver-verification:${baseUrl}`, { signal }, body);
 }
 
-/** Unless the roster signature is valid the other five checks are roster_unverified; two reasons fill all six. */
 function reasonAfterRoster(signature: CheckResult): Reason {
-    const everywhere =
+    const appliesToEveryCheck =
         signature.outcome === "unverifiable" &&
         (signature.reason === Reason.NoTrustRoots || signature.reason === Reason.CryptoUnsupported);
-    return everywhere ? signature.reason : Reason.RosterUnverified;
+    return appliesToEveryCheck ? signature.reason : Reason.RosterUnverified;
 }
 
-/** Each check settles once. Waiters resume when it does; a deadline or a flush settles whatever is left. */
 class Checks {
     private readonly results = new Map<CheckName, CheckResult>();
     private readonly waiters = new Map<CheckName, ((result: CheckResult) => void)[]>();
@@ -158,7 +154,6 @@ class Checks {
     }
 }
 
-/** The checks that do not depend on a /resolve answer: roster signature, log consistency and policy. */
 class ArtifactsRun {
     public readonly checks = new Checks();
     public rosterForm: RosterForm | null = null;
@@ -245,7 +240,6 @@ class ArtifactsRun {
         this.checks.settle("rosterSignature", signature);
     }
 
-    /** Nothing more is fetched for a roster that did not verify. */
     private rosterFailed(signature: CheckResult): void {
         this.checks.settle("rosterSignature", signature);
         this.checks.settleAll(["logConsistency", "policy"], unverifiable(reasonAfterRoster(signature)));
@@ -327,7 +321,6 @@ class ArtifactsRun {
         return logged;
     }
 
-    /** Signed by the policy keys and in effect now, before anything is fetched from the log. */
     private async policySignatureStep(bundle: RoutingPolicyBundle, canonical: Uint8Array): Promise<CheckResult | null> {
         const { config, crypto, now } = this.context;
         const keys = await TrustedKeySet.load(crypto, config.policyKeys);
@@ -348,7 +341,6 @@ class ArtifactsRun {
     }
 }
 
-/** homeserverMatch, memberEntry and placement for one /resolve answer, and the one report line it logs. */
 class AnswerRun {
     private readonly checks = new Checks();
     private readonly started = performance.now();
@@ -375,7 +367,6 @@ class AnswerRun {
         return this.finish();
     }
 
-    /** Logs the report once, as it stands: a check still running is unverifiable(timeout). */
     public finish(): ResolverVerificationReport {
         if (!this.report) {
             this.report = this.snapshot();
@@ -447,11 +438,7 @@ class AnswerRun {
     }
 }
 
-/**
- * Report-only verification of resolver answers. prepare() verifies the roster, log and policy when the phone step
- * opens, verify() checks each /resolve answer against them, and flush() logs every unfinished report before the page
- * leaves for sign-in. None of it delays or changes sign-in.
- */
+/** Report-only: none of it delays or changes sign-in. */
 export class ResolverVerification {
     private readonly context: Context;
     private artifacts: ArtifactsRun | null = null;
@@ -462,7 +449,6 @@ export class ResolverVerification {
         this.context = { now: Date.now, crypto: new VerifierCrypto(), budgetMs: DEFAULT_BUDGET_MS, ...options };
     }
 
-    /** Null when no resolver is configured or verification is turned off. */
     public static fromConfig(): ResolverVerification | null {
         const resolver = ResolverClient.fromConfig();
         if (!resolver || SdkConfig.get("gua_resolver")?.verification?.mode === "off") return null;
@@ -478,14 +464,14 @@ export class ResolverVerification {
         if (!this.artifacts || this.artifacts.dueForRefresh) this.startRun();
     }
 
-    /** Logs exactly one report for this answer, when its checks settle or at flush(), whichever comes first. */
+    /** Logs exactly one report per answer, even if flush() logs it before the checks settle. */
     public verify(resolution: HomeserverResolution, phone: string): Promise<ResolverVerificationReport> {
         const run = new AnswerRun(this.runForAnswer(), resolution, phone, this.context);
         this.pending.add(run);
         return run.complete().finally(() => this.pending.delete(run));
     }
 
-    /** Synchronous, so it can run immediately before navigation without delaying it. */
+    /** Synchronous so that it never delays navigation. */
     public flush(): void {
         for (const run of this.pending) run.finish();
     }

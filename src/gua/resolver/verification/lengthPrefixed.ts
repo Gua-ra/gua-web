@@ -40,10 +40,7 @@ function compareUnsigned(a: Uint8Array, b: Uint8Array): number {
     return a.length - b.length;
 }
 
-/**
- * The gua-lp.v1 encoding: u32 big-endian lengths, int64 big-endian, a presence byte for optionals, sets sorted
- * by unsigned UTF-8 byte order, no delimiters and no escaping.
- */
+/** The gua-lp.v1 encoding. */
 export class LengthPrefixedEncoder {
     private readonly parts: Uint8Array[] = [];
 

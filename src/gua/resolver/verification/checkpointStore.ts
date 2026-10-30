@@ -10,7 +10,7 @@ import { object, string, uint31 } from "./json";
 
 const KEY_PREFIX = "gua_resolver_log_checkpoint:";
 
-/** The last transparency-log checkpoint this client accepted for one resolver. Both methods throw when storage fails. */
+/** Both methods throw when storage fails. */
 export interface CheckpointStore {
     load(): LogCheckpoint | null;
     save(checkpoint: LogCheckpoint): void;
@@ -32,7 +32,6 @@ export function localStorageCheckpointStore(resolverBaseUrl: string): Checkpoint
     };
 }
 
-/** localStorage.clear(), except that the pins stay: they outlive sign-in and sign-out, and go only with the app's data. */
 export function clearLocalStorageKeepingPins(): void {
     const pins: [string, string][] = [];
     for (let i = 0; i < window.localStorage.length; i++) {

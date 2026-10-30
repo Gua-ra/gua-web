@@ -58,7 +58,7 @@ import {
 } from "../../../../../src/gua/resolver/verification/policy";
 import { formatOutcome } from "../../../../../src/gua/resolver/verification/report";
 
-// jsdom has no SubtleCrypto; the verifier reads globalThis.crypto.subtle exactly as a browser would.
+// jsdom has no SubtleCrypto.
 Object.defineProperty(globalThis, "crypto", { value: webcrypto, configurable: true });
 
 interface KeyVector {
@@ -268,14 +268,13 @@ async function rosterSignatureOutcome(vector: RosterVector): Promise<string> {
     return formatOutcome(await checkRosterSignature(roster, vector.form, keySet, vector.threshold));
 }
 
-/** The policy signature step's outcome, "valid" when it passes. */
 async function policySignatureOutcome(bundle: RoutingPolicyBundle, vector: PolicyVector): Promise<string> {
     const keySet = await TrustedKeySet.load(crypto, trustedKeys(vector.trustedKeys));
     const failure = await policySignatureFailure(keySet, bundle, canonicalPolicyBytes(bundle), vector.threshold);
     return failure ? formatOutcome(failure) : "valid";
 }
 
-/** No context carries verified claims, so the stated affiliations and attributes are dropped, as the server does. */
+/** Drops the stated affiliations and attributes, as the server does without verified claims. */
 function placementContext(vector: PlacementVector): PlacementContext {
     return {
         phone: vector.context.phone,
@@ -315,7 +314,7 @@ async function expectKeyVector(key: KeyVector): Promise<void> {
     }
 }
 
-// gua-lp.v1 primitives no signed object the app checks uses yet; encoded here only to pin the vectors.
+// No signed object the app checks uses these gua-lp.v1 primitives; they are encoded here only to pin the vectors.
 function encodeBool(value: boolean): Uint8Array {
     return new Uint8Array([value ? 1 : 0]);
 }

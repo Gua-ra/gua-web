@@ -23,7 +23,7 @@ import { type CheckResult, invalid, Reason, type RosterForm, unverifiable } from
 
 const FIELD_SEPARATOR = "\u001f";
 
-/** Java String.compareTo: UTF-16 code unit order, which is also what JavaScript's < gives. */
+/** Java String.compareTo order, which JavaScript's < also gives. */
 export function compareUtf16(a: string, b: string): number {
     return a < b ? -1 : a > b ? 1 : 0;
 }
@@ -43,7 +43,7 @@ export interface RosterHomeserver {
     signingKey: string | null;
     searchVisibility: string | null;
     searchGroups: string[] | null;
-    /** Whether the served JSON carried the searchVisibility key at all; decides the roster form. */
+    /** Whether searchVisibility was served at all, even as null; decides the roster form. */
     hasSearchVisibility: boolean;
 }
 
@@ -63,7 +63,7 @@ export interface RosterEntry {
     claims: RosterClaim[];
     admittedAt: string | null;
     status: string;
-    /** The member block exactly as served, parsed strictly by the member-entry check. */
+    /** As served; the member-entry check parses it strictly. */
     member: unknown;
 }
 
@@ -129,10 +129,7 @@ function parseSignature(value: unknown): Signature {
     return { keyId: optionalString(s.authorityKeyId) ?? "", signatureB64: optionalString(s.signatureB64) ?? "" };
 }
 
-/**
- * Lenient at the document level (unknown fields ignored), strict about every field the canonical form reads. The
- * timestamps stay strings until the signature check, so that a mixed roster reports its form whatever they hold.
- */
+/** Timestamps stay strings until the signature check, so a mixed roster reports its form whatever they hold. */
 export function parseSignedRoster(document: unknown): SignedRoster {
     const d = object(document);
     const checkpoint = object(d.logCheckpoint);
@@ -145,7 +142,6 @@ export function parseSignedRoster(document: unknown): SignedRoster {
     };
 }
 
-/** The form follows the served JSON: no entry with searchVisibility is legacy, every entry is v1, a mix is refused. */
 export function detectRosterForm(roster: SignedRoster): RosterForm {
     const withField = roster.entries.filter((e) => e.homeserver.hasSearchVisibility).length;
     if (withField === 0) return "legacy";
@@ -218,7 +214,6 @@ function canonicalEntry(e: RosterEntry, searchFields: boolean): string {
     return fields.join(FIELD_SEPARATOR);
 }
 
-/** The gua-roster.v1 text the authority signs, in the v1 or the legacy form. */
 export function canonicalRosterText(roster: SignedRoster, form: "v1" | "legacy"): string {
     let text = "gua-roster.v1\n";
     text += `version=${roster.version}\n`;
@@ -233,7 +228,6 @@ export function canonicalRosterBytes(roster: SignedRoster, form: "v1" | "legacy"
     return utf8Bytes(canonicalRosterText(roster, form));
 }
 
-/** rosterSignature over the bytes of `form`, which a client detects from the served JSON; a mixed form is refused. */
 export async function checkRosterSignature(
     roster: SignedRoster,
     form: RosterForm,
@@ -257,7 +251,7 @@ export function activeEntries(roster: SignedRoster): RosterEntry[] {
     return roster.entries.filter((e) => e.status === "ACTIVE");
 }
 
-/** The fields of a /resolve answer a roster entry must carry; region is not compared. */
+/** The /resolve answer's region is not compared. */
 export interface AnswerFields {
     serverName: string;
     baseUrl: string;
@@ -272,10 +266,6 @@ export type LocatedHomeserver =
     | { match: "ACTIVE_MATCH" | "INACTIVE" | "FIELD_MISMATCH"; entry: RosterEntry }
     | { match: "NOT_IN_ROSTER"; entry: null };
 
-/**
- * ResolverVerifier.locate: an ACTIVE entry with all three fields, then any entry with all three, then any entry with
- * the server name. The strongest match wins whatever the entry order, and a tie goes to the entry served first.
- */
 export function locateHomeserver(answer: AnswerFields, roster: SignedRoster): LocatedHomeserver {
     const named = roster.entries.filter((e) => e.homeserver.serverName === answer.serverName);
     const sameFields = named.filter((e) => hasAnswerFields(e.homeserver, answer));

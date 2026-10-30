@@ -22,11 +22,9 @@ export interface ResolvedHomeserver {
 
 /** Outcome of resolving a phone number against the Gua resolver. */
 export interface HomeserverResolution {
-    /** True when an account exists for this phone, false when it does not, absent when the resolver does not say. */
     exists?: boolean;
     /** The homeserver to authenticate against (login) or create the account on (register). */
     homeserver: ResolvedHomeserver;
-    /** The roster version the resolver decided against, when the answer says. */
     rosterVersion?: number;
 }
 
@@ -101,7 +99,6 @@ export default class ResolverClient {
         return this.getJson(`/roster/log/consistency?first=${first}&second=${second}`, signal);
     }
 
-    /** The signed routing policy (`GET /policy/routing`), or NOT_FOUND when the resolver serves none (404). */
     public fetchRoutingPolicy(signal?: AbortSignal): Promise<unknown> {
         return this.getJson("/policy/routing", signal, true);
     }

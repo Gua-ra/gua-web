@@ -7,7 +7,6 @@ Please see LICENSE files in the repository root for full details.
 
 import { Reason } from "./report";
 
-/** X.509 SubjectPublicKeyInfo prefix for an Ed25519 key: the 32 raw key bytes follow it. */
 export const ED25519_SPKI_PREFIX_HEX = "302a300506032b6570032100";
 const ED25519_SPKI_LENGTH = 44;
 const ED25519_SIGNATURE_LENGTH = 64;
@@ -51,7 +50,6 @@ export function decodeBase64(text: string): Uint8Array | null {
     return out;
 }
 
-/** The SPKI bytes of a base64 Ed25519 public key, or null for any other length or prefix. */
 export function decodeEd25519Spki(publicKeyB64: string): Uint8Array | null {
     const der = decodeBase64(publicKeyB64);
     if (!der || der.length !== ED25519_SPKI_LENGTH) return null;
@@ -81,7 +79,6 @@ export class VerifierCrypto {
         return bytesToHex(await this.sha256(data));
     }
 
-    /** Null unless the key is an Ed25519 SPKI the platform imports. */
     public async importPublicKey(publicKeyB64: string): Promise<CryptoKey | null> {
         const der = decodeEd25519Spki(publicKeyB64);
         return der ? this.importSpki(der) : null;
@@ -96,7 +93,6 @@ export class VerifierCrypto {
         }
     }
 
-    /** False on a malformed signature, never an exception. */
     public async verify(key: CryptoKey, message: Uint8Array, signatureB64: string): Promise<boolean> {
         const signature = decodeBase64(signatureB64);
         if (!signature || signature.length !== ED25519_SIGNATURE_LENGTH || !this.subtle) return false;
@@ -119,13 +115,12 @@ export interface Signature {
 }
 
 export interface SignatureVotes {
-    /** Distinct trusted key ids whose signature verifies. */
     valid: number;
     /** Signatures that name a trusted key id at all. */
     known: number;
 }
 
-/** Configured trust roots. Counting is one vote per key id, as the resolver's own verifiers count. */
+/** One vote per key id, as the resolver's own verifiers count. */
 export class TrustedKeySet {
     private constructor(
         private readonly crypto: VerifierCrypto,
@@ -133,10 +128,7 @@ export class TrustedKeySet {
         public readonly refused: number,
     ) {}
 
-    /**
-     * A key that is not an Ed25519 SPKI is skipped. A well-formed key the platform will not import is counted in
-     * `refused`: when no key imports, that is how a platform without Ed25519 shows up.
-     */
+    /** A platform without Ed25519 shows up as well-formed keys counted in `refused`. */
     public static async load(crypto: VerifierCrypto, keys: TrustedKey[]): Promise<TrustedKeySet> {
         const imported = new Map<string, CryptoKey>();
         let refused = 0;
@@ -168,7 +160,6 @@ export class TrustedKeySet {
     }
 }
 
-/** Why too few signatures verified, or null when the threshold is met; a threshold below one counts as one. */
 export function signatureFailure(votes: SignatureVotes, threshold: number): Reason | null {
     if (votes.valid >= Math.max(1, threshold)) return null;
     if (votes.known === 0) return Reason.UnknownKeyId;

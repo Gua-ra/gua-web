@@ -428,7 +428,7 @@ export default abstract class BasePlatform {
      */
     public async clearStorage(): Promise<void> {
         window.sessionStorage.clear();
-        // GUA FORK: the resolver log pins outlive sign-out, and go only with the app's data.
+        // GUA FORK: the resolver log pins outlive sign-out.
         clearLocalStorageKeepingPins();
     }
 

@@ -23,10 +23,7 @@ import {
     sortedRules,
 } from "./policy";
 
-/**
- * What a public client can state about a placement. Affiliations and attributes count only inside a verified claims
- * envelope, which a public client never has, so the server drops them before routing and so does this context.
- */
+/** Affiliations and attributes count only in a verified claims envelope, which a public client never has. */
 export interface PlacementContext {
     phone: string | null;
     country: string | null;
@@ -43,11 +40,9 @@ export interface PlacementDecision {
 
 export interface Placement {
     decision: PlacementDecision | null;
-    /** A matching rule ranked above the decision was left out only because its zone lacks a delegate signature. */
     unsignedRuleAbove: boolean;
 }
 
-/** A policy whose authority signatures verified, with the zones whose delegate signatures verified. */
 export interface VerifiedPolicy {
     bundle: RoutingPolicyBundle;
     delegateVerifiedZones: Set<string>;
@@ -57,7 +52,6 @@ export function phoneContext(phone: string): PlacementContext {
     return { phone, country: null, mccmnc: null, carrier: null, regionHint: null };
 }
 
-/** PlacementContext.canonicalRoutingKey: the bucketing key the weighted fallback hashes. */
 export function routingKey(ctx: PlacementContext): string {
     let key = `phone=${nz(ctx.phone)}\n`;
     key += `country=${nz(ctx.country)}\n`;
@@ -74,7 +68,6 @@ export function placementCandidates(roster: SignedRoster): RosterHomeserver[] {
         .sort((a, b) => compareUtf16(nz(a.id), nz(b.id)));
 }
 
-/** WeightedFallbackRule.stableHash: the first four bytes of the digest as a signed 32-bit integer. */
 export async function stableHash(
     crypto: VerifierCrypto,
     ctx: PlacementContext,
@@ -95,7 +88,6 @@ function equalsIgnoreCase(a: string, b: string | null): boolean {
     return b !== null && a.toUpperCase() === b.toUpperCase();
 }
 
-/** ClaimPredicate.matchesLocally for a context whose claims are never signature-verified. */
 function claimMatches(claim: RosterClaim, ctx: PlacementContext): boolean {
     if (claim.country !== null && !equalsIgnoreCase(claim.country, ctx.country)) return false;
     if (claim.mccmnc !== null && claim.mccmnc !== ctx.mccmnc) return false;
@@ -123,11 +115,7 @@ function ruleMatches(rule: RoutingPolicyRule, ctx: PlacementContext): boolean {
     );
 }
 
-/**
- * PolicyRoutingRule: enabled rules in their signed order; the first that is delegate-signed, inside its zone's window,
- * matching and aimed at a candidate decides. Delegate signatures are covered neither by the bundle signatures nor by
- * the POLICY_PUBLISH hash, so a resolver can strip one to hide a rule: a matching unsigned rule above is reported.
- */
+/** No bundle signature or POLICY_PUBLISH hash covers a delegate signature: a resolver can strip one to hide a rule. */
 function policyRule(
     policy: VerifiedPolicy,
     ctx: PlacementContext,
@@ -211,7 +199,6 @@ async function weightedFallback(
     return { homeserver: chosen, rule: "WeightedFallbackRule", ruleId: "weighted-fallback" };
 }
 
-/** The resolver's placement pipeline over verified artifacts: policy rules, roster claims, weighted fallback. */
 export async function reproducePlacement(
     crypto: VerifierCrypto,
     ctx: PlacementContext,

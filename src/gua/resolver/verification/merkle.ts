@@ -20,7 +20,7 @@ export interface LogEvent {
     recordedAtEpochMs: number;
 }
 
-/** The events of `/roster/log` in served order: the leaves are hashed in that order, never re-sorted. */
+/** Served order is leaf order: never re-sort the events. */
 export function parseLogEvents(document: unknown): LogEvent[] {
     return list(object(document).events).map((value) => {
         const e = object(value);
@@ -42,7 +42,7 @@ export function parseProof(document: unknown): string[] {
     });
 }
 
-/** RFC 6962 hashing over the resolver's transparency log; every hash is lowercase hex. */
+/** RFC 6962 hashing; every hash is lowercase hex. */
 export class MerkleTree {
     public constructor(private readonly crypto: VerifierCrypto) {}
 
@@ -58,7 +58,6 @@ export class MerkleTree {
         return this.crypto.sha256(concatBytes(NODE_PREFIX, left, right));
     }
 
-    /** Merkle Tree Hash over leaf hashes; the empty tree is SHA-256 of nothing. */
     public async root(leafHashes: string[]): Promise<string> {
         if (leafHashes.length === 0) return this.crypto.sha256Hex(new Uint8Array(0));
         const nodes = leafHashes.map((h) => {

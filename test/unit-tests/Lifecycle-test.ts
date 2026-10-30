@@ -1026,7 +1026,6 @@ describe("Lifecycle", () => {
         });
     });
 
-    // GUA FORK: the resolver verifier's log pins outlive the storage resets of sign-in and sign-out.
     describe("the resolver log pins", () => {
         const vectors = JSON.parse(
             readFileSync(

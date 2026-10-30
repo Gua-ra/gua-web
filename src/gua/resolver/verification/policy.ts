@@ -137,10 +137,7 @@ export function parseRoutingPolicy(document: unknown): RoutingPolicyBundle {
     };
 }
 
-/**
- * A bundle or zone is in effect from notBefore, inclusive, until expiresAt, exclusive. A missing bound is open, and so
- * is one at the epoch, because the signed bytes write both as 0.
- */
+/** A bound at the epoch is open like a missing one, because the signed bytes write both as 0. */
 export function inEffect(notBefore: string | null, expiresAt: string | null, atEpochMs: number): boolean {
     const from = epoch(notBefore);
     const until = epoch(expiresAt);
@@ -157,7 +154,6 @@ function compareNullsLast(a: string | null, b: string | null): number {
     return compareUtf16(a, b);
 }
 
-/** Deterministic rule order (priority, then id with nulls last), shared with the delegated-rules form. */
 export function sortedRules(rules: RoutingPolicyRule[]): RoutingPolicyRule[] {
     return [...rules].sort((a, b) => a.priority - b.priority || compareNullsLast(a.id, b.id));
 }
@@ -198,7 +194,6 @@ function zoneLine(z: DelegationZone): string {
     ].join(FIELD_SEPARATOR);
 }
 
-/** CanonicalRoutingPolicy: the gua-routing-policy.v1 text the authority signs, signatures excluded. */
 export function canonicalPolicyText(bundle: RoutingPolicyBundle): string {
     let text = "gua-routing-policy.v1\n";
     text += `schema=${nz(bundle.schemaVersion)}\n`;
@@ -219,7 +214,6 @@ export function canonicalPolicyBytes(bundle: RoutingPolicyBundle): Uint8Array {
     return utf8Bytes(canonicalPolicyText(bundle));
 }
 
-/** CanonicalDelegatedRules: what a zone's delegate signs, bound to policyId, version and zoneId. */
 export function canonicalDelegatedRulesText(
     policyId: string | null,
     version: number,
@@ -245,10 +239,6 @@ export function canonicalDelegatedRulesBytes(
     return utf8Bytes(canonicalDelegatedRulesText(policyId, version, zoneId, rules));
 }
 
-/**
- * The zones whose delegate signed their rules under the key the authority attested. A delegate key that is malformed
- * or that the platform will not import verifies no zone.
- */
 export async function delegateVerifiedZones(crypto: VerifierCrypto, bundle: RoutingPolicyBundle): Promise<Set<string>> {
     const verified = new Set<string>();
     for (const zone of bundle.delegationZones) {
@@ -273,7 +263,7 @@ function blank(value: string | null): boolean {
     return value === null || value.trim() === "";
 }
 
-/** Signed by the threshold of policy keys, with no fallback to the authority keys. Null when that holds. */
+/** Policy keys only: the authority keys are never a fallback. */
 export async function policySignatureFailure(
     keys: TrustedKeySet,
     bundle: RoutingPolicyBundle,
@@ -285,14 +275,14 @@ export async function policySignatureFailure(
     return failure ? invalid(failure) : null;
 }
 
-/** What the log has to say about a served bundle: its id, version and the SHA-256 of its canonical bytes. */
+/** `sha256Hex` is over the bundle's canonical bytes. */
 export interface PublishedPolicy {
     policyId: string | null;
     version: number;
     sha256Hex: string;
 }
 
-/** The version a POLICY_PUBLISH leaf names for this policy id. Its subject is "<policyId>:v<version>". */
+/** A POLICY_PUBLISH leaf carries "<policyId>:v<version>" in its homeserverId field. */
 function publishedVersion(event: LogEvent, policyId: string | null): number | null {
     const subject = event.homeserverId ?? "";
     const at = subject.lastIndexOf(":v");
@@ -301,11 +291,7 @@ function publishedVersion(event: LogEvent, policyId: string | null): number | nu
     return /^\d+$/.test(version) ? Number(version) : null;
 }
 
-/**
- * The policy check's log step for a served bundle, or for a 404 when `served` is null. The leaves the signed
- * checkpoint covers must hash to its root in served order; a 404 is no policy only while none of them is a
- * POLICY_PUBLISH, since otherwise a published policy is being withheld.
- */
+/** `served` is null for a 404, which withholds a published policy if any covered leaf is a POLICY_PUBLISH. */
 export async function policyLogOutcome(
     crypto: VerifierCrypto,
     served: PublishedPolicy | null,
