@@ -1071,15 +1071,19 @@ describe("ResolverVerification", () => {
         describe("refreshing the artifacts", () => {
             const rosterFetches = (transport: StubTransport): number =>
                 transport.calls.filter((c) => c === "roster").length;
+            const pause = (ms = 0): Promise<unknown> => new Promise((resolve) => setTimeout(resolve, ms));
+            const hang = (signal?: AbortSignal): Promise<unknown> =>
+                new Promise((_, reject) => signal?.addEventListener("abort", () => reject(new Error("aborted"))));
 
             /** A verification whose first run has settled, on a wall clock the test moves. */
             async function settled(
                 transport: StubTransport,
+                options: Partial<VerifierOptions> = {},
             ): Promise<{ verification: ResolverVerification; advance: (ms: number) => void }> {
                 let clock = NOW;
-                const verification = verifier({ transport, now: () => clock });
+                const verification = verifier({ transport, now: () => clock, ...options });
                 await verification.verify(brAnswer, PHONE);
-                await new Promise((resolve) => setTimeout(resolve, 0));
+                await pause();
                 return { verification, advance: (ms) => (clock += ms) };
             }
 
@@ -1089,6 +1093,8 @@ describe("ResolverVerification", () => {
 
                 advance(5 * 60_000);
                 verification.prepare();
+                // A new run would reach /roster only after importing the keys.
+                await pause(50);
 
                 expect(rosterFetches(transport)).toBe(1);
             });
@@ -1106,19 +1112,45 @@ describe("ResolverVerification", () => {
             it("starts a new run when prepared again after one that timed out", async () => {
                 const transport = stubTransport({
                     fetchRoster: (signal) =>
-                        rosterFetches(transport) === 1
-                            ? new Promise((_, reject) =>
-                                  signal?.addEventListener("abort", () => reject(new Error("aborted"))),
-                              )
-                            : Promise.resolve(r2.roster),
+                        rosterFetches(transport) === 1 ? hang(signal) : Promise.resolve(r2.roster),
                 });
                 const verification = verifier({ transport, budgetMs: 50 });
                 verification.prepare();
-                await new Promise((resolve) => setTimeout(resolve, 100));
+                await pause(100);
 
                 verification.prepare();
 
                 await until(() => rosterFetches(transport) === 2);
+            });
+
+            it("starts a new run when prepared again after the roster could not be fetched", async () => {
+                const transport = stubTransport({
+                    fetchRoster: async () => {
+                        if (rosterFetches(transport) === 1) throw new Error("network");
+                        return r2.roster;
+                    },
+                });
+                const { verification } = await settled(transport);
+
+                verification.prepare();
+                const report = await verification.verify(brAnswer, PHONE);
+
+                expect(report.rosterSignature).toEqual({ outcome: "valid" });
+            });
+
+            it("starts a new run for an answer when the current one timed out", async () => {
+                const transport = stubTransport({
+                    fetchRoster: (signal) =>
+                        rosterFetches(transport) === 1 ? hang(signal) : Promise.resolve(r2.roster),
+                });
+                const verification = verifier({ transport, budgetMs: 50 });
+                verification.prepare();
+                await pause(100);
+
+                const report = await verification.verify(brAnswer, PHONE);
+
+                expect(rosterFetches(transport)).toBe(2);
+                expect(report.rosterSignature).toEqual({ outcome: "valid" });
             });
 
             it("checks an answer against the current run however long ago it settled", async () => {
@@ -1129,6 +1161,30 @@ describe("ResolverVerification", () => {
                 await verification.verify(brAnswer, PHONE);
 
                 expect(rosterFetches(transport)).toBe(1);
+            });
+
+            it("checks an answer against the last settled run until its refresh settles", async () => {
+                let release = (): void => {};
+                const transport = stubTransport({
+                    fetchRoster: () =>
+                        rosterFetches(transport) === 1
+                            ? Promise.resolve(r2.roster)
+                            : new Promise((resolve) => (release = () => resolve(r1.roster))),
+                });
+                const options = { config: { ...config, authorityThreshold: 1 }, budgetMs: 500 };
+                const { verification, advance } = await settled(transport, options);
+                advance(5 * 60_000 + 1);
+                verification.prepare();
+                await until(() => rosterFetches(transport) === 2);
+
+                const during = await verification.verify(brAnswer, PHONE);
+                release();
+                await until(() => transport.calls.filter((c) => c === "log").length === 2);
+                await pause(20);
+                const after = await verification.verify(brAnswer, PHONE);
+
+                expect(during.rosterVersion).toBe(7);
+                expect(after.rosterVersion).toBe(3);
             });
         });
 
