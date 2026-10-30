@@ -52,8 +52,10 @@ import {
 } from "./report";
 
 const DEFAULT_BUDGET_MS = 10_000;
-// prepare() refreshes a run older than this: the resolver re-signs the roster as its log grows.
+// The resolver re-signs the roster as its log grows, so prepare() refreshes a run older than this.
 const MAX_ARTIFACT_AGE_MS = 5 * 60_000;
+// An older roster can disagree with a fresh answer and report a false NOT_IN_ROSTER or FIELD_MISMATCH.
+const MAX_FALLBACK_AGE_MS = 2 * MAX_ARTIFACT_AGE_MS;
 const MAX_LOG_SIZE = 4096;
 const ARTIFACT_CHECKS: readonly CheckName[] = ["rosterSignature", "logConsistency", "policy"];
 const ANSWER_CHECKS: readonly CheckName[] = ["homeserverMatch", "memberEntry", "placement"];
@@ -162,10 +164,9 @@ class ArtifactsRun {
     public rosterForm: RosterForm | null = null;
     public roster: SignedRoster | null = null;
     public policy: VerifiedPolicy | null = null;
-    /** The deadline fired before the run settled. */
-    public cutShort = false;
-    public settledAt: number | null = null;
     private readonly abort = new AbortController();
+    private cutShort = false;
+    private settledAt: number | null = null;
 
     public constructor(private readonly context: Context) {
         const timer = setTimeout(() => {
@@ -176,27 +177,32 @@ class ArtifactsRun {
         void this.run()
             .catch(() => this.settleRemaining(Reason.InternalError))
             .finally(() => clearTimeout(timer));
-        void this.settled().then(() => (this.settledAt = context.now()));
+        void this.whenSettled().then(() => (this.settledAt = context.now()));
     }
 
-    /** Cut short, or the roster could not be fetched: worth trying again at once. */
+    public get isSettled(): boolean {
+        return this.settledAt !== null;
+    }
+
+    public settledWithin(ms: number): boolean {
+        return this.settledAt !== null && this.context.now() - this.settledAt <= ms;
+    }
+
     public get failedTransiently(): boolean {
         const signature = this.checks.get("rosterSignature");
         const unfetched = signature?.outcome === "unverifiable" && signature.reason === Reason.RosterUnavailable;
         return this.cutShort || unfetched;
     }
 
-    /** Whether prepare() replaces it: settled after a transient failure, or more than five minutes ago. */
-    public get stale(): boolean {
-        if (this.settledAt === null) return false;
-        return this.failedTransiently || this.context.now() - this.settledAt > MAX_ARTIFACT_AGE_MS;
+    public get dueForRefresh(): boolean {
+        return this.isSettled && (this.failedTransiently || !this.settledWithin(MAX_ARTIFACT_AGE_MS));
     }
 
     public get rosterVersion(): number | null {
         return this.checks.get("rosterSignature")?.outcome === "valid" ? this.roster!.version : null;
     }
 
-    public async settled(): Promise<void> {
+    public async whenSettled(): Promise<void> {
         await Promise.all(ARTIFACT_CHECKS.map((name) => this.checks.settled(name)));
     }
 
@@ -363,7 +369,7 @@ class AnswerRun {
         const timer = setTimeout(() => this.finish(), this.context.budgetMs);
         await Promise.all([
             this.run().catch(() => this.checks.settleAll(ANSWER_CHECKS, unverifiable(Reason.InternalError))),
-            this.artifacts.settled(),
+            this.artifacts.whenSettled(),
         ]);
         clearTimeout(timer);
         return this.finish();
@@ -449,8 +455,7 @@ class AnswerRun {
 export class ResolverVerification {
     private readonly context: Context;
     private artifacts: ArtifactsRun | null = null;
-    // The last run that settled without a transient failure, kept for answers while a newer run is in flight.
-    private previous: ArtifactsRun | null = null;
+    private lastVerified: ArtifactsRun | null = null;
     private readonly pending = new Set<AnswerRun>();
 
     public constructor(options: VerifierOptions) {
@@ -469,20 +474,13 @@ export class ResolverVerification {
         });
     }
 
-    /** Starts a run on the artifacts unless the current one is under way or fresh; call it again to keep them fresh. */
     public prepare(): void {
-        if (!this.artifacts || this.artifacts.stale) this.startRun();
+        if (!this.artifacts || this.artifacts.dueForRefresh) this.startRun();
     }
 
-    /**
-     * Logs exactly one report for this answer, when its checks settle or at flush(), whichever comes first. A run
-     * that was cut short is started again, but age is no reason to: a restart now would settle nothing by the
-     * redirect. While a newer run is in flight, the answer is checked against the last one that settled.
-     */
+    /** Logs exactly one report for this answer, when its checks settle or at flush(), whichever comes first. */
     public verify(resolution: HomeserverResolution, phone: string): Promise<ResolverVerificationReport> {
-        const current = !this.artifacts || this.artifacts.cutShort ? this.startRun() : this.artifacts;
-        const artifacts = current.settledAt === null && this.previous ? this.previous : current;
-        const run = new AnswerRun(artifacts, resolution, phone, this.context);
+        const run = new AnswerRun(this.runForAnswer(), resolution, phone, this.context);
         this.pending.add(run);
         return run.complete().finally(() => this.pending.delete(run));
     }
@@ -492,9 +490,21 @@ export class ResolverVerification {
         for (const run of this.pending) run.finish();
     }
 
+    private runForAnswer(): ArtifactsRun {
+        const current = this.artifacts;
+        const newest = current && !this.needsNewRun(current) ? current : this.startRun();
+        if (!newest.isSettled && this.lastVerified?.settledWithin(MAX_FALLBACK_AGE_MS)) return this.lastVerified;
+        return newest;
+    }
+
+    // A roster that could not be read is read again; an invalid one is a result and is kept.
+    private needsNewRun(run: ArtifactsRun): boolean {
+        return run.isSettled && run.rosterVersion === null && run.failedTransiently;
+    }
+
     private startRun(): ArtifactsRun {
         const replaced = this.artifacts;
-        if (replaced && replaced.settledAt !== null && !replaced.failedTransiently) this.previous = replaced;
+        if (replaced && replaced.rosterVersion !== null) this.lastVerified = replaced;
         this.artifacts = new ArtifactsRun(this.context);
         return this.artifacts;
     }
