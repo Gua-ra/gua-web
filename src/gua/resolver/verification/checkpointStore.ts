@@ -32,13 +32,14 @@ export function localStorageCheckpointStore(resolverBaseUrl: string): Checkpoint
     };
 }
 
-/** Every stored pin with its key, so that clearing localStorage can put them back. */
-export function storedCheckpoints(): [string, string][] {
+/** localStorage.clear(), except that the pins stay: they outlive sign-in and sign-out, and go only with the app's data. */
+export function clearLocalStorageKeepingPins(): void {
     const pins: [string, string][] = [];
     for (let i = 0; i < window.localStorage.length; i++) {
         const key = window.localStorage.key(i);
         const value = key?.startsWith(KEY_PREFIX) ? window.localStorage.getItem(key) : null;
         if (key && value !== null) pins.push([key, value]);
     }
-    return pins;
+    window.localStorage.clear();
+    for (const [key, value] of pins) window.localStorage.setItem(key, value);
 }

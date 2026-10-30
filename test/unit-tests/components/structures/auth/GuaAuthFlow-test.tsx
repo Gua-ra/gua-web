@@ -9,11 +9,12 @@ import React from "react";
 import { webcrypto } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { fireEvent, render, screen, waitFor } from "jest-matrix-react";
+import { act, fireEvent, render, screen, waitFor } from "jest-matrix-react";
 import { logger } from "matrix-js-sdk/src/logger";
 
 import GuaAuthFlow from "../../../../../src/components/structures/auth/GuaAuthFlow";
 import { startGuaPhoneOidcLogin } from "../../../../../src/gua/oidc/startPhoneOidcLogin";
+import { ResolverVerification } from "../../../../../src/gua/resolver/verification/ResolverVerifier";
 import SdkConfig from "../../../../../src/SdkConfig";
 import AutoDiscoveryUtils from "../../../../../src/utils/AutoDiscoveryUtils";
 import * as registerClient from "../../../../../src/utils/oidc/registerClient";
@@ -135,6 +136,20 @@ describe("GuaAuthFlow", () => {
         renderFlow();
 
         await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledWith(`${RESOLVER}/roster`, expect.anything()));
+    });
+
+    it("prepares the resolver's documents again every minute while the phone step is shown", () => {
+        jest.useFakeTimers();
+        const prepare = jest.spyOn(ResolverVerification.prototype, "prepare").mockImplementation(() => {});
+        try {
+            renderFlow();
+            expect(prepare).toHaveBeenCalledTimes(1);
+
+            act(() => jest.advanceTimersByTime(60_000));
+            expect(prepare).toHaveBeenCalledTimes(2);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     it("logs the sign-in's report before redirecting, even while the signed documents are still loading", async () => {

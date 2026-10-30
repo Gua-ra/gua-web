@@ -95,6 +95,20 @@ export function optionalString(value: unknown): string | null {
     return value === undefined || value === null ? null : string(value);
 }
 
+/** A field that may be left out but not sent as null. */
+export function absentOrString(value: unknown): string | null {
+    return value === undefined ? null : string(value);
+}
+
+export function boolean(value: unknown): boolean {
+    if (typeof value !== "boolean") throw new ParseError("expected a boolean");
+    return value;
+}
+
+export function optionalBoolean(value: unknown): boolean | null {
+    return value === undefined || value === null ? null : boolean(value);
+}
+
 export function optionalStringList(value: unknown): string[] | null {
     return value === undefined || value === null ? null : list(value).map(string);
 }

@@ -8,7 +8,7 @@ Please see LICENSE files in the repository root for full details.
 import { logger } from "matrix-js-sdk/src/logger";
 
 import SdkConfig from "../../../SdkConfig";
-import ResolverClient, { type HomeserverResolution } from "../ResolverClient";
+import ResolverClient, { type HomeserverResolution, NOT_FOUND } from "../ResolverClient";
 import {
     type AnswerFields,
     checkRosterSignature,
@@ -66,12 +66,12 @@ export interface ResolverVerificationConfig {
     policyThreshold: number;
 }
 
-/** Anonymous reads of the resolver's public documents, as parsed JSON; a 404 on the policy is null. */
+/** Anonymous reads of the resolver's public documents, as parsed JSON; a 404 on the policy is NOT_FOUND. */
 export interface VerifierTransport {
     fetchRoster(signal?: AbortSignal): Promise<unknown>;
     fetchLog(signal?: AbortSignal): Promise<unknown>;
     fetchConsistency(first: number, second: number, signal?: AbortSignal): Promise<unknown>;
-    fetchRoutingPolicy(signal?: AbortSignal): Promise<unknown | null>;
+    fetchRoutingPolicy(signal?: AbortSignal): Promise<unknown>;
 }
 
 /** Runs `body` holding the lock of one resolver base URL, which every tab and verifier instance shares. */
@@ -298,7 +298,7 @@ class ArtifactsRun {
         } catch (e) {
             return unverifiable(this.fetchFailure(e, Reason.PolicyUnavailable));
         }
-        if (document === null) return this.policyLogStep(null, checkpoint);
+        if (document === NOT_FOUND) return this.policyLogStep(null, checkpoint);
         let bundle: RoutingPolicyBundle;
         try {
             bundle = parseRoutingPolicy(document);
@@ -463,14 +463,17 @@ export class ResolverVerification {
         });
     }
 
-    /** Starts on the artifacts unless a run is still under way; the last run's results serve later answers. */
+    /** Starts a run on the artifacts unless the current one is under way or fresh; call it again to keep them fresh. */
     public prepare(): void {
-        if (!this.artifacts?.running) this.artifacts = new ArtifactsRun(this.context);
+        if (!this.artifacts || this.artifacts.stale) this.artifacts = new ArtifactsRun(this.context);
     }
 
-    /** Logs exactly one report for this answer, when its checks settle or at flush(), whichever comes first. */
+    /**
+     * Logs exactly one report for this answer, when its checks settle or at flush(), whichever comes first. It uses
+     * the current run whatever its age: restarting it now would leave nothing settled by the redirect.
+     */
     public verify(resolution: HomeserverResolution, phone: string): Promise<ResolverVerificationReport> {
-        if (!this.artifacts || this.artifacts.stale) this.artifacts = new ArtifactsRun(this.context);
+        this.artifacts ??= new ArtifactsRun(this.context);
         const run = new AnswerRun(this.artifacts, resolution, phone, this.context);
         this.pending.add(run);
         return run.complete().finally(() => this.pending.delete(run));

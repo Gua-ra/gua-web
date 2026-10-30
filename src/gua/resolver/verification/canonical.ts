@@ -7,15 +7,15 @@ Please see LICENSE files in the repository root for full details.
 
 import { type Signature, signatureFailure, type TrustedKeySet, utf8Bytes } from "./ed25519";
 import {
-    instant,
+    boolean,
     instantToEpochMs,
     int32,
     int64,
     list,
     object,
-    optionalInstant,
     optionalString,
     optionalStringList,
+    ParseError,
     string,
     uint31,
 } from "./json";
@@ -88,8 +88,8 @@ function parseHomeserver(value: unknown): RosterHomeserver {
         baseUrl: optionalString(h.baseUrl),
         masIssuer: optionalString(h.masIssuer),
         region: optionalString(h.region),
-        weight: int32(h.weight ?? 0),
-        acceptsNew: h.acceptsNew === true,
+        weight: int32(h.weight),
+        acceptsNew: boolean(h.acceptsNew),
         signingKey: optionalString(h.signingKey),
         searchVisibility: optionalString(h.searchVisibility),
         searchGroups: optionalStringList(h.searchGroups),
@@ -117,7 +117,7 @@ function parseEntry(value: unknown): RosterEntry {
     return {
         homeserver: parseHomeserver(e.homeserver),
         claims: list(e.claims ?? []).map(parseClaim),
-        admittedAt: optionalInstant(e.admittedAt),
+        admittedAt: optionalString(e.admittedAt),
         status: string(e.status),
         member: e.member ?? undefined,
     };
@@ -129,16 +129,19 @@ function parseSignature(value: unknown): Signature {
     return { keyId: optionalString(s.authorityKeyId) ?? "", signatureB64: optionalString(s.signatureB64) ?? "" };
 }
 
-/** Lenient at the document level (unknown fields ignored), strict about every field the canonical form reads. */
+/**
+ * Lenient at the document level (unknown fields ignored), strict about every field the canonical form reads. The
+ * timestamps stay strings until the signature check, so that a mixed roster reports its form whatever they hold.
+ */
 export function parseSignedRoster(document: unknown): SignedRoster {
     const d = object(document);
     const checkpoint = object(d.logCheckpoint);
     return {
         version: int64(d.version),
-        issuedAt: instant(d.issuedAt),
+        issuedAt: string(d.issuedAt),
         entries: list(d.entries).map(parseEntry),
         logCheckpoint: { merkleRoot: string(checkpoint.merkleRoot), size: uint31(checkpoint.size) },
-        authoritySignatures: list(d.authoritySignatures ?? []).map(parseSignature),
+        authoritySignatures: list(d.authoritySignatures).map(parseSignature),
     };
 }
 
@@ -238,7 +241,14 @@ export async function checkRosterSignature(
     threshold: number,
 ): Promise<CheckResult> {
     if (form === "mixed") return unverifiable(Reason.MixedRosterForm);
-    const votes = await authority.countVotes(canonicalRosterBytes(roster, form), roster.authoritySignatures);
+    let bytes: Uint8Array;
+    try {
+        bytes = canonicalRosterBytes(roster, form);
+    } catch (e) {
+        if (e instanceof ParseError) return unverifiable(Reason.ParseError);
+        throw e;
+    }
+    const votes = await authority.countVotes(bytes, roster.authoritySignatures);
     const failure = signatureFailure(votes, threshold);
     return failure ? invalid(failure) : { outcome: "valid" };
 }

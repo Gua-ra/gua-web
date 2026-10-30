@@ -2043,6 +2043,12 @@
     "evaluatedAt" : "2026-10-27T00:00:00Z",
     "inEffect" : true
   }, {
+    "name" : "an expiresAt in the epoch's first millisecond, which is also signed as no expiresAt",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : "1970-01-01T00:00:00.000001Z",
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "inEffect" : true
+  }, {
     "name" : "a notBefore at the epoch, which is signed as no notBefore",
     "notBefore" : "1970-01-01T00:00:00Z",
     "expiresAt" : "2030-01-01T00:00:00Z",

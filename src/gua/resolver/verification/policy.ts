@@ -13,10 +13,10 @@ import {
     int64,
     list,
     object,
+    optionalBoolean,
     optionalInstant,
     optionalString,
     optionalStringList,
-    ParseError,
 } from "./json";
 import { type LogEvent, MerkleTree } from "./merkle";
 import { type CheckResult, invalid, Reason, unverifiable } from "./report";
@@ -87,8 +87,6 @@ function parseZone(value: unknown): DelegationZone {
 
 function parseRule(value: unknown): RoutingPolicyRule {
     const r = object(value);
-    const enabled = r.enabled ?? null;
-    if (enabled !== null && typeof enabled !== "boolean") throw new ParseError("expected a boolean");
     return {
         id: optionalString(r.id),
         priority: int32(r.priority ?? 0),
@@ -100,7 +98,7 @@ function parseRule(value: unknown): RoutingPolicyRule {
         delegatedZoneId: optionalString(r.delegatedZoneId),
         reason: optionalString(r.reason),
         assignmentPolicy: optionalString(r.assignmentPolicy),
-        enabled,
+        enabled: optionalBoolean(r.enabled),
     };
 }
 
@@ -130,7 +128,10 @@ export function parseRoutingPolicy(document: unknown): RoutingPolicyBundle {
         expiresAt: optionalInstant(d.expiresAt),
         delegationZones: list(d.delegationZones ?? []).map(parseZone),
         rules: list(d.rules ?? []).map(parseRule),
-        fallback: fallback && { type: optionalString(fallback.type), enabled: fallback.enabled === true },
+        fallback: fallback && {
+            type: optionalString(fallback.type),
+            enabled: optionalBoolean(fallback.enabled) ?? false,
+        },
         signatures: list(d.signatures ?? []).map(parseSignature),
         delegateSignatures: list(d.delegateSignatures ?? []).map(parseDelegateSignature),
     };

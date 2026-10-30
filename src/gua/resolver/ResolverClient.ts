@@ -30,6 +30,9 @@ export interface HomeserverResolution {
     rosterVersion?: number;
 }
 
+/** What fetchRoutingPolicy returns for a 404, so that a body of null is not mistaken for one. */
+export const NOT_FOUND = Symbol("not found");
+
 export class ResolverError extends Error {
     public constructor(message: string) {
         super(message);
@@ -98,20 +101,20 @@ export default class ResolverClient {
         return this.getJson(`/roster/log/consistency?first=${first}&second=${second}`, signal);
     }
 
-    /** The signed routing policy (`GET /policy/routing`), or `null` when the resolver serves none (404). */
-    public fetchRoutingPolicy(signal?: AbortSignal): Promise<unknown | null> {
+    /** The signed routing policy (`GET /policy/routing`), or NOT_FOUND when the resolver serves none (404). */
+    public fetchRoutingPolicy(signal?: AbortSignal): Promise<unknown> {
         return this.getJson("/policy/routing", signal, true);
     }
 
     /** A body that is too large, nested too deeply or not JSON rejects with the verifier's ParseError. */
-    private async getJson(path: string, signal?: AbortSignal, nullOnNotFound = false): Promise<unknown> {
+    private async getJson(path: string, signal?: AbortSignal, allowNotFound = false): Promise<unknown> {
         let response: Response;
         try {
             response = await fetch(`${this.baseUrl}${path}`, { headers: { Accept: "application/json" }, signal });
         } catch (e) {
             throw new ResolverError(`Could not reach the routing service: ${String(e)}`);
         }
-        if (nullOnNotFound && response.status === 404) return null;
+        if (allowNotFound && response.status === 404) return NOT_FOUND;
         if (!response.ok) {
             throw new ResolverError(`Routing service error (${response.status}).`);
         }

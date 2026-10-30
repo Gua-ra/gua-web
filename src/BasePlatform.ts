@@ -34,6 +34,7 @@ import SdkConfig from "./SdkConfig";
 import { buildAndEncodePickleKey, encryptPickleKey } from "./utils/tokens/pickling";
 import Favicon from "./favicon.ts";
 import { getVectorConfig } from "./vector/getconfig.ts";
+import { clearLocalStorageKeepingPins } from "./gua/resolver/verification/checkpointStore";
 
 export const SSO_HOMESERVER_URL_KEY = "mx_sso_hs_url";
 export const SSO_ID_SERVER_URL_KEY = "mx_sso_is_url";
@@ -427,7 +428,8 @@ export default abstract class BasePlatform {
      */
     public async clearStorage(): Promise<void> {
         window.sessionStorage.clear();
-        window.localStorage.clear();
+        // GUA FORK: the resolver log pins outlive sign-out, and go only with the app's data.
+        clearLocalStorageKeepingPins();
     }
 
     /**

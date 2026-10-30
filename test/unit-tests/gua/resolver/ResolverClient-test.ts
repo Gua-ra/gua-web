@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
 Please see LICENSE files in the repository root for full details.
 */
 
-import ResolverClient, { ResolverError } from "../../../../src/gua/resolver/ResolverClient";
+import ResolverClient, { NOT_FOUND, ResolverError } from "../../../../src/gua/resolver/ResolverClient";
 import { ParseError } from "../../../../src/gua/resolver/verification/json";
 
 function streamOf(text: string): ReadableStream<Uint8Array> {
@@ -91,8 +91,13 @@ describe("ResolverClient", () => {
             expect(fetchMock.mock.calls[0][0]).toBe("https://resolver.example/roster/log/consistency?first=3&second=7");
         });
 
-        it("reads a 404 on the routing policy as no policy", async () => {
+        it("reads a 404 on the routing policy as NOT_FOUND", async () => {
             fetchMock.mockResolvedValue(response(404));
+            await expect(client.fetchRoutingPolicy()).resolves.toBe(NOT_FOUND);
+        });
+
+        it("reads a 200 routing policy body of null as null, not as a 404", async () => {
+            fetchMock.mockResolvedValue(response(200, "null"));
             await expect(client.fetchRoutingPolicy()).resolves.toBeNull();
         });
 

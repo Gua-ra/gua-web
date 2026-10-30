@@ -7,7 +7,7 @@ Please see LICENSE files in the repository root for full details.
 
 import { type RosterHomeserver } from "./canonical";
 import { type VerifierCrypto } from "./ed25519";
-import { int64, list, object, optionalInstant, optionalString, ParseError, parseInstant } from "./json";
+import { absentOrString, int64, list, object, ParseError, parseInstant } from "./json";
 import { CanonicalEncodingError, LengthPrefixedEncoder } from "./lengthPrefixed";
 import { type CheckResult, invalid, Reason } from "./report";
 
@@ -49,20 +49,20 @@ function strictObject(value: unknown, allowed: Set<string>): Record<string, unkn
 
 function parseSignature(value: unknown): MemberSignature {
     const s = strictObject(value, SIGNATURE_KEYS);
-    return { keyId: optionalString(s.keyId), signatureB64: optionalString(s.signatureB64) };
+    return { keyId: absentOrString(s.keyId), signatureB64: absentOrString(s.signatureB64) };
 }
 
-/** Strict: an unknown field, a wrong JSON type, a fractional sequence or a bound that does not parse refuses it. */
+/** Strict: an unknown field, a wrong JSON type, a null or a fractional sequence refuses the block. */
 export function parseMemberBlock(value: unknown): MemberBlock {
     const m = strictObject(value, MEMBER_KEYS);
     return {
-        schema: optionalString(m.schema),
-        alg: optionalString(m.alg),
-        keyId: optionalString(m.keyId),
+        schema: absentOrString(m.schema),
+        alg: absentOrString(m.alg),
+        keyId: absentOrString(m.keyId),
         sequence: m.sequence === undefined ? 0 : int64(m.sequence),
-        notBefore: optionalInstant(m.notBefore),
-        notAfter: optionalInstant(m.notAfter),
-        signatures: list(m.signatures ?? []).map(parseSignature),
+        notBefore: absentOrString(m.notBefore),
+        notAfter: absentOrString(m.notAfter),
+        signatures: m.signatures === undefined ? [] : list(m.signatures).map(parseSignature),
     };
 }
 
@@ -99,6 +99,7 @@ function blank(value: string | null): boolean {
 function windowFailure(member: MemberBlock, atEpochMs: number): Reason | null {
     const notBefore = member.notBefore === null ? null : parseInstant(member.notBefore);
     const notAfter = member.notAfter === null ? null : parseInstant(member.notAfter);
+    if ((member.notBefore !== null && !notBefore) || (member.notAfter !== null && !notAfter)) return Reason.ParseError;
     if (!notBefore?.exactMillis || !notAfter?.exactMillis) return Reason.BadWindow;
     const lifetime = notAfter.epochMs - notBefore.epochMs;
     if (lifetime <= 0 || lifetime > MAX_LIFETIME_MS) return Reason.BadWindow;

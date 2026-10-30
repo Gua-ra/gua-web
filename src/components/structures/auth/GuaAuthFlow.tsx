@@ -35,6 +35,8 @@ interface Props {
     serverConfig: ValidatedServerConfig;
 }
 
+const VERIFICATION_REFRESH_MS = 60_000;
+
 type Step =
     | { kind: "phone" }
     | { kind: "otp"; phone: string }
@@ -85,10 +87,14 @@ export default function GuaAuthFlow({ onLoggedIn, serverConfig }: Props): JSX.El
     const [resendNonce, setResendNonce] = useState(0);
     const [pinResetNonce, setPinResetNonce] = useState(0);
 
-    // GUA: verify the resolver's roster, log and policy while the user types, so the redirect does not cut them off.
+    // GUA: verify the resolver's roster, log and policy while the phone step is shown, and keep them fresh, so the
+    // redirect that follows the answer does not cut the checks off.
     const showsPhoneEntry = (!!client || hasDelegatedOidc) && step.kind === "phone";
     useEffect(() => {
-        if (showsPhoneEntry) verification?.prepare();
+        if (!showsPhoneEntry || !verification) return;
+        verification.prepare();
+        const refresh = setInterval(() => verification.prepare(), VERIFICATION_REFRESH_MS);
+        return () => clearInterval(refresh);
     }, [verification, showsPhoneEntry]);
 
     const applyOutcome = (outcome: IdentityServiceVerifyOutcome, phone: string): void => {

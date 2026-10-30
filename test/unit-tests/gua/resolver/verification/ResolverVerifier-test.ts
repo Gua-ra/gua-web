@@ -11,7 +11,7 @@ import { join } from "node:path";
 import { logger } from "matrix-js-sdk/src/logger";
 
 import SdkConfig from "../../../../../src/SdkConfig";
-import ResolverClient, { type HomeserverResolution } from "../../../../../src/gua/resolver/ResolverClient";
+import ResolverClient, { type HomeserverResolution, NOT_FOUND } from "../../../../../src/gua/resolver/ResolverClient";
 import {
     canonicalRosterBytes,
     detectRosterForm,
@@ -454,6 +454,29 @@ describe("ResolverVerification", () => {
             expect(report.rosterSignature).toEqual(unverifiable(Reason.ParseError));
         });
 
+        it.each([
+            ["acceptsNew sent as a string", (r: Json) => (r.entries[0].homeserver.acceptsNew = "true")],
+            ["a null weight", (r: Json) => (r.entries[0].homeserver.weight = null)],
+            ["a null status", (r: Json) => (r.entries[0].status = null)],
+            ["null authoritySignatures", (r: Json) => (r.authoritySignatures = null)],
+            ["a timestamp with a sign", (r: Json) => (r.issuedAt = "+2026-10-03T00:00:00Z")],
+        ])("reports a roster with %s as parse_error", async (_case, change) => {
+            const roster = copy(r2.roster);
+            change(roster);
+            const report = await run({ transport: stubTransport({ fetchRoster: async () => roster }) });
+
+            expect(report.rosterSignature).toEqual(unverifiable(Reason.ParseError));
+        });
+
+        it("reads the form before the timestamps, so a mixed roster with a bad one is mixed_roster_form", async () => {
+            const mixed = copy(byName(vectors.rosterRejections, "some entries have searchVisibility").roster);
+            mixed.issuedAt = "yesterday";
+            const report = await run({ transport: stubTransport({ fetchRoster: async () => mixed }) });
+
+            expect(report.rosterForm).toBe("mixed");
+            expect(report.rosterSignature).toEqual(unverifiable(Reason.MixedRosterForm));
+        });
+
         it("counts a signature entry without a key id or a value as one that does not verify", async () => {
             const roster = copy(r2.roster);
             roster.authoritySignatures.push({}, { authorityKeyId: "authority-a" });
@@ -559,6 +582,23 @@ describe("ResolverVerification", () => {
 
             expect(report.rosterSignature).toEqual({ outcome: "valid" });
             expect(report.memberEntry).toEqual(invalid(Reason.ParseError));
+        });
+
+        it("reports a null member field as parse_error", async () => {
+            const roster = copy(r2.roster);
+            roster.entries.find((e: Json) => e.homeserver.id === "hs-br").member.keyId = null;
+            const report = await run({ transport: stubTransport({ fetchRoster: async () => roster }) });
+
+            expect(report.memberEntry).toEqual(invalid(Reason.ParseError));
+        });
+
+        it("checks the schema before a member window bound that does not parse", async () => {
+            const roster = copy(r2.roster);
+            const member = roster.entries.find((e: Json) => e.homeserver.id === "hs-br").member;
+            Object.assign(member, { schema: "gua-member-entry.v2", notBefore: "2026-09-01" });
+            const report = await run({ transport: stubTransport({ fetchRoster: async () => roster }) });
+
+            expect(report.memberEntry).toEqual(invalid(Reason.UnsupportedSchema));
         });
 
         it("reports a member signing key the browser refuses as bad_signing_key and still checks the log", async () => {
@@ -710,7 +750,7 @@ describe("ResolverVerification", () => {
 
     describe("policy", () => {
         const noPolicy = (overrides: Partial<VerifierTransport> = {}): StubTransport =>
-            stubTransport({ fetchRoutingPolicy: async () => null, ...overrides });
+            stubTransport({ fetchRoutingPolicy: async () => NOT_FOUND, ...overrides });
 
         it("reports notPresent for a 404 when the signed log has published no policy", async () => {
             // r1's checkpoint covers the first three leaves, none of them a POLICY_PUBLISH.
@@ -818,6 +858,20 @@ describe("ResolverVerification", () => {
             const report = await run({ transport });
 
             expect(report.policy).toEqual(unverifiable(Reason.LogUnavailable));
+        });
+
+        it("reports a 200 whose policy body is null as parse_error, not as a 404", async () => {
+            const report = await run({ transport: stubTransport({ fetchRoutingPolicy: async () => null }) });
+
+            expect(report.policy).toEqual(unverifiable(Reason.ParseError));
+        });
+
+        it("reports a policy whose fallback enabled flag is a string as parse_error", async () => {
+            const bundle = copy(policy.bundle);
+            bundle.fallback.enabled = "true";
+            const report = await run({ transport: stubTransport({ fetchRoutingPolicy: async () => bundle }) });
+
+            expect(report.policy).toEqual(unverifiable(Reason.ParseError));
         });
 
         it("reports parse_error for a log with a null event", async () => {
@@ -1014,37 +1068,68 @@ describe("ResolverVerification", () => {
             expect(logger.info).toHaveBeenCalledTimes(2);
         });
 
-        it("verifies the artifacts again for an answer more than five minutes after they settled", async () => {
-            let clock = NOW;
-            const transport = stubTransport();
-            const verification = verifier({ transport, now: () => clock });
-            await verification.verify(brAnswer, PHONE);
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        describe("refreshing the artifacts", () => {
+            const rosterFetches = (transport: StubTransport): number =>
+                transport.calls.filter((c) => c === "roster").length;
 
-            clock += 5 * 60_000 + 1;
-            await verification.verify(brAnswer, PHONE);
+            /** A verification whose first run has settled, on a wall clock the test moves. */
+            async function settled(
+                transport: StubTransport,
+            ): Promise<{ verification: ResolverVerification; advance: (ms: number) => void }> {
+                let clock = NOW;
+                const verification = verifier({ transport, now: () => clock });
+                await verification.verify(brAnswer, PHONE);
+                await new Promise((resolve) => setTimeout(resolve, 0));
+                return { verification, advance: (ms) => (clock += ms) };
+            }
 
-            expect(transport.calls.filter((c) => c === "roster")).toHaveLength(2);
-        });
+            it("keeps the run when prepared again within five minutes of it settling", async () => {
+                const transport = stubTransport();
+                const { verification, advance } = await settled(transport);
 
-        it("verifies the artifacts again after a run that timed out", async () => {
-            let rosterCalls = 0;
-            const transport = stubTransport({
-                fetchRoster: (signal) =>
-                    ++rosterCalls === 1
-                        ? new Promise((_, reject) =>
-                              signal?.addEventListener("abort", () => reject(new Error("aborted"))),
-                          )
-                        : Promise.resolve(r2.roster),
+                advance(5 * 60_000);
+                verification.prepare();
+
+                expect(rosterFetches(transport)).toBe(1);
             });
-            const verification = verifier({ transport, budgetMs: 50 });
-            verification.prepare();
-            await new Promise((resolve) => setTimeout(resolve, 100));
 
-            const report = await verification.verify(brAnswer, PHONE);
+            it("starts a new run when prepared again more than five minutes after it settled", async () => {
+                const transport = stubTransport();
+                const { verification, advance } = await settled(transport);
 
-            expect(rosterCalls).toBe(2);
-            expect(report.rosterSignature).toEqual({ outcome: "valid" });
+                advance(5 * 60_000 + 1);
+                verification.prepare();
+
+                await until(() => rosterFetches(transport) === 2);
+            });
+
+            it("starts a new run when prepared again after one that timed out", async () => {
+                const transport = stubTransport({
+                    fetchRoster: (signal) =>
+                        rosterFetches(transport) === 1
+                            ? new Promise((_, reject) =>
+                                  signal?.addEventListener("abort", () => reject(new Error("aborted"))),
+                              )
+                            : Promise.resolve(r2.roster),
+                });
+                const verification = verifier({ transport, budgetMs: 50 });
+                verification.prepare();
+                await new Promise((resolve) => setTimeout(resolve, 100));
+
+                verification.prepare();
+
+                await until(() => rosterFetches(transport) === 2);
+            });
+
+            it("checks an answer against the current run however long ago it settled", async () => {
+                const transport = stubTransport();
+                const { verification, advance } = await settled(transport);
+
+                advance(60 * 60_000);
+                await verification.verify(brAnswer, PHONE);
+
+                expect(rosterFetches(transport)).toBe(1);
+            });
         });
 
         it("logs a pending report at flush with unsettled checks as timeout, and only that one", async () => {

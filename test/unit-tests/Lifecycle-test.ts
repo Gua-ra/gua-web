@@ -36,6 +36,7 @@ import type BasePlatform from "../../src/BasePlatform.ts";
 import { localStorageCheckpointStore } from "../../src/gua/resolver/verification/checkpointStore";
 import { VerifierCrypto } from "../../src/gua/resolver/verification/ed25519";
 import { ResolverVerification } from "../../src/gua/resolver/verification/ResolverVerifier";
+import { NOT_FOUND } from "../../src/gua/resolver/ResolverClient";
 
 const { logout, restoreSessionFromStorage, setLoggedIn } = Lifecycle;
 
@@ -1026,7 +1027,7 @@ describe("Lifecycle", () => {
     });
 
     // GUA FORK: the resolver verifier's log pins outlive the storage resets of sign-in and sign-out.
-    describe("clearStorage() and the resolver log pins", () => {
+    describe("the resolver log pins", () => {
         const vectors = JSON.parse(
             readFileSync(
                 join(__dirname, "gua/resolver/verification/fixtures/gua-client-verification-v1-vectors.json"),
@@ -1043,7 +1044,7 @@ describe("Lifecycle", () => {
                     fetchRoster: async () => r1.roster,
                     fetchLog: async () => ({ events: vectors.log.events }),
                     fetchConsistency: async () => ({ proof: [] }),
-                    fetchRoutingPolicy: async () => null,
+                    fetchRoutingPolicy: async () => NOT_FOUND,
                 },
                 config: {
                     environment: "dev",
@@ -1068,13 +1069,13 @@ describe("Lifecycle", () => {
         });
 
         it.each([
-            ["sign-in", {}],
-            ["sign-out", { deleteEverything: true }],
-        ])("keeps the pin across the %s reset, so the next run compares against it", async (_reset, opts) => {
+            ["the storage reset of a sign-in", () => Lifecycle.clearStorage()],
+            ["sign-out", () => Lifecycle.onLoggedOut()],
+        ])("survive %s, so the next run compares against them", async (_reset, reset) => {
             pins.save(r2.roster.logCheckpoint);
             localStorage.setItem("mx_user_id", userId);
 
-            await Lifecycle.clearStorage(opts);
+            await reset();
             const report = await verifyAgainstR1();
 
             expect(localStorage.getItem("mx_user_id")).toBeNull();
