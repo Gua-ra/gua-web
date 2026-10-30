@@ -1189,6 +1189,36 @@ describe("ResolverVerification", () => {
                 expect(rosterFetches(transport)).toBe(1);
             });
 
+            it("keeps a settled run whose roster no configured key signed", async () => {
+                const untrusted = byName(vectors.rosterRejections, "signed by a key the client does not trust").roster;
+                const transport = stubTransport({ fetchRoster: async () => untrusted });
+                const verification = verifier({ transport, config: authorityA, budgetMs: 500 });
+                verification.prepare();
+                await until(() => rosterFetches(transport) === 1);
+
+                const report = await verification.verify(brAnswer, PHONE);
+
+                expect(report.rosterSignature).toEqual(invalid(Reason.UnknownKeyId));
+                expect(rosterFetches(transport)).toBe(1);
+            });
+
+            it("falls back to a run cut short after its roster verified while its refresh runs", async () => {
+                const hanging = hangingFetch();
+                const transport = stubTransport({
+                    fetchRoster: () =>
+                        rosterFetches(transport) === 1 ? Promise.resolve(r2.roster) : new Promise(() => {}),
+                    fetchRoutingPolicy: hanging.fetch,
+                });
+                const verification = verifier({ transport, budgetMs: 500 });
+                verification.prepare();
+                await until(hanging.cut);
+
+                verification.prepare();
+                const report = await verification.verify(brAnswer, PHONE);
+
+                expect(report.rosterVersion).toBe(7);
+            });
+
             it("checks an answer against the current run however long ago it settled", async () => {
                 const transport = stubTransport();
                 const { verification, advance } = await settledVerification(transport);
@@ -1199,7 +1229,7 @@ describe("ResolverVerification", () => {
                 expect(rosterFetches(transport)).toBe(1);
             });
 
-            it("checks an answer against the last settled run until its refresh settles", async () => {
+            it("checks an answer against the last verified run until its refresh settles", async () => {
                 let releaseRoster = (): void => {};
                 const transport = stubTransport({
                     fetchRoster: () =>
