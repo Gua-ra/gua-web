@@ -1,0 +1,2944 @@
+{
+  "vectors" : "gua-client-verification.v1",
+  "protocol" : "docs/verification/gua-resolver-verification-protocol.md",
+  "notes" : [ "The test keys are the Ed25519 example keys from RFC 8032, section 7.1. They are public, so never use them outside tests.", "The signatures were made with deterministic Ed25519, so they can be reproduced exactly. Some libraries, Apple CryptoKit among them, randomize Ed25519 signatures. With those, verify the signatures here and do not compare their bytes.", "canonicalUtf8 is the exact byte string that gets signed, written as a JSON string, and canonicalHex is the same bytes in hex. gua-roster.v1 separates fields with the control character U+001F.", "Timestamps appear in JSON as ISO-8601 UTC strings with 0 to 9 fractional digits. The signed bytes carry them as epoch milliseconds. Digits past the millisecond are dropped, not rounded.", "Rosters come in two forms. If no entry has searchVisibility, verify the legacy bytes, which leave out the search fields. If every entry has it, verify the v1 bytes. If only some entries have it, refuse the roster.", "The production roster is a copy of https://resolver.gua.global/roster as served on 2026-10-27. It is signed with the production authority key listed under keys.", "Each expected placement is the homeserver the Java reference verifier chooses for a new account from the verified roster and policy. No context carries verified claims, so an affiliation the client states without proof never changes the result.", "Placements are evaluated at their evaluatedAt instant, not at the current time. Weights are summed in 64 bits, so weights whose total passes 2^31 do not wrap.", "A policy bundle or delegation zone is in effect from notBefore, inclusive, until expiresAt, exclusive, compared in whole milliseconds as the signed bytes carry them. A missing bound leaves that side open, and so does a bound in the first millisecond of 1970-01-01T00:00:00Z, because the signed bytes write both as 0. policyValidity checks a bundle at its edges and windows checks the rule itself.", "A resolve answer is located by the strongest match in the roster, whatever the entry order: an ACTIVE entry with the same serverName, baseUrl and masIssuer, then any entry with all three, then any entry with the serverName. Ties go to the entry served first. expectedEntryId names the entry that decided the match.", "In the signed roster bytes a null id, serverName, baseUrl or masIssuer is the text null. The other optional fields are empty.", "expectedOutcome is the outcome a client reports for a rejected roster or policy. A placement's unsignedRuleAbove says whether a matching rule in a zone without a valid delegate signature outranks the rule that decided, which makes the placement check indeterminate(unsigned_rule).", "policyLog cases check a served bundle, or a 404 when servedPolicy is null, against all events in log.events and the checkpoint given in each case.", "Consistency proofs are checked as RFC 9162 section 2.1.4.2 describes, including its rule that a proof fails when hashes remain after the path is complete.", "Vectors refer to rosters and policies by their ref field." ],
+  "keys" : {
+    "rfc8032-test1" : {
+      "usedAsKeyId" : "authority-a",
+      "seedHex" : "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+      "publicKeyHex" : "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+      "privateKeyPkcs8B64" : "MC4CAQAwBQYDK2VwBCIEIJ1hsZ3v/VpguoRK9JLsLMREScVpezJpGXA7rAMcrn9g"
+    },
+    "rfc8032-test2" : {
+      "usedAsKeyId" : "authority-b",
+      "seedHex" : "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb",
+      "publicKeyHex" : "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+      "privateKeyPkcs8B64" : "MC4CAQAwBQYDK2VwBCIEIEzNCJso/5banbbDRuwRTg9bijGfNaumJNqM9u1PuKb7"
+    },
+    "rfc8032-test3" : {
+      "usedAsKeyId" : "governance-a",
+      "seedHex" : "c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7",
+      "publicKeyHex" : "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA/FHNjmIYoaONpH7QAjDwWAgW7RO6MwOsXeuRFUiQgCU=",
+      "privateKeyPkcs8B64" : "MC4CAQAwBQYDK2VwBCIEIMWqjfQ/n4N77bdELzHct7Fm04U1B28JS4XOOi4LRFj3"
+    },
+    "rfc8032-test1024" : {
+      "usedAsKeyId" : "delegate-sp",
+      "seedHex" : "f5e5767cf153319517630f226876b86c8160cc583bc013744c6bf255f5cc0ee5",
+      "publicKeyHex" : "278117fc144c72340f67d0f2316e8386ceffbf2b2428c9c51fef7c597f1d426e",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+      "privateKeyPkcs8B64" : "MC4CAQAwBQYDK2VwBCIEIPXldnzxUzGVF2MPImh2uGyBYMxYO8ATdExr8lX1zA7l"
+    },
+    "rfc8032-test-sha-abc" : {
+      "usedAsKeyId" : "hs-br-1",
+      "seedHex" : "833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42",
+      "publicKeyHex" : "ec172b93ad5e563bf4932c70e1245034c35467ef2efd4d64ebf819683467e2bf",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+      "privateKeyPkcs8B64" : "MC4CAQAwBQYDK2VwBCIEIIM/5iQJI3udYux3WHUgkR6adZzsHRl1W32pAbltyj1C"
+    },
+    "gua-authority-prod" : {
+      "usedAsKeyId" : "gua-authority-prod",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEAmrJntRXbxGkoPe92j1epyM3RBXcx4nmr2wIzL6eb0a0=",
+      "publicKeyHex" : "9ab267b515dbc469283def768f57a9c8cdd1057731e279abdb02332fa79bd1ad",
+      "note" : "Production authority public key. This file holds no private key for it."
+    }
+  },
+  "instants" : [ {
+    "iso" : "2026-10-13T11:45:26.302491581Z",
+    "epochMs" : "1791891926302"
+  }, {
+    "iso" : "2026-08-01T01:25:10.023082Z",
+    "epochMs" : "1785547510023"
+  }, {
+    "iso" : "2026-10-02T00:00:00Z",
+    "epochMs" : "1790899200000"
+  }, {
+    "iso" : "2026-10-01T12:00:00.1Z",
+    "epochMs" : "1790856000100"
+  }, {
+    "iso" : "2026-07-28T10:00:00.5Z",
+    "epochMs" : "1785232800500"
+  }, {
+    "iso" : "2026-10-01T11:59:59.999999999Z",
+    "epochMs" : "1790855999999"
+  }, {
+    "iso" : "1970-01-01T00:00:00Z",
+    "epochMs" : "0"
+  }, {
+    "iso" : "2026-06-17T06:38:38.231502Z",
+    "epochMs" : "1781678318231"
+  } ],
+  "rosters" : [ {
+    "name" : "one homeserver that signs its own entry; one authority signature required",
+    "ref" : "r1",
+    "form" : "v1",
+    "roster" : {
+      "version" : 3,
+      "issuedAt" : "2026-10-01T12:00:00.123456789Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE",
+        "member" : {
+          "schema" : "gua-member-entry.v1",
+          "alg" : "Ed25519",
+          "keyId" : "hs-br-1",
+          "sequence" : 1,
+          "notBefore" : "2026-09-01T00:00:00Z",
+          "notAfter" : "2027-09-01T00:00:00Z",
+          "signatures" : [ {
+            "keyId" : "hs-br-1",
+            "signatureB64" : "1nLx0yJDeZFExvr1K1mAra3rJ0NjicyHHckbZ8lrLebHGLvPi1k8AtlBpjbaOZ8sR3+PC1HscL4uiZvWk8wWCQ=="
+          } ]
+        }
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+        "size" : 3
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "pLYiXt7eT4mwR/Qs/TRfmdLCS6UnKR3NXfipA0FSb+Jl6KFCGDPx7TzfNvp9f78A0/I68S1tSo1bgr6rdwtSCA=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=3\nissuedAt=1790856000123\nlog=1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a:3\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001FGROUP\u001FZ|a|b|é|😀|～\u001F1781678318255\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d330a69737375656441743d313739303835363030303132330a6c6f673d316666353265393336366539626538616238646230306634366533333939316334363739643739623739633133316236663836633064343836303032333835613a330a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f47524f55501f5a7c617c627cc3a97cf09f98807cefbd9e1f313738313637383331383235351f4143544956451f5b5d0a",
+    "sha256Hex" : "49422aa6da88d86f2e69af8e93c447238f8f8e60be5cc49ef131623db8a2b706",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "signatureKeyRefs" : {
+      "authority-a" : "rfc8032-test1"
+    }
+  }, {
+    "name" : "three homeservers with routing claims, group search visibility and one suspended entry; two of two authority signatures required",
+    "ref" : "r2",
+    "form" : "v1",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-02T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-old",
+          "serverName" : "old.gua.test",
+          "baseUrl" : "https://matrix.old.gua.test",
+          "masIssuer" : "https://account.old.gua.test",
+          "region" : "BR",
+          "weight" : 2,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-02-01T00:00:00Z",
+        "status" : "SUSPENDED"
+      }, {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ {
+          "country" : "BR",
+          "mccmnc" : "72411",
+          "carrier" : "Vivo",
+          "phonePrefixes" : [ "+5519", "+5511" ],
+          "affiliation" : null,
+          "attributeMatch" : { },
+          "remoteClaimUrl" : null,
+          "priority" : 10
+        }, {
+          "country" : null,
+          "mccmnc" : null,
+          "carrier" : null,
+          "phonePrefixes" : null,
+          "affiliation" : "usp.br",
+          "attributeMatch" : {
+            "email_domain" : "usp.br",
+            "hd" : "usp.br"
+          },
+          "remoteClaimUrl" : null,
+          "priority" : 5
+        } ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE",
+        "member" : {
+          "schema" : "gua-member-entry.v1",
+          "alg" : "Ed25519",
+          "keyId" : "hs-br-1",
+          "sequence" : 1,
+          "notBefore" : "2026-09-01T00:00:00Z",
+          "notAfter" : "2027-09-01T00:00:00Z",
+          "signatures" : [ {
+            "keyId" : "hs-br-1",
+            "signatureB64" : "1nLx0yJDeZFExvr1K1mAra3rJ0NjicyHHckbZ8lrLebHGLvPi1k8AtlBpjbaOZ8sR3+PC1HscL4uiZvWk8wWCQ=="
+          } ]
+        }
+      }, {
+        "homeserver" : {
+          "id" : "hs-ca",
+          "serverName" : "ca.gua.test",
+          "baseUrl" : "https://matrix.ca.gua.test",
+          "masIssuer" : "https://account.ca.gua.test",
+          "region" : null,
+          "weight" : 3,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+          "searchVisibility" : "SERVER",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "B3okXyPR/ZPJfRaLwy/4MvIqc78n97cLnm1j8SZb54tiZOpf2a+TByoNQKnZnij2RP4Fbz6cDC9RdtKLoWUUBQ=="
+      }, {
+        "authorityKeyId" : "authority-b",
+        "signatureB64" : "4cxuj5Be1t9xt8pUyk5lucYRWzBYOi0o0BKKcALlFMquzN2rOw4Zv6Y0GGabJdAep+HmnhGQj5V41YZe5gFMCQ=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=7\nissuedAt=1790899200000\nlog=b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad:7\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001FGROUP\u001FZ|a|b|é|😀|～\u001F1781678318255\u001FACTIVE\u001Fcountry=,mccmnc=,carrier=,prefixes=,affiliation=usp.br,attrs=email_domain=usp.br|hd=usp.br,remote=,priority=5;country=BR,mccmnc=72411,carrier=Vivo,prefixes=+5511|+5519,affiliation=,attrs=,remote=,priority=10\nhs-ca\u001Fca.gua.test\u001Fhttps://matrix.ca.gua.test\u001Fhttps://account.ca.gua.test\u001F\u001F3\u001Ftrue\u001FMCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=\u001FSERVER\u001F\u001F1784521114332\u001FACTIVE\u001F[]\nhs-old\u001Fold.gua.test\u001Fhttps://matrix.old.gua.test\u001Fhttps://account.old.gua.test\u001FBR\u001F2\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1769904000000\u001FSUSPENDED\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d370a69737375656441743d313739303839393230303030300a6c6f673d623237306232373361613433363536623730326631643835316266373763353735366261313134626233393563306231663638666161316139623834646261643a370a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f47524f55501f5a7c617c627cc3a97cf09f98807cefbd9e1f313738313637383331383235351f4143544956451f636f756e7472793d2c6d63636d6e633d2c636172726965723d2c70726566697865733d2c616666696c696174696f6e3d7573702e62722c61747472733d656d61696c5f646f6d61696e3d7573702e62727c68643d7573702e62722c72656d6f74653d2c7072696f726974793d353b636f756e7472793d42522c6d63636d6e633d37323431312c636172726965723d5669766f2c70726566697865733d2b353531317c2b353531392c616666696c696174696f6e3d2c61747472733d2c72656d6f74653d2c7072696f726974793d31300a68732d63611f63612e6775612e746573741f68747470733a2f2f6d61747269782e63612e6775612e746573741f68747470733a2f2f6163636f756e742e63612e6775612e746573741f1f331f747275651f4d436f77425159444b3256774179454150554158772b6844695671537477716e5452742b764a79594c4d3875784a614d774d3156385372305a67773d1f5345525645521f1f313738343532313131343333321f4143544956451f5b5d0a68732d6f6c641f6f6c642e6775612e746573741f68747470733a2f2f6d61747269782e6f6c642e6775612e746573741f68747470733a2f2f6163636f756e742e6f6c642e6775612e746573741f42521f321f747275651f1f474c4f42414c1f1f313736393930343030303030301f53555350454e4445441f5b5d0a",
+    "sha256Hex" : "582dd46a7fbb0b9533190fb9701de62925e81d456c7a8b37867525ee38d44dfc",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    }, {
+      "id" : "authority-b",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw="
+    } ],
+    "threshold" : 2,
+    "validSignatures" : 2,
+    "verified" : true,
+    "signatureKeyRefs" : {
+      "authority-a" : "rfc8032-test1",
+      "authority-b" : "rfc8032-test2"
+    }
+  }, {
+    "name" : "legacy form: no entry has search fields",
+    "ref" : "r4",
+    "form" : "legacy",
+    "roster" : {
+      "version" : 2,
+      "issuedAt" : "2026-07-28T10:00:00.500Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8="
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd",
+        "size" : 2
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "5+PzSMFSovK/sbb4xfss7aZ+hci0WkG0bhSxhAp8ome4NCoTycqcW2QBtTU4KBT5R6Y59nwn9LRaYb1tO1HjBw=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=2\nissuedAt=1785232800500\nlog=62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd:2\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001F1781678318255\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d320a69737375656441743d313738353233323830303530300a6c6f673d363263333166326535303034646562616634396533396232386666386266616465363836633864626435366130626338326462323766363864616536323263643a320a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f313738313637383331383235351f4143544956451f5b5d0a",
+    "sha256Hex" : "37c34a5353aea1df98899db5ff5f419d6b196a49e4cbf9c67dcedfc35fe239be",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "signatureKeyRefs" : {
+      "authority-a" : "rfc8032-test1"
+    }
+  }, {
+    "name" : "legacy form: the production roster of 2026-10-27",
+    "ref" : "prod-2026-10-27",
+    "form" : "legacy",
+    "roster" : {
+      "version" : 1,
+      "issuedAt" : "2026-10-13T11:45:26.302491581Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "prod",
+          "serverName" : "gua.global",
+          "baseUrl" : "https://server.gua.global",
+          "masIssuer" : "https://account.gua.global",
+          "region" : "prod",
+          "weight" : 1,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEAhw5Sk0SwHk2dcfWc38VtgtVKg9XZwYgfeTrnE8qwON8="
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-08-01T01:25:09.996827Z",
+        "status" : "ACTIVE",
+        "active" : true
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "4c096dbce460156c720d57348a4bd227f3e93e8c4a5a96164f8a1bd9db5e7e79",
+        "size" : 1
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "gua-authority-prod",
+        "signatureB64" : "/mx3efnHtAoez5pjgm2N29OAQGPsBt2H0gcXOVAiXmyvND8Q5Qi2yj2l0YIOODb6k1KFePpf/c5kHrock1xEAw=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=1\nissuedAt=1791891926302\nlog=4c096dbce460156c720d57348a4bd227f3e93e8c4a5a96164f8a1bd9db5e7e79:1\nprod\u001Fgua.global\u001Fhttps://server.gua.global\u001Fhttps://account.gua.global\u001Fprod\u001F1\u001Ftrue\u001FMCowBQYDK2VwAyEAhw5Sk0SwHk2dcfWc38VtgtVKg9XZwYgfeTrnE8qwON8=\u001F1785547509996\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d310a69737375656441743d313739313839313932363330320a6c6f673d346330393664626365343630313536633732306435373334386134626432323766336539336538633461356139363136346638613162643964623565376537393a310a70726f641f6775612e676c6f62616c1f68747470733a2f2f7365727665722e6775612e676c6f62616c1f68747470733a2f2f6163636f756e742e6775612e676c6f62616c1f70726f641f311f747275651f4d436f77425159444b32567741794541687735536b305377486b326463665763333856746774564b6739585a775967666554726e453871774f4e383d1f313738353534373530393939361f4143544956451f5b5d0a",
+    "sha256Hex" : "3085e51a56c35d0d9ed260391e58355a8ea89a337f80299d79e28af19cbe428a",
+    "trustedKeys" : [ {
+      "id" : "gua-authority-prod",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEAmrJntRXbxGkoPe92j1epyM3RBXcx4nmr2wIzL6eb0a0="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "signatureKeyRefs" : { }
+  }, {
+    "name" : "two server names that each appear twice: a suspended entry served before an active one",
+    "ref" : "r5",
+    "form" : "v1",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-03T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-br-retired",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 1,
+          "acceptsNew" : false,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-02-01T00:00:00Z",
+        "status" : "SUSPENDED"
+      }, {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE"
+      }, {
+        "homeserver" : {
+          "id" : "hs-ca-retired",
+          "serverName" : "ca.gua.test",
+          "baseUrl" : "https://matrix.ca.gua.test",
+          "masIssuer" : "https://account.ca.gua.test",
+          "region" : null,
+          "weight" : 1,
+          "acceptsNew" : false,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-02-01T00:00:00Z",
+        "status" : "SUSPENDED"
+      }, {
+        "homeserver" : {
+          "id" : "hs-ca-moved",
+          "serverName" : "ca.gua.test",
+          "baseUrl" : "https://matrix2.ca.gua.test",
+          "masIssuer" : "https://account.ca.gua.test",
+          "region" : null,
+          "weight" : 3,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "lhcCXR+UU+n5/3ACVKgVBEkbjgxwQzf4oQ1qwiVcvPwmr2SA6oZ0KTyC8m7BTLcQd0xPxwGzPNRkYUMrM8qtDg=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=7\nissuedAt=1790985600000\nlog=b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad:7\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001FGROUP\u001FZ|a|b|é|😀|～\u001F1781678318255\u001FACTIVE\u001F[]\nhs-br-retired\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F1\u001Ffalse\u001F\u001FGLOBAL\u001F\u001F1769904000000\u001FSUSPENDED\u001F[]\nhs-ca-moved\u001Fca.gua.test\u001Fhttps://matrix2.ca.gua.test\u001Fhttps://account.ca.gua.test\u001F\u001F3\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\nhs-ca-retired\u001Fca.gua.test\u001Fhttps://matrix.ca.gua.test\u001Fhttps://account.ca.gua.test\u001F\u001F1\u001Ffalse\u001F\u001FGLOBAL\u001F\u001F1769904000000\u001FSUSPENDED\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d370a69737375656441743d313739303938353630303030300a6c6f673d623237306232373361613433363536623730326631643835316266373763353735366261313134626233393563306231663638666161316139623834646261643a370a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f47524f55501f5a7c617c627cc3a97cf09f98807cefbd9e1f313738313637383331383235351f4143544956451f5b5d0a68732d62722d726574697265641f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f311f66616c73651f1f474c4f42414c1f1f313736393930343030303030301f53555350454e4445441f5b5d0a68732d63612d6d6f7665641f63612e6775612e746573741f68747470733a2f2f6d6174726978322e63612e6775612e746573741f68747470733a2f2f6163636f756e742e63612e6775612e746573741f1f331f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a68732d63612d726574697265641f63612e6775612e746573741f68747470733a2f2f6d61747269782e63612e6775612e746573741f68747470733a2f2f6163636f756e742e63612e6775612e746573741f1f311f66616c73651f1f474c4f42414c1f1f313736393930343030303030301f53555350454e4445441f5b5d0a",
+    "sha256Hex" : "0e1347c7745fe5e4e19e684f1c5b44358d0b02fde72fb121ffe04ee76cd1aa02",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "signatureKeyRefs" : {
+      "authority-a" : "rfc8032-test1"
+    }
+  }, {
+    "name" : "two homeservers whose weights add up past 2^31",
+    "ref" : "r6",
+    "form" : "v1",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-04T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-heavy-a",
+          "serverName" : "heavy-a.gua.test",
+          "baseUrl" : "https://matrix.heavy-a.gua.test",
+          "masIssuer" : "https://account.heavy-a.gua.test",
+          "region" : null,
+          "weight" : 2000000000,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE"
+      }, {
+        "homeserver" : {
+          "id" : "hs-heavy-b",
+          "serverName" : "heavy-b.gua.test",
+          "baseUrl" : "https://matrix.heavy-b.gua.test",
+          "masIssuer" : "https://account.heavy-b.gua.test",
+          "region" : null,
+          "weight" : 2000000000,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "1yU/kj7ZebxgMIIL+YiiqOO8Kbu6/nIKWibFCz8Atc7r/GOT2NkmYkRSFKPILQlIu3XxvFsk0ANrZWMVoZ4bCA=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=7\nissuedAt=1791072000000\nlog=b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad:7\nhs-heavy-a\u001Fheavy-a.gua.test\u001Fhttps://matrix.heavy-a.gua.test\u001Fhttps://account.heavy-a.gua.test\u001F\u001F2000000000\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1781678318255\u001FACTIVE\u001F[]\nhs-heavy-b\u001Fheavy-b.gua.test\u001Fhttps://matrix.heavy-b.gua.test\u001Fhttps://account.heavy-b.gua.test\u001F\u001F2000000000\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d370a69737375656441743d313739313037323030303030300a6c6f673d623237306232373361613433363536623730326631643835316266373763353735366261313134626233393563306231663638666161316139623834646261643a370a68732d68656176792d611f68656176792d612e6775612e746573741f68747470733a2f2f6d61747269782e68656176792d612e6775612e746573741f68747470733a2f2f6163636f756e742e68656176792d612e6775612e746573741f1f323030303030303030301f747275651f1f474c4f42414c1f1f313738313637383331383235351f4143544956451f5b5d0a68732d68656176792d621f68656176792d622e6775612e746573741f68747470733a2f2f6d61747269782e68656176792d622e6775612e746573741f68747470733a2f2f6163636f756e742e68656176792d622e6775612e746573741f1f323030303030303030301f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a",
+    "sha256Hex" : "8390e6f970cb0230cb16c43b0b2d235a4760c427f783397edfd96ddff65ebdf6",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "signatureKeyRefs" : {
+      "authority-a" : "rfc8032-test1"
+    }
+  }, {
+    "name" : "an entry without an auth issuer",
+    "ref" : "r7",
+    "form" : "v1",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-05T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-no-issuer",
+          "serverName" : "plain.gua.test",
+          "baseUrl" : "https://matrix.plain.gua.test",
+          "masIssuer" : null,
+          "region" : null,
+          "weight" : 1,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "9W4vJ1IzmzECPKv+hI2YweobluSXqrBnSaU8hhCW0WTc3ufPCf6v6vly2EhCWKip6AKW4lWdBP4zNHcTZVFPAg=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=7\nissuedAt=1791158400000\nlog=b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad:7\nhs-no-issuer\u001Fplain.gua.test\u001Fhttps://matrix.plain.gua.test\u001Fnull\u001F\u001F1\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d370a69737375656441743d313739313135383430303030300a6c6f673d623237306232373361613433363536623730326631643835316266373763353735366261313134626233393563306231663638666161316139623834646261643a370a68732d6e6f2d6973737565721f706c61696e2e6775612e746573741f68747470733a2f2f6d61747269782e706c61696e2e6775612e746573741f6e756c6c1f1f311f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a",
+    "sha256Hex" : "64e5bdf5ea6ec1688e6d822d9789b5d64f063f4bd899970e4b06d6f931d44cb7",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "signatureKeyRefs" : {
+      "authority-a" : "rfc8032-test1"
+    }
+  }, {
+    "name" : "an invalid signature from a key followed by a valid one from the same key",
+    "form" : "v1",
+    "roster" : {
+      "version" : 3,
+      "issuedAt" : "2026-10-01T12:00:00.123456789Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE",
+        "member" : {
+          "schema" : "gua-member-entry.v1",
+          "alg" : "Ed25519",
+          "keyId" : "hs-br-1",
+          "sequence" : 1,
+          "notBefore" : "2026-09-01T00:00:00Z",
+          "notAfter" : "2027-09-01T00:00:00Z",
+          "signatures" : [ {
+            "keyId" : "hs-br-1",
+            "signatureB64" : "1nLx0yJDeZFExvr1K1mAra3rJ0NjicyHHckbZ8lrLebHGLvPi1k8AtlBpjbaOZ8sR3+PC1HscL4uiZvWk8wWCQ=="
+          } ]
+        }
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+        "size" : 3
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "+2ZlqOJ4oNaoBFC5XUxO9+S8eGlNt2bhbIt1T4WJ4fOzlwnn1xT4FzAjz31PRjMLIWy/TpUnSyK71hJaoUyPCg=="
+      }, {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "pLYiXt7eT4mwR/Qs/TRfmdLCS6UnKR3NXfipA0FSb+Jl6KFCGDPx7TzfNvp9f78A0/I68S1tSo1bgr6rdwtSCA=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=3\nissuedAt=1790856000123\nlog=1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a:3\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001FGROUP\u001FZ|a|b|é|😀|～\u001F1781678318255\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d330a69737375656441743d313739303835363030303132330a6c6f673d316666353265393336366539626538616238646230306634366533333939316334363739643739623739633133316236663836633064343836303032333835613a330a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f47524f55501f5a7c617c627cc3a97cf09f98807cefbd9e1f313738313637383331383235351f4143544956451f5b5d0a",
+    "sha256Hex" : "49422aa6da88d86f2e69af8e93c447238f8f8e60be5cc49ef131623db8a2b706",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "reason" : "A signature that fails does not use up its key, so the valid one still counts."
+  } ],
+  "rosterRejections" : [ {
+    "name" : "baseUrl changed after signing",
+    "form" : "v1",
+    "roster" : {
+      "version" : 3,
+      "issuedAt" : "2026-10-01T12:00:00.123456789Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.evil.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE",
+        "member" : {
+          "schema" : "gua-member-entry.v1",
+          "alg" : "Ed25519",
+          "keyId" : "hs-br-1",
+          "sequence" : 1,
+          "notBefore" : "2026-09-01T00:00:00Z",
+          "notAfter" : "2027-09-01T00:00:00Z",
+          "signatures" : [ {
+            "keyId" : "hs-br-1",
+            "signatureB64" : "1nLx0yJDeZFExvr1K1mAra3rJ0NjicyHHckbZ8lrLebHGLvPi1k8AtlBpjbaOZ8sR3+PC1HscL4uiZvWk8wWCQ=="
+          } ]
+        }
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+        "size" : 3
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "pLYiXt7eT4mwR/Qs/TRfmdLCS6UnKR3NXfipA0FSb+Jl6KFCGDPx7TzfNvp9f78A0/I68S1tSo1bgr6rdwtSCA=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=3\nissuedAt=1790856000123\nlog=1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a:3\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.evil.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001FGROUP\u001FZ|a|b|é|😀|～\u001F1781678318255\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d330a69737375656441743d313739303835363030303132330a6c6f673d316666353265393336366539626538616238646230306634366533333939316334363739643739623739633133316236663836633064343836303032333835613a330a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e6576696c2e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f47524f55501f5a7c617c627cc3a97cf09f98807cefbd9e1f313738313637383331383235351f4143544956451f5b5d0a",
+    "sha256Hex" : "2db7d5085d0979e36016847e343e3bb4362daf439810f84bd9e29500ec33d3ef",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 0,
+    "verified" : false,
+    "reason" : "The signed bytes changed, so the signature fails.",
+    "expectedOutcome" : "invalid(bad_signature)"
+  }, {
+    "name" : "signed by a key the client does not trust",
+    "form" : "v1",
+    "roster" : {
+      "version" : 3,
+      "issuedAt" : "2026-10-01T12:00:00.123456789Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE",
+        "member" : {
+          "schema" : "gua-member-entry.v1",
+          "alg" : "Ed25519",
+          "keyId" : "hs-br-1",
+          "sequence" : 1,
+          "notBefore" : "2026-09-01T00:00:00Z",
+          "notAfter" : "2027-09-01T00:00:00Z",
+          "signatures" : [ {
+            "keyId" : "hs-br-1",
+            "signatureB64" : "1nLx0yJDeZFExvr1K1mAra3rJ0NjicyHHckbZ8lrLebHGLvPi1k8AtlBpjbaOZ8sR3+PC1HscL4uiZvWk8wWCQ=="
+          } ]
+        }
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+        "size" : 3
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-b",
+        "signatureB64" : "s0nxnWFKHRbrkN1r7uYk/52lt2WtcJCY/6izlBOiXsq/gehwx5Tui+Uq6KO55mjCSZv5QkJJaVMA8aAN8OD0Ag=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=3\nissuedAt=1790856000123\nlog=1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a:3\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001FGROUP\u001FZ|a|b|é|😀|～\u001F1781678318255\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d330a69737375656441743d313739303835363030303132330a6c6f673d316666353265393336366539626538616238646230306634366533333939316334363739643739623739633133316236663836633064343836303032333835613a330a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f47524f55501f5a7c617c627cc3a97cf09f98807cefbd9e1f313738313637383331383235351f4143544956451f5b5d0a",
+    "sha256Hex" : "49422aa6da88d86f2e69af8e93c447238f8f8e60be5cc49ef131623db8a2b706",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 0,
+    "verified" : false,
+    "reason" : "Only authority-b signed and the client trusts only authority-a, so no signature counts.",
+    "expectedOutcome" : "invalid(unknown_key_id)"
+  }, {
+    "name" : "one signature where two are required",
+    "form" : "v1",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-02T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-old",
+          "serverName" : "old.gua.test",
+          "baseUrl" : "https://matrix.old.gua.test",
+          "masIssuer" : "https://account.old.gua.test",
+          "region" : "BR",
+          "weight" : 2,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-02-01T00:00:00Z",
+        "status" : "SUSPENDED"
+      }, {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ {
+          "country" : "BR",
+          "mccmnc" : "72411",
+          "carrier" : "Vivo",
+          "phonePrefixes" : [ "+5519", "+5511" ],
+          "affiliation" : null,
+          "attributeMatch" : { },
+          "remoteClaimUrl" : null,
+          "priority" : 10
+        }, {
+          "country" : null,
+          "mccmnc" : null,
+          "carrier" : null,
+          "phonePrefixes" : null,
+          "affiliation" : "usp.br",
+          "attributeMatch" : {
+            "email_domain" : "usp.br",
+            "hd" : "usp.br"
+          },
+          "remoteClaimUrl" : null,
+          "priority" : 5
+        } ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE",
+        "member" : {
+          "schema" : "gua-member-entry.v1",
+          "alg" : "Ed25519",
+          "keyId" : "hs-br-1",
+          "sequence" : 1,
+          "notBefore" : "2026-09-01T00:00:00Z",
+          "notAfter" : "2027-09-01T00:00:00Z",
+          "signatures" : [ {
+            "keyId" : "hs-br-1",
+            "signatureB64" : "1nLx0yJDeZFExvr1K1mAra3rJ0NjicyHHckbZ8lrLebHGLvPi1k8AtlBpjbaOZ8sR3+PC1HscL4uiZvWk8wWCQ=="
+          } ]
+        }
+      }, {
+        "homeserver" : {
+          "id" : "hs-ca",
+          "serverName" : "ca.gua.test",
+          "baseUrl" : "https://matrix.ca.gua.test",
+          "masIssuer" : "https://account.ca.gua.test",
+          "region" : null,
+          "weight" : 3,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+          "searchVisibility" : "SERVER",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "B3okXyPR/ZPJfRaLwy/4MvIqc78n97cLnm1j8SZb54tiZOpf2a+TByoNQKnZnij2RP4Fbz6cDC9RdtKLoWUUBQ=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=7\nissuedAt=1790899200000\nlog=b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad:7\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001FGROUP\u001FZ|a|b|é|😀|～\u001F1781678318255\u001FACTIVE\u001Fcountry=,mccmnc=,carrier=,prefixes=,affiliation=usp.br,attrs=email_domain=usp.br|hd=usp.br,remote=,priority=5;country=BR,mccmnc=72411,carrier=Vivo,prefixes=+5511|+5519,affiliation=,attrs=,remote=,priority=10\nhs-ca\u001Fca.gua.test\u001Fhttps://matrix.ca.gua.test\u001Fhttps://account.ca.gua.test\u001F\u001F3\u001Ftrue\u001FMCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=\u001FSERVER\u001F\u001F1784521114332\u001FACTIVE\u001F[]\nhs-old\u001Fold.gua.test\u001Fhttps://matrix.old.gua.test\u001Fhttps://account.old.gua.test\u001FBR\u001F2\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1769904000000\u001FSUSPENDED\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d370a69737375656441743d313739303839393230303030300a6c6f673d623237306232373361613433363536623730326631643835316266373763353735366261313134626233393563306231663638666161316139623834646261643a370a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f47524f55501f5a7c617c627cc3a97cf09f98807cefbd9e1f313738313637383331383235351f4143544956451f636f756e7472793d2c6d63636d6e633d2c636172726965723d2c70726566697865733d2c616666696c696174696f6e3d7573702e62722c61747472733d656d61696c5f646f6d61696e3d7573702e62727c68643d7573702e62722c72656d6f74653d2c7072696f726974793d353b636f756e7472793d42522c6d63636d6e633d37323431312c636172726965723d5669766f2c70726566697865733d2b353531317c2b353531392c616666696c696174696f6e3d2c61747472733d2c72656d6f74653d2c7072696f726974793d31300a68732d63611f63612e6775612e746573741f68747470733a2f2f6d61747269782e63612e6775612e746573741f68747470733a2f2f6163636f756e742e63612e6775612e746573741f1f331f747275651f4d436f77425159444b3256774179454150554158772b6844695671537477716e5452742b764a79594c4d3875784a614d774d3156385372305a67773d1f5345525645521f1f313738343532313131343333321f4143544956451f5b5d0a68732d6f6c641f6f6c642e6775612e746573741f68747470733a2f2f6d61747269782e6f6c642e6775612e746573741f68747470733a2f2f6163636f756e742e6f6c642e6775612e746573741f42521f321f747275651f1f474c4f42414c1f1f313736393930343030303030301f53555350454e4445441f5b5d0a",
+    "sha256Hex" : "582dd46a7fbb0b9533190fb9701de62925e81d456c7a8b37867525ee38d44dfc",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    }, {
+      "id" : "authority-b",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw="
+    } ],
+    "threshold" : 2,
+    "validSignatures" : 1,
+    "verified" : false,
+    "reason" : "One valid signature, two required.",
+    "expectedOutcome" : "invalid(threshold_not_met)"
+  }, {
+    "name" : "the same signature listed twice",
+    "form" : "v1",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-02T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-old",
+          "serverName" : "old.gua.test",
+          "baseUrl" : "https://matrix.old.gua.test",
+          "masIssuer" : "https://account.old.gua.test",
+          "region" : "BR",
+          "weight" : 2,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-02-01T00:00:00Z",
+        "status" : "SUSPENDED"
+      }, {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ {
+          "country" : "BR",
+          "mccmnc" : "72411",
+          "carrier" : "Vivo",
+          "phonePrefixes" : [ "+5519", "+5511" ],
+          "affiliation" : null,
+          "attributeMatch" : { },
+          "remoteClaimUrl" : null,
+          "priority" : 10
+        }, {
+          "country" : null,
+          "mccmnc" : null,
+          "carrier" : null,
+          "phonePrefixes" : null,
+          "affiliation" : "usp.br",
+          "attributeMatch" : {
+            "email_domain" : "usp.br",
+            "hd" : "usp.br"
+          },
+          "remoteClaimUrl" : null,
+          "priority" : 5
+        } ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE",
+        "member" : {
+          "schema" : "gua-member-entry.v1",
+          "alg" : "Ed25519",
+          "keyId" : "hs-br-1",
+          "sequence" : 1,
+          "notBefore" : "2026-09-01T00:00:00Z",
+          "notAfter" : "2027-09-01T00:00:00Z",
+          "signatures" : [ {
+            "keyId" : "hs-br-1",
+            "signatureB64" : "1nLx0yJDeZFExvr1K1mAra3rJ0NjicyHHckbZ8lrLebHGLvPi1k8AtlBpjbaOZ8sR3+PC1HscL4uiZvWk8wWCQ=="
+          } ]
+        }
+      }, {
+        "homeserver" : {
+          "id" : "hs-ca",
+          "serverName" : "ca.gua.test",
+          "baseUrl" : "https://matrix.ca.gua.test",
+          "masIssuer" : "https://account.ca.gua.test",
+          "region" : null,
+          "weight" : 3,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+          "searchVisibility" : "SERVER",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "B3okXyPR/ZPJfRaLwy/4MvIqc78n97cLnm1j8SZb54tiZOpf2a+TByoNQKnZnij2RP4Fbz6cDC9RdtKLoWUUBQ=="
+      }, {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "B3okXyPR/ZPJfRaLwy/4MvIqc78n97cLnm1j8SZb54tiZOpf2a+TByoNQKnZnij2RP4Fbz6cDC9RdtKLoWUUBQ=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=7\nissuedAt=1790899200000\nlog=b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad:7\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001FGROUP\u001FZ|a|b|é|😀|～\u001F1781678318255\u001FACTIVE\u001Fcountry=,mccmnc=,carrier=,prefixes=,affiliation=usp.br,attrs=email_domain=usp.br|hd=usp.br,remote=,priority=5;country=BR,mccmnc=72411,carrier=Vivo,prefixes=+5511|+5519,affiliation=,attrs=,remote=,priority=10\nhs-ca\u001Fca.gua.test\u001Fhttps://matrix.ca.gua.test\u001Fhttps://account.ca.gua.test\u001F\u001F3\u001Ftrue\u001FMCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=\u001FSERVER\u001F\u001F1784521114332\u001FACTIVE\u001F[]\nhs-old\u001Fold.gua.test\u001Fhttps://matrix.old.gua.test\u001Fhttps://account.old.gua.test\u001FBR\u001F2\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1769904000000\u001FSUSPENDED\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d370a69737375656441743d313739303839393230303030300a6c6f673d623237306232373361613433363536623730326631643835316266373763353735366261313134626233393563306231663638666161316139623834646261643a370a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f47524f55501f5a7c617c627cc3a97cf09f98807cefbd9e1f313738313637383331383235351f4143544956451f636f756e7472793d2c6d63636d6e633d2c636172726965723d2c70726566697865733d2c616666696c696174696f6e3d7573702e62722c61747472733d656d61696c5f646f6d61696e3d7573702e62727c68643d7573702e62722c72656d6f74653d2c7072696f726974793d353b636f756e7472793d42522c6d63636d6e633d37323431312c636172726965723d5669766f2c70726566697865733d2b353531317c2b353531392c616666696c696174696f6e3d2c61747472733d2c72656d6f74653d2c7072696f726974793d31300a68732d63611f63612e6775612e746573741f68747470733a2f2f6d61747269782e63612e6775612e746573741f68747470733a2f2f6163636f756e742e63612e6775612e746573741f1f331f747275651f4d436f77425159444b3256774179454150554158772b6844695671537477716e5452742b764a79594c4d3875784a614d774d3156385372305a67773d1f5345525645521f1f313738343532313131343333321f4143544956451f5b5d0a68732d6f6c641f6f6c642e6775612e746573741f68747470733a2f2f6d61747269782e6f6c642e6775612e746573741f68747470733a2f2f6163636f756e742e6f6c642e6775612e746573741f42521f321f747275651f1f474c4f42414c1f1f313736393930343030303030301f53555350454e4445441f5b5d0a",
+    "sha256Hex" : "582dd46a7fbb0b9533190fb9701de62925e81d456c7a8b37867525ee38d44dfc",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    }, {
+      "id" : "authority-b",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw="
+    } ],
+    "threshold" : 2,
+    "validSignatures" : 1,
+    "verified" : false,
+    "reason" : "A key counts once however often it appears, so the second required signature is missing.",
+    "expectedOutcome" : "invalid(threshold_not_met)"
+  }, {
+    "name" : "a signature without a key id",
+    "form" : "v1",
+    "roster" : {
+      "version" : 3,
+      "issuedAt" : "2026-10-01T12:00:00.123456789Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE",
+        "member" : {
+          "schema" : "gua-member-entry.v1",
+          "alg" : "Ed25519",
+          "keyId" : "hs-br-1",
+          "sequence" : 1,
+          "notBefore" : "2026-09-01T00:00:00Z",
+          "notAfter" : "2027-09-01T00:00:00Z",
+          "signatures" : [ {
+            "keyId" : "hs-br-1",
+            "signatureB64" : "1nLx0yJDeZFExvr1K1mAra3rJ0NjicyHHckbZ8lrLebHGLvPi1k8AtlBpjbaOZ8sR3+PC1HscL4uiZvWk8wWCQ=="
+          } ]
+        }
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+        "size" : 3
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : null,
+        "signatureB64" : "pLYiXt7eT4mwR/Qs/TRfmdLCS6UnKR3NXfipA0FSb+Jl6KFCGDPx7TzfNvp9f78A0/I68S1tSo1bgr6rdwtSCA=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=3\nissuedAt=1790856000123\nlog=1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a:3\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001FGROUP\u001FZ|a|b|é|😀|～\u001F1781678318255\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d330a69737375656441743d313739303835363030303132330a6c6f673d316666353265393336366539626538616238646230306634366533333939316334363739643739623739633133316236663836633064343836303032333835613a330a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f47524f55501f5a7c617c627cc3a97cf09f98807cefbd9e1f313738313637383331383235351f4143544956451f5b5d0a",
+    "sha256Hex" : "49422aa6da88d86f2e69af8e93c447238f8f8e60be5cc49ef131623db8a2b706",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 0,
+    "verified" : false,
+    "reason" : "A signature that names no key counts for none.",
+    "expectedOutcome" : "invalid(unknown_key_id)"
+  }, {
+    "name" : "a v1 roster checked against its legacy bytes",
+    "form" : "legacy",
+    "roster" : {
+      "version" : 3,
+      "issuedAt" : "2026-10-01T12:00:00.123456789Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE",
+        "member" : {
+          "schema" : "gua-member-entry.v1",
+          "alg" : "Ed25519",
+          "keyId" : "hs-br-1",
+          "sequence" : 1,
+          "notBefore" : "2026-09-01T00:00:00Z",
+          "notAfter" : "2027-09-01T00:00:00Z",
+          "signatures" : [ {
+            "keyId" : "hs-br-1",
+            "signatureB64" : "1nLx0yJDeZFExvr1K1mAra3rJ0NjicyHHckbZ8lrLebHGLvPi1k8AtlBpjbaOZ8sR3+PC1HscL4uiZvWk8wWCQ=="
+          } ]
+        }
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+        "size" : 3
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "pLYiXt7eT4mwR/Qs/TRfmdLCS6UnKR3NXfipA0FSb+Jl6KFCGDPx7TzfNvp9f78A0/I68S1tSo1bgr6rdwtSCA=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=3\nissuedAt=1790856000123\nlog=1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a:3\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001F1781678318255\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d330a69737375656441743d313739303835363030303132330a6c6f673d316666353265393336366539626538616238646230306634366533333939316334363739643739623739633133316236663836633064343836303032333835613a330a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f313738313637383331383235351f4143544956451f5b5d0a",
+    "sha256Hex" : "2133ce4aabdcd853d4e9b437b6288592d1ac550c8c9541e326fb0f18682d1f07",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 0,
+    "verified" : false,
+    "reason" : "The signature covers the v1 bytes, so the legacy bytes fail. Check this vector with the form it names, not the form its JSON implies.",
+    "expectedOutcome" : "invalid(bad_signature)"
+  }, {
+    "name" : "some entries have searchVisibility and others do not",
+    "form" : "mixed",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-02T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-old",
+          "serverName" : "old.gua.test",
+          "baseUrl" : "https://matrix.old.gua.test",
+          "masIssuer" : "https://account.old.gua.test",
+          "region" : "BR",
+          "weight" : 2,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-02-01T00:00:00Z",
+        "status" : "SUSPENDED"
+      }, {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8="
+        },
+        "claims" : [ {
+          "country" : "BR",
+          "mccmnc" : "72411",
+          "carrier" : "Vivo",
+          "phonePrefixes" : [ "+5519", "+5511" ],
+          "affiliation" : null,
+          "attributeMatch" : { },
+          "remoteClaimUrl" : null,
+          "priority" : 10
+        }, {
+          "country" : null,
+          "mccmnc" : null,
+          "carrier" : null,
+          "phonePrefixes" : null,
+          "affiliation" : "usp.br",
+          "attributeMatch" : {
+            "email_domain" : "usp.br",
+            "hd" : "usp.br"
+          },
+          "remoteClaimUrl" : null,
+          "priority" : 5
+        } ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE",
+        "member" : {
+          "schema" : "gua-member-entry.v1",
+          "alg" : "Ed25519",
+          "keyId" : "hs-br-1",
+          "sequence" : 1,
+          "notBefore" : "2026-09-01T00:00:00Z",
+          "notAfter" : "2027-09-01T00:00:00Z",
+          "signatures" : [ {
+            "keyId" : "hs-br-1",
+            "signatureB64" : "1nLx0yJDeZFExvr1K1mAra3rJ0NjicyHHckbZ8lrLebHGLvPi1k8AtlBpjbaOZ8sR3+PC1HscL4uiZvWk8wWCQ=="
+          } ]
+        }
+      }, {
+        "homeserver" : {
+          "id" : "hs-ca",
+          "serverName" : "ca.gua.test",
+          "baseUrl" : "https://matrix.ca.gua.test",
+          "masIssuer" : "https://account.ca.gua.test",
+          "region" : null,
+          "weight" : 3,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+          "searchVisibility" : "SERVER",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "B3okXyPR/ZPJfRaLwy/4MvIqc78n97cLnm1j8SZb54tiZOpf2a+TByoNQKnZnij2RP4Fbz6cDC9RdtKLoWUUBQ=="
+      }, {
+        "authorityKeyId" : "authority-b",
+        "signatureB64" : "4cxuj5Be1t9xt8pUyk5lucYRWzBYOi0o0BKKcALlFMquzN2rOw4Zv6Y0GGabJdAep+HmnhGQj5V41YZe5gFMCQ=="
+      } ]
+    },
+    "clientOnly" : true,
+    "reason" : "The form is ambiguous, so the roster is refused before any signature is checked.",
+    "expectedOutcome" : "unverifiable(mixed_roster_form)"
+  } ],
+  "log" : {
+    "leafData" : "Each leaf is the UTF-8 string index|type|homeserverId|payloadHash|recordedAt. homeserverId holds the event subject, such as hs-br or br-policy:v3, and is empty when null. recordedAt is in epoch milliseconds.",
+    "hashing" : "RFC 6962 hashing: a leaf is SHA-256(0x00 || data), an inner node is SHA-256(0x01 || left || right), and the root of the empty tree is the SHA-256 of zero bytes.",
+    "events" : [ {
+      "index" : 0,
+      "type" : "ADMIT",
+      "homeserverId" : "hs-br",
+      "payloadHash" : "b9f3449075019452f5a7e5f0d7a5f5d6121bfb072ccba03168f1350fdcf19161",
+      "recordedAt" : "2026-06-17T06:38:38.255492Z",
+      "leafDataUtf8" : "0|ADMIT|hs-br|b9f3449075019452f5a7e5f0d7a5f5d6121bfb072ccba03168f1350fdcf19161|1781678318255",
+      "leafHashHex" : "b86e68d249bd68158d04e34d27bd7ae03a6b0934250db92ca7c23636a9ed8c9c"
+    }, {
+      "index" : 1,
+      "type" : "ADMIT",
+      "homeserverId" : "hs-ca",
+      "payloadHash" : "676657352c49748b7e2627249a8849eb2bf472f531d63960c2c99a3554ce8b91",
+      "recordedAt" : "2026-07-20T04:18:34.332941Z",
+      "leafDataUtf8" : "1|ADMIT|hs-ca|676657352c49748b7e2627249a8849eb2bf472f531d63960c2c99a3554ce8b91|1784521114332",
+      "leafHashHex" : "71612ec909525329e62cb936a0e7e94d4357f40f909c5695f9679df58fca9e3f"
+    }, {
+      "index" : 2,
+      "type" : "MEMBER_ATTEST",
+      "homeserverId" : "hs-br",
+      "payloadHash" : "7e6175bd7f5b8356245dc48bbd52b5eb725f649d6404c92722167f1b33e8f973",
+      "recordedAt" : "2026-09-01T00:00:00.000001Z",
+      "leafDataUtf8" : "2|MEMBER_ATTEST|hs-br|7e6175bd7f5b8356245dc48bbd52b5eb725f649d6404c92722167f1b33e8f973|1788220800000",
+      "leafHashHex" : "7bebe58d5b0c3b0fb052e5e757a7d2b70891ebb771aae05e66d9e9ddc4414911"
+    }, {
+      "index" : 3,
+      "type" : "POLICY_PUBLISH",
+      "homeserverId" : "br-policy:v3",
+      "payloadHash" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9",
+      "recordedAt" : "2026-09-15T08:31:00.123456Z",
+      "leafDataUtf8" : "3|POLICY_PUBLISH|br-policy:v3|9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9|1789461060123",
+      "leafHashHex" : "1777fd1942d4b4f50e5aa61832e5bba9c7c31725b0863bbda629d6960d1653f3"
+    }, {
+      "index" : 4,
+      "type" : "ADMIT",
+      "homeserverId" : "hs-old",
+      "payloadHash" : "267c329892bbe3b031ff3776b5e07a5e3b5debe9d62275bcd18060ca0f770d17",
+      "recordedAt" : "2026-02-01T00:00:00Z",
+      "leafDataUtf8" : "4|ADMIT|hs-old|267c329892bbe3b031ff3776b5e07a5e3b5debe9d62275bcd18060ca0f770d17|1769904000000",
+      "leafHashHex" : "b291694f971d0f75562e2e3758b7da22f0467c7d96045f6e3cff178e33cec7bf"
+    }, {
+      "index" : 5,
+      "type" : "SUSPENDED",
+      "homeserverId" : "hs-old",
+      "payloadHash" : "4f954b8e5c6b0f75b54d62fa06dd8932a10b79da9bfa5581b0abf5e61ec3f705",
+      "recordedAt" : "2026-09-20T12:00:00Z",
+      "leafDataUtf8" : "5|SUSPENDED|hs-old|4f954b8e5c6b0f75b54d62fa06dd8932a10b79da9bfa5581b0abf5e61ec3f705|1789905600000",
+      "leafHashHex" : "ebd8acd163694255c76df2c5aa768119695594238681efa6fabff0c25e3aa6db"
+    }, {
+      "index" : 6,
+      "type" : "DIRECTORY_CHECKPOINT",
+      "homeserverId" : null,
+      "payloadHash" : "18ef2c29cf885c0210074367b0b84120751217f7d40a26dce809606cb2ab9654",
+      "recordedAt" : "2026-10-01T11:59:59.999999999Z",
+      "leafDataUtf8" : "6|DIRECTORY_CHECKPOINT||18ef2c29cf885c0210074367b0b84120751217f7d40a26dce809606cb2ab9654|1790855999999",
+      "leafHashHex" : "4cbb51f2d707e1f083ad1eb56cc5bbe3aacbf6037d81f010e7d710ebbc3fce8d"
+    }, {
+      "index" : 7,
+      "type" : "POLICY_PUBLISH",
+      "homeserverId" : "br-policy:v4",
+      "payloadHash" : "3062d144db277f4932ed4868ead008e4aa6c1814d3a9ce6a1e8e102e86a0b67d",
+      "recordedAt" : "2026-10-05T00:00:00Z",
+      "leafDataUtf8" : "7|POLICY_PUBLISH|br-policy:v4|3062d144db277f4932ed4868ead008e4aa6c1814d3a9ce6a1e8e102e86a0b67d|1791158400000",
+      "leafHashHex" : "de972731d0f474fe4e9b72cb0ad473e2a90fbb32167d2780d8e80d65e1cebbec"
+    } ],
+    "roots" : [ {
+      "size" : 0,
+      "rootHex" : "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }, {
+      "size" : 1,
+      "rootHex" : "b86e68d249bd68158d04e34d27bd7ae03a6b0934250db92ca7c23636a9ed8c9c"
+    }, {
+      "size" : 2,
+      "rootHex" : "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd"
+    }, {
+      "size" : 3,
+      "rootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a"
+    }, {
+      "size" : 4,
+      "rootHex" : "f38a131d0ac314933b3c6dbf8673bf0f78c005fc1b075ddfa2e2277a5e3c51c5"
+    }, {
+      "size" : 5,
+      "rootHex" : "a2093eb2f695b7072bba8b49a564ef161bb2f24a63dcd52abe2a405a0a7b7fdf"
+    }, {
+      "size" : 6,
+      "rootHex" : "9627cd5b618b053e2ef8f265c5a8311ae1901b05025d1e434f939e6ab8089c29"
+    }, {
+      "size" : 7,
+      "rootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad"
+    }, {
+      "size" : 8,
+      "rootHex" : "4d158effb6b68af05cc01eaaa42ede02ad8126183cbc69a1e0297be330b7e0c6"
+    } ],
+    "consistencyProofs" : [ {
+      "first" : 0,
+      "second" : 7,
+      "oldRootHex" : "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+      "proof" : [ ],
+      "valid" : true
+    }, {
+      "first" : 1,
+      "second" : 2,
+      "oldRootHex" : "b86e68d249bd68158d04e34d27bd7ae03a6b0934250db92ca7c23636a9ed8c9c",
+      "newRootHex" : "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd",
+      "proof" : [ "71612ec909525329e62cb936a0e7e94d4357f40f909c5695f9679df58fca9e3f" ],
+      "valid" : true
+    }, {
+      "first" : 1,
+      "second" : 3,
+      "oldRootHex" : "b86e68d249bd68158d04e34d27bd7ae03a6b0934250db92ca7c23636a9ed8c9c",
+      "newRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+      "proof" : [ "71612ec909525329e62cb936a0e7e94d4357f40f909c5695f9679df58fca9e3f", "7bebe58d5b0c3b0fb052e5e757a7d2b70891ebb771aae05e66d9e9ddc4414911" ],
+      "valid" : true
+    }, {
+      "first" : 1,
+      "second" : 7,
+      "oldRootHex" : "b86e68d249bd68158d04e34d27bd7ae03a6b0934250db92ca7c23636a9ed8c9c",
+      "newRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+      "proof" : [ "71612ec909525329e62cb936a0e7e94d4357f40f909c5695f9679df58fca9e3f", "d53c3583739bb785a3714a6df946d1943b1232075544f2f6266425dbf80f02f0", "f89383366c3dead9ce109f9a8f91e29e4fbda03d2166ef6a38ef19a71914f8b6" ],
+      "valid" : true
+    }, {
+      "first" : 2,
+      "second" : 3,
+      "oldRootHex" : "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd",
+      "newRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+      "proof" : [ "7bebe58d5b0c3b0fb052e5e757a7d2b70891ebb771aae05e66d9e9ddc4414911" ],
+      "valid" : true
+    }, {
+      "first" : 2,
+      "second" : 5,
+      "oldRootHex" : "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd",
+      "newRootHex" : "a2093eb2f695b7072bba8b49a564ef161bb2f24a63dcd52abe2a405a0a7b7fdf",
+      "proof" : [ "d53c3583739bb785a3714a6df946d1943b1232075544f2f6266425dbf80f02f0", "b291694f971d0f75562e2e3758b7da22f0467c7d96045f6e3cff178e33cec7bf" ],
+      "valid" : true
+    }, {
+      "first" : 3,
+      "second" : 5,
+      "oldRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+      "newRootHex" : "a2093eb2f695b7072bba8b49a564ef161bb2f24a63dcd52abe2a405a0a7b7fdf",
+      "proof" : [ "7bebe58d5b0c3b0fb052e5e757a7d2b70891ebb771aae05e66d9e9ddc4414911", "1777fd1942d4b4f50e5aa61832e5bba9c7c31725b0863bbda629d6960d1653f3", "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd", "b291694f971d0f75562e2e3758b7da22f0467c7d96045f6e3cff178e33cec7bf" ],
+      "valid" : true
+    }, {
+      "first" : 3,
+      "second" : 7,
+      "oldRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+      "newRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+      "proof" : [ "7bebe58d5b0c3b0fb052e5e757a7d2b70891ebb771aae05e66d9e9ddc4414911", "1777fd1942d4b4f50e5aa61832e5bba9c7c31725b0863bbda629d6960d1653f3", "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd", "f89383366c3dead9ce109f9a8f91e29e4fbda03d2166ef6a38ef19a71914f8b6" ],
+      "valid" : true
+    }, {
+      "first" : 4,
+      "second" : 7,
+      "oldRootHex" : "f38a131d0ac314933b3c6dbf8673bf0f78c005fc1b075ddfa2e2277a5e3c51c5",
+      "newRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+      "proof" : [ "f89383366c3dead9ce109f9a8f91e29e4fbda03d2166ef6a38ef19a71914f8b6" ],
+      "valid" : true
+    }, {
+      "first" : 5,
+      "second" : 7,
+      "oldRootHex" : "a2093eb2f695b7072bba8b49a564ef161bb2f24a63dcd52abe2a405a0a7b7fdf",
+      "newRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+      "proof" : [ "b291694f971d0f75562e2e3758b7da22f0467c7d96045f6e3cff178e33cec7bf", "ebd8acd163694255c76df2c5aa768119695594238681efa6fabff0c25e3aa6db", "4cbb51f2d707e1f083ad1eb56cc5bbe3aacbf6037d81f010e7d710ebbc3fce8d", "f38a131d0ac314933b3c6dbf8673bf0f78c005fc1b075ddfa2e2277a5e3c51c5" ],
+      "valid" : true
+    }, {
+      "first" : 6,
+      "second" : 7,
+      "oldRootHex" : "9627cd5b618b053e2ef8f265c5a8311ae1901b05025d1e434f939e6ab8089c29",
+      "newRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+      "proof" : [ "fe364f47c66b36544d723544f234d79dee4d968c4e82d80cfabc483c05fb8bc3", "4cbb51f2d707e1f083ad1eb56cc5bbe3aacbf6037d81f010e7d710ebbc3fce8d", "f38a131d0ac314933b3c6dbf8673bf0f78c005fc1b075ddfa2e2277a5e3c51c5" ],
+      "valid" : true
+    }, {
+      "first" : 7,
+      "second" : 7,
+      "oldRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+      "newRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+      "proof" : [ ],
+      "valid" : true
+    } ],
+    "invalidConsistencyProofs" : [ {
+      "name" : "the new root was changed",
+      "first" : 3,
+      "second" : 7,
+      "oldRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+      "newRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dba0",
+      "proof" : [ "7bebe58d5b0c3b0fb052e5e757a7d2b70891ebb771aae05e66d9e9ddc4414911", "1777fd1942d4b4f50e5aa61832e5bba9c7c31725b0863bbda629d6960d1653f3", "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd", "f89383366c3dead9ce109f9a8f91e29e4fbda03d2166ef6a38ef19a71914f8b6" ],
+      "valid" : false,
+      "reason" : "The proof leads to a different new root."
+    }, {
+      "name" : "the pinned root is not part of the new tree",
+      "first" : 3,
+      "second" : 7,
+      "oldRootHex" : "f38a131d0ac314933b3c6dbf8673bf0f78c005fc1b075ddfa2e2277a5e3c51c5",
+      "newRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+      "proof" : [ "7bebe58d5b0c3b0fb052e5e757a7d2b70891ebb771aae05e66d9e9ddc4414911", "1777fd1942d4b4f50e5aa61832e5bba9c7c31725b0863bbda629d6960d1653f3", "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd", "f89383366c3dead9ce109f9a8f91e29e4fbda03d2166ef6a38ef19a71914f8b6" ],
+      "valid" : false,
+      "reason" : "The proof leads to a different old root than the one pinned."
+    }, {
+      "name" : "a proof made for other sizes",
+      "first" : 3,
+      "second" : 5,
+      "oldRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+      "newRootHex" : "a2093eb2f695b7072bba8b49a564ef161bb2f24a63dcd52abe2a405a0a7b7fdf",
+      "proof" : [ "d53c3583739bb785a3714a6df946d1943b1232075544f2f6266425dbf80f02f0", "b291694f971d0f75562e2e3758b7da22f0467c7d96045f6e3cff178e33cec7bf" ],
+      "valid" : false,
+      "reason" : "The proof was made for sizes 2 and 5, not 3 and 5."
+    }, {
+      "name" : "rollback: the served tree is smaller than the pinned one",
+      "first" : 7,
+      "second" : 3,
+      "oldRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+      "newRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+      "proof" : [ ],
+      "valid" : false,
+      "reason" : "A tree that shrank is a rollback. Refuse it without checking the proof."
+    }, {
+      "name" : "proof with its last hash removed",
+      "first" : 3,
+      "second" : 7,
+      "oldRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+      "newRootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+      "proof" : [ "7bebe58d5b0c3b0fb052e5e757a7d2b70891ebb771aae05e66d9e9ddc4414911", "1777fd1942d4b4f50e5aa61832e5bba9c7c31725b0863bbda629d6960d1653f3", "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd" ],
+      "valid" : false,
+      "reason" : "The proof is too short."
+    }, {
+      "name" : "equal sizes with a non-empty proof",
+      "first" : 3,
+      "second" : 3,
+      "oldRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+      "newRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+      "proof" : [ "7bebe58d5b0c3b0fb052e5e757a7d2b70891ebb771aae05e66d9e9ddc4414911", "1777fd1942d4b4f50e5aa61832e5bba9c7c31725b0863bbda629d6960d1653f3", "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd", "f89383366c3dead9ce109f9a8f91e29e4fbda03d2166ef6a38ef19a71914f8b6" ],
+      "valid" : false,
+      "reason" : "Two trees of the same size need the same root and an empty proof."
+    }, {
+      "name" : "equal sizes with different roots",
+      "first" : 3,
+      "second" : 3,
+      "oldRootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+      "newRootHex" : "f38a131d0ac314933b3c6dbf8673bf0f78c005fc1b075ddfa2e2277a5e3c51c5",
+      "proof" : [ ],
+      "valid" : false,
+      "reason" : "Same size, different root: the history was rewritten."
+    }, {
+      "name" : "a proof with hashes left after the path ends",
+      "first" : 6,
+      "second" : 8,
+      "oldRootHex" : "9627cd5b618b053e2ef8f265c5a8311ae1901b05025d1e434f939e6ab8089c29",
+      "newRootHex" : "fd965c7d662a4b6f411d1273a52f449db5ba208964cd84fccb4854b5eb0c27ed",
+      "proof" : [ "ebd8acd163694255c76df2c5aa768119695594238681efa6fabff0c25e3aa6db", "e3f203a89cd90e2717b2f83fb184bc04493f6080010ed32f48a06e7fff1e975a", "b291694f971d0f75562e2e3758b7da22f0467c7d96045f6e3cff178e33cec7bf", "f38a131d0ac314933b3c6dbf8673bf0f78c005fc1b075ddfa2e2277a5e3c51c5" ],
+      "valid" : false,
+      "reason" : "RFC 9162 fails a proof once the path is complete and hashes remain. Without that rule this one proves a root no 8-leaf log has."
+    } ]
+  },
+  "policies" : [ {
+    "name" : "signed by a policy key; two zones carry delegate signatures and one does not",
+    "ref" : "br-policy v3",
+    "bundle" : {
+      "schemaVersion" : "gua-routing-policy.v1",
+      "policyId" : "br-policy",
+      "version" : 3,
+      "issuedAt" : "2026-09-15T08:30:00.250Z",
+      "notBefore" : "2026-01-01T00:00:00Z",
+      "expiresAt" : "2030-01-01T00:00:00Z",
+      "delegationZones" : [ {
+        "id" : "sp-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+55119",
+        "delegatedAuthority" : "carrier:vivo",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "edu-zone",
+        "scopeType" : "INSTITUTION_DOMAIN",
+        "scopeValue" : "usp.br",
+        "delegatedAuthority" : "institution:usp",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "na-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+1",
+        "delegatedAuthority" : "carrier:na",
+        "delegateKeyId" : "delegate-na",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+        "allowedHomeserverIds" : [ "hs-ca" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      } ],
+      "rules" : [ {
+        "id" : "r-sp",
+        "priority" : 10,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+551198",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-br",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "carrier route",
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      }, {
+        "id" : "r-usp",
+        "priority" : 5,
+        "matchType" : "INSTITUTION_DOMAIN",
+        "matchValue" : "usp.br",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-br",
+        "delegatedZoneId" : "edu-zone",
+        "reason" : "institution route",
+        "assignmentPolicy" : "REQUIRES_CONFIRMATION",
+        "enabled" : true
+      }, {
+        "id" : "r-disabled",
+        "priority" : 1,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+55",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "disabled rule",
+        "assignmentPolicy" : null,
+        "enabled" : false
+      }, {
+        "id" : "r-na",
+        "priority" : 2,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+1",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "na-zone",
+        "reason" : null,
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      } ],
+      "fallback" : {
+        "type" : "legacy-weighted",
+        "enabled" : true
+      },
+      "signatures" : [ {
+        "authorityKeyId" : "governance-a",
+        "signatureB64" : "DAVdVilSLW8/Q8DPtNV7os3tfhoWwhoLKbwud/XnyWj0wTvR2Qlhl/gEqNnj/nAni4VNdwUBF4q8bsKMErueBg=="
+      } ],
+      "delegateSignatures" : [ {
+        "zoneId" : "sp-zone",
+        "delegateKeyId" : "delegate-sp",
+        "signatureB64" : "VgCvs8Vs1KyBspnXoc4FHSPmHkC7zKGngNUWZoKmoDtXGpngv34KB1lC2hPNMS4L+HlUw5HS091RT1OKNCpzAw=="
+      }, {
+        "zoneId" : "edu-zone",
+        "delegateKeyId" : "delegate-sp",
+        "signatureB64" : "K+pg5oNgC5C2CHINEbBtxGmZUswgyF/ZlEP0bEET2a6mM461Ar3Dumo7H5YHKeVXPkOdgF9NITQYUNljnYR4Ag=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-routing-policy.v1\nschema=gua-routing-policy.v1\npolicyId=br-policy\nversion=3\nissuedAt=1789461000250\nnotBefore=1767225600000\nexpiresAt=1893456000000\nzone\u001Fedu-zone\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001Finstitution:usp\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nzone\u001Fna-zone\u001FPHONE_PREFIX\u001F+1\u001Fcarrier:na\u001Fdelegate-na\u001FMCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=\u001Fhs-ca\u001F1767225600000\u001F1893456000000\nzone\u001Fsp-zone\u001FPHONE_PREFIX\u001F+55119\u001Fcarrier:vivo\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-br\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\nfallback=legacy-weighted:true\n",
+    "canonicalHex" : "6775612d726f7574696e672d706f6c6963792e76310a736368656d613d6775612d726f7574696e672d706f6c6963792e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a69737375656441743d313738393436313030303235300a6e6f744265666f72653d313736373232353630303030300a6578706972657341743d313839333435363030303030300a7a6f6e651f6564752d7a6f6e651f494e535449545554494f4e5f444f4d41494e1f7573702e62721f696e737469747574696f6e3a7573701f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a7a6f6e651f6e612d7a6f6e651f50484f4e455f5052454649581f2b311f636172726965723a6e611f64656c65676174652d6e611f4d436f77425159444b3256774179454150554158772b6844695671537477716e5452742b764a79594c4d3875784a614d774d3156385372305a67773d1f68732d63611f313736373232353630303030301f313839333435363030303030300a7a6f6e651f73702d7a6f6e651f50484f4e455f5052454649581f2b35353131391f636172726965723a7669766f1f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d62721f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a66616c6c6261636b3d6c65676163792d77656967687465643a747275650a",
+    "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9",
+    "delegatedRules" : [ {
+      "zoneId" : "sp-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=sp-zone\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-br\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d73702d7a6f6e650a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d62721f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a"
+    }, {
+      "zoneId" : "edu-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=edu-zone\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6564752d7a6f6e650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a"
+    }, {
+      "zoneId" : "na-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=na-zone\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6e612d7a6f6e650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a"
+    } ],
+    "trustedKeys" : [ {
+      "id" : "governance-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA/FHNjmIYoaONpH7QAjDwWAgW7RO6MwOsXeuRFUiQgCU=",
+      "keyRef" : "rfc8032-test3"
+    } ],
+    "threshold" : 1,
+    "verified" : true,
+    "delegateVerifiedZones" : [ "edu-zone", "sp-zone" ]
+  }, {
+    "name" : "no delegate signature for sp-zone: the bundle verifies but its sp-zone rules are ignored",
+    "ref" : "br-policy v3 without the sp-zone delegate signature",
+    "bundle" : {
+      "schemaVersion" : "gua-routing-policy.v1",
+      "policyId" : "br-policy",
+      "version" : 3,
+      "issuedAt" : "2026-09-15T08:30:00.250Z",
+      "notBefore" : "2026-01-01T00:00:00Z",
+      "expiresAt" : "2030-01-01T00:00:00Z",
+      "delegationZones" : [ {
+        "id" : "sp-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+55119",
+        "delegatedAuthority" : "carrier:vivo",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "edu-zone",
+        "scopeType" : "INSTITUTION_DOMAIN",
+        "scopeValue" : "usp.br",
+        "delegatedAuthority" : "institution:usp",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "na-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+1",
+        "delegatedAuthority" : "carrier:na",
+        "delegateKeyId" : "delegate-na",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+        "allowedHomeserverIds" : [ "hs-ca" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      } ],
+      "rules" : [ {
+        "id" : "r-sp",
+        "priority" : 10,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+551198",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-br",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "carrier route",
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      }, {
+        "id" : "r-usp",
+        "priority" : 5,
+        "matchType" : "INSTITUTION_DOMAIN",
+        "matchValue" : "usp.br",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-br",
+        "delegatedZoneId" : "edu-zone",
+        "reason" : "institution route",
+        "assignmentPolicy" : "REQUIRES_CONFIRMATION",
+        "enabled" : true
+      }, {
+        "id" : "r-disabled",
+        "priority" : 1,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+55",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "disabled rule",
+        "assignmentPolicy" : null,
+        "enabled" : false
+      }, {
+        "id" : "r-na",
+        "priority" : 2,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+1",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "na-zone",
+        "reason" : null,
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      } ],
+      "fallback" : {
+        "type" : "legacy-weighted",
+        "enabled" : true
+      },
+      "signatures" : [ {
+        "authorityKeyId" : "governance-a",
+        "signatureB64" : "DAVdVilSLW8/Q8DPtNV7os3tfhoWwhoLKbwud/XnyWj0wTvR2Qlhl/gEqNnj/nAni4VNdwUBF4q8bsKMErueBg=="
+      } ],
+      "delegateSignatures" : [ {
+        "zoneId" : "edu-zone",
+        "delegateKeyId" : "delegate-sp",
+        "signatureB64" : "K+pg5oNgC5C2CHINEbBtxGmZUswgyF/ZlEP0bEET2a6mM461Ar3Dumo7H5YHKeVXPkOdgF9NITQYUNljnYR4Ag=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-routing-policy.v1\nschema=gua-routing-policy.v1\npolicyId=br-policy\nversion=3\nissuedAt=1789461000250\nnotBefore=1767225600000\nexpiresAt=1893456000000\nzone\u001Fedu-zone\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001Finstitution:usp\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nzone\u001Fna-zone\u001FPHONE_PREFIX\u001F+1\u001Fcarrier:na\u001Fdelegate-na\u001FMCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=\u001Fhs-ca\u001F1767225600000\u001F1893456000000\nzone\u001Fsp-zone\u001FPHONE_PREFIX\u001F+55119\u001Fcarrier:vivo\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-br\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\nfallback=legacy-weighted:true\n",
+    "canonicalHex" : "6775612d726f7574696e672d706f6c6963792e76310a736368656d613d6775612d726f7574696e672d706f6c6963792e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a69737375656441743d313738393436313030303235300a6e6f744265666f72653d313736373232353630303030300a6578706972657341743d313839333435363030303030300a7a6f6e651f6564752d7a6f6e651f494e535449545554494f4e5f444f4d41494e1f7573702e62721f696e737469747574696f6e3a7573701f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a7a6f6e651f6e612d7a6f6e651f50484f4e455f5052454649581f2b311f636172726965723a6e611f64656c65676174652d6e611f4d436f77425159444b3256774179454150554158772b6844695671537477716e5452742b764a79594c4d3875784a614d774d3156385372305a67773d1f68732d63611f313736373232353630303030301f313839333435363030303030300a7a6f6e651f73702d7a6f6e651f50484f4e455f5052454649581f2b35353131391f636172726965723a7669766f1f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d62721f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a66616c6c6261636b3d6c65676163792d77656967687465643a747275650a",
+    "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9",
+    "delegatedRules" : [ {
+      "zoneId" : "sp-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=sp-zone\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-br\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d73702d7a6f6e650a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d62721f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a"
+    }, {
+      "zoneId" : "edu-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=edu-zone\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6564752d7a6f6e650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a"
+    }, {
+      "zoneId" : "na-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=na-zone\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6e612d7a6f6e650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a"
+    } ],
+    "trustedKeys" : [ {
+      "id" : "governance-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA/FHNjmIYoaONpH7QAjDwWAgW7RO6MwOsXeuRFUiQgCU=",
+      "keyRef" : "rfc8032-test3"
+    } ],
+    "threshold" : 1,
+    "verified" : true,
+    "delegateVerifiedZones" : [ "edu-zone" ]
+  } ],
+  "policyRejections" : [ {
+    "name" : "signed by the roster authority key, which is not a policy key",
+    "bundle" : {
+      "schemaVersion" : "gua-routing-policy.v1",
+      "policyId" : "br-policy",
+      "version" : 3,
+      "issuedAt" : "2026-09-15T08:30:00.250Z",
+      "notBefore" : "2026-01-01T00:00:00Z",
+      "expiresAt" : "2030-01-01T00:00:00Z",
+      "delegationZones" : [ {
+        "id" : "sp-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+55119",
+        "delegatedAuthority" : "carrier:vivo",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "edu-zone",
+        "scopeType" : "INSTITUTION_DOMAIN",
+        "scopeValue" : "usp.br",
+        "delegatedAuthority" : "institution:usp",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "na-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+1",
+        "delegatedAuthority" : "carrier:na",
+        "delegateKeyId" : "delegate-na",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+        "allowedHomeserverIds" : [ "hs-ca" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      } ],
+      "rules" : [ {
+        "id" : "r-sp",
+        "priority" : 10,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+551198",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-br",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "carrier route",
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      }, {
+        "id" : "r-usp",
+        "priority" : 5,
+        "matchType" : "INSTITUTION_DOMAIN",
+        "matchValue" : "usp.br",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-br",
+        "delegatedZoneId" : "edu-zone",
+        "reason" : "institution route",
+        "assignmentPolicy" : "REQUIRES_CONFIRMATION",
+        "enabled" : true
+      }, {
+        "id" : "r-disabled",
+        "priority" : 1,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+55",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "disabled rule",
+        "assignmentPolicy" : null,
+        "enabled" : false
+      }, {
+        "id" : "r-na",
+        "priority" : 2,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+1",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "na-zone",
+        "reason" : null,
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      } ],
+      "fallback" : {
+        "type" : "legacy-weighted",
+        "enabled" : true
+      },
+      "signatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "MVH70RkvVzWDJ1w2BkHnw5U7Uw0emrZJq4CmDJiTeQrAco/MIK5wd1suFiv0eRNhj/gYuJprskc1ECUULTDnBQ=="
+      } ],
+      "delegateSignatures" : [ {
+        "zoneId" : "sp-zone",
+        "delegateKeyId" : "delegate-sp",
+        "signatureB64" : "VgCvs8Vs1KyBspnXoc4FHSPmHkC7zKGngNUWZoKmoDtXGpngv34KB1lC2hPNMS4L+HlUw5HS091RT1OKNCpzAw=="
+      }, {
+        "zoneId" : "edu-zone",
+        "delegateKeyId" : "delegate-sp",
+        "signatureB64" : "K+pg5oNgC5C2CHINEbBtxGmZUswgyF/ZlEP0bEET2a6mM461Ar3Dumo7H5YHKeVXPkOdgF9NITQYUNljnYR4Ag=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-routing-policy.v1\nschema=gua-routing-policy.v1\npolicyId=br-policy\nversion=3\nissuedAt=1789461000250\nnotBefore=1767225600000\nexpiresAt=1893456000000\nzone\u001Fedu-zone\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001Finstitution:usp\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nzone\u001Fna-zone\u001FPHONE_PREFIX\u001F+1\u001Fcarrier:na\u001Fdelegate-na\u001FMCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=\u001Fhs-ca\u001F1767225600000\u001F1893456000000\nzone\u001Fsp-zone\u001FPHONE_PREFIX\u001F+55119\u001Fcarrier:vivo\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-br\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\nfallback=legacy-weighted:true\n",
+    "canonicalHex" : "6775612d726f7574696e672d706f6c6963792e76310a736368656d613d6775612d726f7574696e672d706f6c6963792e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a69737375656441743d313738393436313030303235300a6e6f744265666f72653d313736373232353630303030300a6578706972657341743d313839333435363030303030300a7a6f6e651f6564752d7a6f6e651f494e535449545554494f4e5f444f4d41494e1f7573702e62721f696e737469747574696f6e3a7573701f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a7a6f6e651f6e612d7a6f6e651f50484f4e455f5052454649581f2b311f636172726965723a6e611f64656c65676174652d6e611f4d436f77425159444b3256774179454150554158772b6844695671537477716e5452742b764a79594c4d3875784a614d774d3156385372305a67773d1f68732d63611f313736373232353630303030301f313839333435363030303030300a7a6f6e651f73702d7a6f6e651f50484f4e455f5052454649581f2b35353131391f636172726965723a7669766f1f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d62721f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a66616c6c6261636b3d6c65676163792d77656967687465643a747275650a",
+    "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9",
+    "delegatedRules" : [ {
+      "zoneId" : "sp-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=sp-zone\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-br\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d73702d7a6f6e650a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d62721f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a"
+    }, {
+      "zoneId" : "edu-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=edu-zone\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6564752d7a6f6e650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a"
+    }, {
+      "zoneId" : "na-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=na-zone\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6e612d7a6f6e650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a"
+    } ],
+    "trustedKeys" : [ {
+      "id" : "governance-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA/FHNjmIYoaONpH7QAjDwWAgW7RO6MwOsXeuRFUiQgCU=",
+      "keyRef" : "rfc8032-test3"
+    } ],
+    "threshold" : 1,
+    "verified" : false,
+    "delegateVerifiedZones" : [ "edu-zone", "sp-zone" ],
+    "reason" : "Policies are checked against the policy keys only. The roster authority key does not count.",
+    "expectedOutcome" : "invalid(unknown_key_id)"
+  }, {
+    "name" : "a rule target changed after signing",
+    "bundle" : {
+      "schemaVersion" : "gua-routing-policy.v1",
+      "policyId" : "br-policy",
+      "version" : 3,
+      "issuedAt" : "2026-09-15T08:30:00.250Z",
+      "notBefore" : "2026-01-01T00:00:00Z",
+      "expiresAt" : "2030-01-01T00:00:00Z",
+      "delegationZones" : [ {
+        "id" : "sp-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+55119",
+        "delegatedAuthority" : "carrier:vivo",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "edu-zone",
+        "scopeType" : "INSTITUTION_DOMAIN",
+        "scopeValue" : "usp.br",
+        "delegatedAuthority" : "institution:usp",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "na-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+1",
+        "delegatedAuthority" : "carrier:na",
+        "delegateKeyId" : "delegate-na",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+        "allowedHomeserverIds" : [ "hs-ca" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      } ],
+      "rules" : [ {
+        "id" : "r-sp",
+        "priority" : 10,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+551198",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "carrier route",
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      }, {
+        "id" : "r-usp",
+        "priority" : 5,
+        "matchType" : "INSTITUTION_DOMAIN",
+        "matchValue" : "usp.br",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-br",
+        "delegatedZoneId" : "edu-zone",
+        "reason" : "institution route",
+        "assignmentPolicy" : "REQUIRES_CONFIRMATION",
+        "enabled" : true
+      }, {
+        "id" : "r-disabled",
+        "priority" : 1,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+55",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "disabled rule",
+        "assignmentPolicy" : null,
+        "enabled" : false
+      }, {
+        "id" : "r-na",
+        "priority" : 2,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+1",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "na-zone",
+        "reason" : null,
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      } ],
+      "fallback" : {
+        "type" : "legacy-weighted",
+        "enabled" : true
+      },
+      "signatures" : [ {
+        "authorityKeyId" : "governance-a",
+        "signatureB64" : "DAVdVilSLW8/Q8DPtNV7os3tfhoWwhoLKbwud/XnyWj0wTvR2Qlhl/gEqNnj/nAni4VNdwUBF4q8bsKMErueBg=="
+      } ],
+      "delegateSignatures" : [ {
+        "zoneId" : "sp-zone",
+        "delegateKeyId" : "delegate-sp",
+        "signatureB64" : "VgCvs8Vs1KyBspnXoc4FHSPmHkC7zKGngNUWZoKmoDtXGpngv34KB1lC2hPNMS4L+HlUw5HS091RT1OKNCpzAw=="
+      }, {
+        "zoneId" : "edu-zone",
+        "delegateKeyId" : "delegate-sp",
+        "signatureB64" : "K+pg5oNgC5C2CHINEbBtxGmZUswgyF/ZlEP0bEET2a6mM461Ar3Dumo7H5YHKeVXPkOdgF9NITQYUNljnYR4Ag=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-routing-policy.v1\nschema=gua-routing-policy.v1\npolicyId=br-policy\nversion=3\nissuedAt=1789461000250\nnotBefore=1767225600000\nexpiresAt=1893456000000\nzone\u001Fedu-zone\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001Finstitution:usp\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nzone\u001Fna-zone\u001FPHONE_PREFIX\u001F+1\u001Fcarrier:na\u001Fdelegate-na\u001FMCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=\u001Fhs-ca\u001F1767225600000\u001F1893456000000\nzone\u001Fsp-zone\u001FPHONE_PREFIX\u001F+55119\u001Fcarrier:vivo\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\nfallback=legacy-weighted:true\n",
+    "canonicalHex" : "6775612d726f7574696e672d706f6c6963792e76310a736368656d613d6775612d726f7574696e672d706f6c6963792e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a69737375656441743d313738393436313030303235300a6e6f744265666f72653d313736373232353630303030300a6578706972657341743d313839333435363030303030300a7a6f6e651f6564752d7a6f6e651f494e535449545554494f4e5f444f4d41494e1f7573702e62721f696e737469747574696f6e3a7573701f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a7a6f6e651f6e612d7a6f6e651f50484f4e455f5052454649581f2b311f636172726965723a6e611f64656c65676174652d6e611f4d436f77425159444b3256774179454150554158772b6844695671537477716e5452742b764a79594c4d3875784a614d774d3156385372305a67773d1f68732d63611f313736373232353630303030301f313839333435363030303030300a7a6f6e651f73702d7a6f6e651f50484f4e455f5052454649581f2b35353131391f636172726965723a7669766f1f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d63611f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a66616c6c6261636b3d6c65676163792d77656967687465643a747275650a",
+    "sha256Hex" : "4c97229c8e0496828f320e4304fe4fc3234d8fd9121c036628a02cb675f12fc0",
+    "delegatedRules" : [ {
+      "zoneId" : "sp-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=sp-zone\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d73702d7a6f6e650a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d63611f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a"
+    }, {
+      "zoneId" : "edu-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=edu-zone\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6564752d7a6f6e650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a"
+    }, {
+      "zoneId" : "na-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=na-zone\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6e612d7a6f6e650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a"
+    } ],
+    "trustedKeys" : [ {
+      "id" : "governance-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA/FHNjmIYoaONpH7QAjDwWAgW7RO6MwOsXeuRFUiQgCU=",
+      "keyRef" : "rfc8032-test3"
+    } ],
+    "threshold" : 1,
+    "verified" : false,
+    "delegateVerifiedZones" : [ "edu-zone" ],
+    "reason" : "The signed bytes changed, so the signature fails.",
+    "expectedOutcome" : "invalid(bad_signature)"
+  }, {
+    "name" : "a bundle with no signatures list",
+    "bundle" : {
+      "schemaVersion" : "gua-routing-policy.v1",
+      "policyId" : "br-policy",
+      "version" : 3,
+      "issuedAt" : "2026-09-15T08:30:00.250Z",
+      "notBefore" : "2026-01-01T00:00:00Z",
+      "expiresAt" : "2030-01-01T00:00:00Z",
+      "delegationZones" : [ {
+        "id" : "sp-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+55119",
+        "delegatedAuthority" : "carrier:vivo",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "edu-zone",
+        "scopeType" : "INSTITUTION_DOMAIN",
+        "scopeValue" : "usp.br",
+        "delegatedAuthority" : "institution:usp",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "na-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+1",
+        "delegatedAuthority" : "carrier:na",
+        "delegateKeyId" : "delegate-na",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+        "allowedHomeserverIds" : [ "hs-ca" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      } ],
+      "rules" : [ {
+        "id" : "r-sp",
+        "priority" : 10,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+551198",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-br",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "carrier route",
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      }, {
+        "id" : "r-usp",
+        "priority" : 5,
+        "matchType" : "INSTITUTION_DOMAIN",
+        "matchValue" : "usp.br",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-br",
+        "delegatedZoneId" : "edu-zone",
+        "reason" : "institution route",
+        "assignmentPolicy" : "REQUIRES_CONFIRMATION",
+        "enabled" : true
+      }, {
+        "id" : "r-disabled",
+        "priority" : 1,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+55",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "disabled rule",
+        "assignmentPolicy" : null,
+        "enabled" : false
+      }, {
+        "id" : "r-na",
+        "priority" : 2,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+1",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "na-zone",
+        "reason" : null,
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      } ],
+      "fallback" : {
+        "type" : "legacy-weighted",
+        "enabled" : true
+      },
+      "signatures" : null,
+      "delegateSignatures" : [ {
+        "zoneId" : "sp-zone",
+        "delegateKeyId" : "delegate-sp",
+        "signatureB64" : "VgCvs8Vs1KyBspnXoc4FHSPmHkC7zKGngNUWZoKmoDtXGpngv34KB1lC2hPNMS4L+HlUw5HS091RT1OKNCpzAw=="
+      }, {
+        "zoneId" : "edu-zone",
+        "delegateKeyId" : "delegate-sp",
+        "signatureB64" : "K+pg5oNgC5C2CHINEbBtxGmZUswgyF/ZlEP0bEET2a6mM461Ar3Dumo7H5YHKeVXPkOdgF9NITQYUNljnYR4Ag=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-routing-policy.v1\nschema=gua-routing-policy.v1\npolicyId=br-policy\nversion=3\nissuedAt=1789461000250\nnotBefore=1767225600000\nexpiresAt=1893456000000\nzone\u001Fedu-zone\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001Finstitution:usp\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nzone\u001Fna-zone\u001FPHONE_PREFIX\u001F+1\u001Fcarrier:na\u001Fdelegate-na\u001FMCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=\u001Fhs-ca\u001F1767225600000\u001F1893456000000\nzone\u001Fsp-zone\u001FPHONE_PREFIX\u001F+55119\u001Fcarrier:vivo\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-br\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\nfallback=legacy-weighted:true\n",
+    "canonicalHex" : "6775612d726f7574696e672d706f6c6963792e76310a736368656d613d6775612d726f7574696e672d706f6c6963792e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a69737375656441743d313738393436313030303235300a6e6f744265666f72653d313736373232353630303030300a6578706972657341743d313839333435363030303030300a7a6f6e651f6564752d7a6f6e651f494e535449545554494f4e5f444f4d41494e1f7573702e62721f696e737469747574696f6e3a7573701f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a7a6f6e651f6e612d7a6f6e651f50484f4e455f5052454649581f2b311f636172726965723a6e611f64656c65676174652d6e611f4d436f77425159444b3256774179454150554158772b6844695671537477716e5452742b764a79594c4d3875784a614d774d3156385372305a67773d1f68732d63611f313736373232353630303030301f313839333435363030303030300a7a6f6e651f73702d7a6f6e651f50484f4e455f5052454649581f2b35353131391f636172726965723a7669766f1f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d62721f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a66616c6c6261636b3d6c65676163792d77656967687465643a747275650a",
+    "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9",
+    "delegatedRules" : [ {
+      "zoneId" : "sp-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=sp-zone\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-br\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d73702d7a6f6e650a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d62721f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a"
+    }, {
+      "zoneId" : "edu-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=edu-zone\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6564752d7a6f6e650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a"
+    }, {
+      "zoneId" : "na-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=na-zone\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6e612d7a6f6e650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a"
+    } ],
+    "trustedKeys" : [ {
+      "id" : "governance-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA/FHNjmIYoaONpH7QAjDwWAgW7RO6MwOsXeuRFUiQgCU=",
+      "keyRef" : "rfc8032-test3"
+    } ],
+    "threshold" : 1,
+    "verified" : false,
+    "delegateVerifiedZones" : [ "edu-zone", "sp-zone" ],
+    "reason" : "A missing signatures list is the same as an empty one.",
+    "expectedOutcome" : "invalid(unknown_key_id)"
+  }, {
+    "name" : "no policy keys configured",
+    "bundle" : {
+      "schemaVersion" : "gua-routing-policy.v1",
+      "policyId" : "br-policy",
+      "version" : 3,
+      "issuedAt" : "2026-09-15T08:30:00.250Z",
+      "notBefore" : "2026-01-01T00:00:00Z",
+      "expiresAt" : "2030-01-01T00:00:00Z",
+      "delegationZones" : [ {
+        "id" : "sp-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+55119",
+        "delegatedAuthority" : "carrier:vivo",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "edu-zone",
+        "scopeType" : "INSTITUTION_DOMAIN",
+        "scopeValue" : "usp.br",
+        "delegatedAuthority" : "institution:usp",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "na-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+1",
+        "delegatedAuthority" : "carrier:na",
+        "delegateKeyId" : "delegate-na",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+        "allowedHomeserverIds" : [ "hs-ca" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      } ],
+      "rules" : [ {
+        "id" : "r-sp",
+        "priority" : 10,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+551198",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-br",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "carrier route",
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      }, {
+        "id" : "r-usp",
+        "priority" : 5,
+        "matchType" : "INSTITUTION_DOMAIN",
+        "matchValue" : "usp.br",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-br",
+        "delegatedZoneId" : "edu-zone",
+        "reason" : "institution route",
+        "assignmentPolicy" : "REQUIRES_CONFIRMATION",
+        "enabled" : true
+      }, {
+        "id" : "r-disabled",
+        "priority" : 1,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+55",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "disabled rule",
+        "assignmentPolicy" : null,
+        "enabled" : false
+      }, {
+        "id" : "r-na",
+        "priority" : 2,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+1",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "na-zone",
+        "reason" : null,
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      } ],
+      "fallback" : {
+        "type" : "legacy-weighted",
+        "enabled" : true
+      },
+      "signatures" : [ {
+        "authorityKeyId" : "governance-a",
+        "signatureB64" : "DAVdVilSLW8/Q8DPtNV7os3tfhoWwhoLKbwud/XnyWj0wTvR2Qlhl/gEqNnj/nAni4VNdwUBF4q8bsKMErueBg=="
+      } ],
+      "delegateSignatures" : [ {
+        "zoneId" : "sp-zone",
+        "delegateKeyId" : "delegate-sp",
+        "signatureB64" : "VgCvs8Vs1KyBspnXoc4FHSPmHkC7zKGngNUWZoKmoDtXGpngv34KB1lC2hPNMS4L+HlUw5HS091RT1OKNCpzAw=="
+      }, {
+        "zoneId" : "edu-zone",
+        "delegateKeyId" : "delegate-sp",
+        "signatureB64" : "K+pg5oNgC5C2CHINEbBtxGmZUswgyF/ZlEP0bEET2a6mM461Ar3Dumo7H5YHKeVXPkOdgF9NITQYUNljnYR4Ag=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-routing-policy.v1\nschema=gua-routing-policy.v1\npolicyId=br-policy\nversion=3\nissuedAt=1789461000250\nnotBefore=1767225600000\nexpiresAt=1893456000000\nzone\u001Fedu-zone\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001Finstitution:usp\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nzone\u001Fna-zone\u001FPHONE_PREFIX\u001F+1\u001Fcarrier:na\u001Fdelegate-na\u001FMCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=\u001Fhs-ca\u001F1767225600000\u001F1893456000000\nzone\u001Fsp-zone\u001FPHONE_PREFIX\u001F+55119\u001Fcarrier:vivo\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-br\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\nfallback=legacy-weighted:true\n",
+    "canonicalHex" : "6775612d726f7574696e672d706f6c6963792e76310a736368656d613d6775612d726f7574696e672d706f6c6963792e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a69737375656441743d313738393436313030303235300a6e6f744265666f72653d313736373232353630303030300a6578706972657341743d313839333435363030303030300a7a6f6e651f6564752d7a6f6e651f494e535449545554494f4e5f444f4d41494e1f7573702e62721f696e737469747574696f6e3a7573701f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a7a6f6e651f6e612d7a6f6e651f50484f4e455f5052454649581f2b311f636172726965723a6e611f64656c65676174652d6e611f4d436f77425159444b3256774179454150554158772b6844695671537477716e5452742b764a79594c4d3875784a614d774d3156385372305a67773d1f68732d63611f313736373232353630303030301f313839333435363030303030300a7a6f6e651f73702d7a6f6e651f50484f4e455f5052454649581f2b35353131391f636172726965723a7669766f1f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d62721f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a66616c6c6261636b3d6c65676163792d77656967687465643a747275650a",
+    "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9",
+    "delegatedRules" : [ {
+      "zoneId" : "sp-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=sp-zone\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-br\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d73702d7a6f6e650a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d62721f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a"
+    }, {
+      "zoneId" : "edu-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=edu-zone\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6564752d7a6f6e650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a"
+    }, {
+      "zoneId" : "na-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=na-zone\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6e612d7a6f6e650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a"
+    } ],
+    "trustedKeys" : [ ],
+    "threshold" : 1,
+    "verified" : false,
+    "delegateVerifiedZones" : [ "edu-zone", "sp-zone" ],
+    "reason" : "With no trusted policy keys, no bundle can verify.",
+    "expectedOutcome" : "unverifiable(no_policy_keys)"
+  } ],
+  "policyValidity" : [ {
+    "name" : "1 ms before notBefore",
+    "policyRef" : "br-policy v3",
+    "evaluatedAt" : "2025-12-31T23:59:59.999Z",
+    "inEffect" : false
+  }, {
+    "name" : "at notBefore",
+    "policyRef" : "br-policy v3",
+    "evaluatedAt" : "2026-01-01T00:00:00Z",
+    "inEffect" : true
+  }, {
+    "name" : "1 ms before expiresAt",
+    "policyRef" : "br-policy v3",
+    "evaluatedAt" : "2029-12-31T23:59:59.999Z",
+    "inEffect" : true
+  }, {
+    "name" : "at expiresAt",
+    "policyRef" : "br-policy v3",
+    "evaluatedAt" : "2030-01-01T00:00:00Z",
+    "inEffect" : false
+  } ],
+  "windows" : [ {
+    "name" : "inside both bounds",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : "2030-01-01T00:00:00Z",
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "inEffect" : true
+  }, {
+    "name" : "no expiresAt",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : null,
+    "evaluatedAt" : "2040-01-01T00:00:00Z",
+    "inEffect" : true
+  }, {
+    "name" : "an expiresAt at the epoch, which is signed as no expiresAt",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : "1970-01-01T00:00:00Z",
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "inEffect" : true
+  }, {
+    "name" : "an expiresAt in the epoch's first millisecond, which is also signed as no expiresAt",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : "1970-01-01T00:00:00.000001Z",
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "inEffect" : true
+  }, {
+    "name" : "a notBefore at the epoch, which is signed as no notBefore",
+    "notBefore" : "1970-01-01T00:00:00Z",
+    "expiresAt" : "2030-01-01T00:00:00Z",
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "inEffect" : true
+  }, {
+    "name" : "a notBefore later in the same millisecond, compared in whole milliseconds",
+    "notBefore" : "2030-01-01T00:00:00.000500Z",
+    "expiresAt" : null,
+    "evaluatedAt" : "2030-01-01T00:00:00.000200Z",
+    "inEffect" : true
+  }, {
+    "name" : "an expiresAt later in the same millisecond, compared in whole milliseconds",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : "2030-01-01T00:00:00.000500Z",
+    "evaluatedAt" : "2030-01-01T00:00:00.000200Z",
+    "inEffect" : false
+  }, {
+    "name" : "no bounds at all",
+    "notBefore" : null,
+    "expiresAt" : null,
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "inEffect" : true
+  }, {
+    "name" : "after expiresAt",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : "2030-01-01T00:00:00Z",
+    "evaluatedAt" : "2031-01-01T00:00:00Z",
+    "inEffect" : false
+  }, {
+    "name" : "before notBefore",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : "2030-01-01T00:00:00Z",
+    "evaluatedAt" : "2025-01-01T00:00:00Z",
+    "inEffect" : false
+  } ],
+  "policyLog" : [ {
+    "name" : "the served bundle is logged within the checkpoint",
+    "servedPolicy" : {
+      "policyId" : "br-policy",
+      "version" : 3,
+      "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9"
+    },
+    "checkpoint" : {
+      "size" : 7,
+      "rootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad"
+    },
+    "expected" : "valid"
+  }, {
+    "name" : "the served bundle is logged only past the checkpoint",
+    "servedPolicy" : {
+      "policyId" : "br-policy",
+      "version" : 3,
+      "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9"
+    },
+    "checkpoint" : {
+      "size" : 3,
+      "rootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a"
+    },
+    "expected" : "unverifiable(policy_newer_than_checkpoint)"
+  }, {
+    "name" : "a newer version of the served policy is logged",
+    "servedPolicy" : {
+      "policyId" : "br-policy",
+      "version" : 3,
+      "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9"
+    },
+    "checkpoint" : {
+      "size" : 8,
+      "rootHex" : "4d158effb6b68af05cc01eaaa42ede02ad8126183cbc69a1e0297be330b7e0c6"
+    },
+    "expected" : "unverifiable(policy_superseded)"
+  }, {
+    "name" : "the served bundle is not in the log",
+    "servedPolicy" : {
+      "policyId" : "br-policy",
+      "version" : 3,
+      "sha256Hex" : "4c97229c8e0496828f320e4304fe4fc3234d8fd9121c036628a02cb675f12fc0"
+    },
+    "checkpoint" : {
+      "size" : 7,
+      "rootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad"
+    },
+    "expected" : "invalid(policy_not_logged)"
+  }, {
+    "name" : "no policy is served and none is logged",
+    "servedPolicy" : null,
+    "checkpoint" : {
+      "size" : 3,
+      "rootHex" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a"
+    },
+    "expected" : "notPresent"
+  }, {
+    "name" : "no policy is served although one is logged",
+    "servedPolicy" : null,
+    "checkpoint" : {
+      "size" : 7,
+      "rootHex" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad"
+    },
+    "expected" : "unverifiable(policy_not_served)"
+  }, {
+    "name" : "the first leaves do not hash to the signed root",
+    "servedPolicy" : {
+      "policyId" : "br-policy",
+      "version" : 3,
+      "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9"
+    },
+    "checkpoint" : {
+      "size" : 7,
+      "rootHex" : "9627cd5b618b053e2ef8f265c5a8311ae1901b05025d1e434f939e6ab8089c29"
+    },
+    "expected" : "invalid(log_mismatch)"
+  }, {
+    "name" : "no policy is served and the first leaves do not hash to the signed root",
+    "servedPolicy" : null,
+    "checkpoint" : {
+      "size" : 3,
+      "rootHex" : "62c31f2e5004debaf49e39b28ff8bfade686c8dbd56a0bc82db27f68dae622cd"
+    },
+    "expected" : "invalid(log_mismatch)"
+  }, {
+    "name" : "the checkpoint is larger than the log",
+    "servedPolicy" : null,
+    "checkpoint" : {
+      "size" : 9,
+      "rootHex" : "4d158effb6b68af05cc01eaaa42ede02ad8126183cbc69a1e0297be330b7e0c6"
+    },
+    "expected" : "invalid(log_mismatch)"
+  } ],
+  "placements" : [ {
+    "name" : "a signed policy rule decides",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5511987654321"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-br",
+    "expectedRule" : "PolicyRoutingRule",
+    "expectedRuleId" : "r-sp",
+    "unsignedRuleAbove" : false
+  }, {
+    "name" : "a policy rule takes precedence over a matching roster claim",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5511987654321",
+      "country" : "BR",
+      "mccmnc" : "72411",
+      "carrier" : "Vivo"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-br",
+    "expectedRule" : "PolicyRoutingRule",
+    "expectedRuleId" : "r-sp",
+    "unsignedRuleAbove" : false
+  }, {
+    "name" : "a roster claim matches when the carrier is known",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5519991112222",
+      "country" : "BR",
+      "mccmnc" : "72411",
+      "carrier" : "Vivo"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-br",
+    "expectedRule" : "ClaimRule",
+    "expectedRuleId" : "roster-claim:hs-br:10",
+    "unsignedRuleAbove" : false
+  }, {
+    "name" : "without the carrier the claim does not match, so the fallback decides",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5519991112222"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-ca",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5519991112222\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-ca",
+        "weight" : 3
+      } ],
+      "stableHash" : 1185978974
+    }
+  }, {
+    "name" : "a rule in a zone without a delegate signature is ignored",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+14165550123"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-ca",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : true,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+14165550123\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-ca",
+        "weight" : 3
+      } ],
+      "stableHash" : -1250360802
+    }
+  }, {
+    "name" : "an affiliation the client states without proof is ignored",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5521999990000",
+      "affiliations" : [ "usp.br" ],
+      "attributes" : {
+        "email_domain" : "usp.br"
+      }
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-br",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521999990000\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-ca",
+        "weight" : 3
+      } ],
+      "stableHash" : -109238087
+    }
+  }, {
+    "name" : "without the sp-zone delegate signature the prefix rule is ignored",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3 without the sp-zone delegate signature",
+    "context" : {
+      "phone" : "+5511987654321"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-ca",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : true,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5511987654321\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-ca",
+        "weight" : 3
+      } ],
+      "stableHash" : -1098823203
+    }
+  }, {
+    "name" : "no policy: the weighted fallback decides",
+    "rosterRef" : "r2",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5511987654321"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-ca",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5511987654321\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-ca",
+        "weight" : 3
+      } ],
+      "stableHash" : -1098823203
+    }
+  }, {
+    "name" : "only one homeserver accepts new accounts",
+    "rosterRef" : "r1",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5511987654321"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-br",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5511987654321\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 3,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      } ],
+      "stableHash" : 263278215
+    }
+  }, {
+    "name" : "weighted fallback sample 0",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5521990000000"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-ca",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990000000\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-ca",
+        "weight" : 3
+      } ],
+      "stableHash" : 1900817077
+    }
+  }, {
+    "name" : "weighted fallback sample 1",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5521990001237"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-br",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990001237\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-ca",
+        "weight" : 3
+      } ],
+      "stableHash" : -1843970684
+    }
+  }, {
+    "name" : "weighted fallback sample 2",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5521990002474"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-br",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990002474\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-ca",
+        "weight" : 3
+      } ],
+      "stableHash" : 404205618
+    }
+  }, {
+    "name" : "weighted fallback sample 3",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5521990003711"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-br",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990003711\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-ca",
+        "weight" : 3
+      } ],
+      "stableHash" : 1626227570
+    }
+  }, {
+    "name" : "weighted fallback sample 4",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5521990004948"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-br",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990004948\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-ca",
+        "weight" : 3
+      } ],
+      "stableHash" : 2044564561
+    }
+  }, {
+    "name" : "weighted fallback sample 5",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5521990006185"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-br",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990006185\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-ca",
+        "weight" : 3
+      } ],
+      "stableHash" : -599515527
+    }
+  }, {
+    "name" : "weighted fallback sample 6",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5521990007422"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-ca",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990007422\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-ca",
+        "weight" : 3
+      } ],
+      "stableHash" : -1995431025
+    }
+  }, {
+    "name" : "weighted fallback sample 7",
+    "rosterRef" : "r2",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5521990008659"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-br",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990008659\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-ca",
+        "weight" : 3
+      } ],
+      "stableHash" : 208330305
+    }
+  }, {
+    "name" : "weights that add up past 2^31, sample 0",
+    "rosterRef" : "r6",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990000000"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-heavy-b",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990000000\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-heavy-a",
+        "weight" : 2000000000
+      }, {
+        "id" : "hs-heavy-b",
+        "weight" : 2000000000
+      } ],
+      "stableHash" : -507715408
+    }
+  }, {
+    "name" : "weights that add up past 2^31, sample 1",
+    "rosterRef" : "r6",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990001237"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-heavy-a",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990001237\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-heavy-a",
+        "weight" : 2000000000
+      }, {
+        "id" : "hs-heavy-b",
+        "weight" : 2000000000
+      } ],
+      "stableHash" : 1062227922
+    }
+  }, {
+    "name" : "weights that add up past 2^31, sample 2",
+    "rosterRef" : "r6",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990002474"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-heavy-a",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990002474\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-heavy-a",
+        "weight" : 2000000000
+      }, {
+        "id" : "hs-heavy-b",
+        "weight" : 2000000000
+      } ],
+      "stableHash" : -2136463671
+    }
+  }, {
+    "name" : "weights that add up past 2^31, sample 3",
+    "rosterRef" : "r6",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990003711"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-heavy-a",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990003711\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-heavy-a",
+        "weight" : 2000000000
+      }, {
+        "id" : "hs-heavy-b",
+        "weight" : 2000000000
+      } ],
+      "stableHash" : 139680792
+    }
+  } ],
+  "resolveAnswers" : [ {
+    "name" : "matches an active entry exactly",
+    "rosterRef" : "r2",
+    "answer" : {
+      "serverName" : "br.gua.test",
+      "baseUrl" : "https://matrix.br.gua.test",
+      "masIssuer" : "https://account.br.gua.test"
+    },
+    "expected" : "ACTIVE_MATCH",
+    "expectedEntryId" : "hs-br"
+  }, {
+    "name" : "matches a suspended entry",
+    "rosterRef" : "r2",
+    "answer" : {
+      "serverName" : "old.gua.test",
+      "baseUrl" : "https://matrix.old.gua.test",
+      "masIssuer" : "https://account.old.gua.test"
+    },
+    "expected" : "INACTIVE",
+    "expectedEntryId" : "hs-old"
+  }, {
+    "name" : "known server name, different base URL",
+    "rosterRef" : "r2",
+    "answer" : {
+      "serverName" : "br.gua.test",
+      "baseUrl" : "https://matrix.evil.test",
+      "masIssuer" : "https://account.br.gua.test"
+    },
+    "expected" : "FIELD_MISMATCH",
+    "expectedEntryId" : "hs-br"
+  }, {
+    "name" : "known server name, different auth issuer",
+    "rosterRef" : "r2",
+    "answer" : {
+      "serverName" : "br.gua.test",
+      "baseUrl" : "https://matrix.br.gua.test",
+      "masIssuer" : "https://account.evil.test"
+    },
+    "expected" : "FIELD_MISMATCH",
+    "expectedEntryId" : "hs-br"
+  }, {
+    "name" : "unknown server name",
+    "rosterRef" : "r2",
+    "answer" : {
+      "serverName" : "nobody.gua.test",
+      "baseUrl" : "https://matrix.br.gua.test",
+      "masIssuer" : "https://account.br.gua.test"
+    },
+    "expected" : "NOT_IN_ROSTER",
+    "expectedEntryId" : null
+  }, {
+    "name" : "matches the production entry exactly",
+    "rosterRef" : "prod-2026-10-27",
+    "answer" : {
+      "serverName" : "gua.global",
+      "baseUrl" : "https://server.gua.global",
+      "masIssuer" : "https://account.gua.global"
+    },
+    "expected" : "ACTIVE_MATCH",
+    "expectedEntryId" : "prod"
+  }, {
+    "name" : "an active entry wins over a suspended one served earlier",
+    "rosterRef" : "r5",
+    "answer" : {
+      "serverName" : "br.gua.test",
+      "baseUrl" : "https://matrix.br.gua.test",
+      "masIssuer" : "https://account.br.gua.test"
+    },
+    "expected" : "ACTIVE_MATCH",
+    "expectedEntryId" : "hs-br"
+  }, {
+    "name" : "a suspended entry with all three fields wins over an active one with another base URL",
+    "rosterRef" : "r5",
+    "answer" : {
+      "serverName" : "ca.gua.test",
+      "baseUrl" : "https://matrix.ca.gua.test",
+      "masIssuer" : "https://account.ca.gua.test"
+    },
+    "expected" : "INACTIVE",
+    "expectedEntryId" : "hs-ca-retired"
+  }, {
+    "name" : "with no entry matching all three fields, the first entry with the server name decides",
+    "rosterRef" : "r5",
+    "answer" : {
+      "serverName" : "ca.gua.test",
+      "baseUrl" : "https://matrix.evil.test",
+      "masIssuer" : "https://account.ca.gua.test"
+    },
+    "expected" : "FIELD_MISMATCH",
+    "expectedEntryId" : "hs-ca-retired"
+  }, {
+    "name" : "an answer without an auth issuer matches an entry without one",
+    "rosterRef" : "r7",
+    "answer" : {
+      "serverName" : "plain.gua.test",
+      "baseUrl" : "https://matrix.plain.gua.test",
+      "masIssuer" : null
+    },
+    "expected" : "ACTIVE_MATCH",
+    "expectedEntryId" : "hs-no-issuer"
+  } ]
+}

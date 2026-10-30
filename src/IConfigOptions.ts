@@ -60,6 +60,16 @@ export interface IConfigOptions {
     // No trailing slash required; falls back to the default server config when unset or on lookup failure.
     gua_resolver?: {
         base_url: string;
+        // Report-only. Keys are base64 SPKI Ed25519, published out of band; without authority keys nothing is fetched.
+        verification?: {
+            mode?: "off" | "report";
+            // Labels the report line; anything else is logged as "unknown".
+            environment?: "dev" | "prod";
+            authority_keys: { id: string; public_key: string }[];
+            authority_threshold?: number;
+            policy_keys?: { id: string; public_key: string }[];
+            policy_threshold?: number;
+        };
     };
 
     brand: string;
