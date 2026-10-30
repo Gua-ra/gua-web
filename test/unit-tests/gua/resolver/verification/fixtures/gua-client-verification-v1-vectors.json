@@ -2241,6 +2241,18 @@
     "evaluatedAt" : "2026-10-27T00:00:00Z",
     "inEffect" : true
   }, {
+    "name" : "a notBefore later in the same millisecond, compared in whole milliseconds",
+    "notBefore" : "2030-01-01T00:00:00.000500Z",
+    "expiresAt" : null,
+    "evaluatedAt" : "2030-01-01T00:00:00.000200Z",
+    "inEffect" : true
+  }, {
+    "name" : "an expiresAt later in the same millisecond, compared in whole milliseconds",
+    "notBefore" : "2026-01-01T00:00:00Z",
+    "expiresAt" : "2030-01-01T00:00:00.000500Z",
+    "evaluatedAt" : "2030-01-01T00:00:00.000200Z",
+    "inEffect" : false
+  }, {
     "name" : "no bounds at all",
     "notBefore" : null,
     "expiresAt" : null,
