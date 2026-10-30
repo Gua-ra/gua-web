@@ -1,7 +1,7 @@
 {
   "vectors" : "gua-client-verification.v1",
   "protocol" : "docs/verification/gua-resolver-verification-protocol.md",
-  "notes" : [ "The test keys are the Ed25519 example keys from RFC 8032, section 7.1. They are public, so never use them outside tests.", "The signatures were made with deterministic Ed25519, so they can be reproduced exactly. Some libraries, Apple CryptoKit among them, randomize Ed25519 signatures. With those, verify the signatures here and do not compare their bytes.", "canonicalUtf8 is the exact byte string that gets signed, written as a JSON string, and canonicalHex is the same bytes in hex. gua-roster.v1 separates fields with the control character U+001F.", "Timestamps appear in JSON as ISO-8601 UTC strings with 0 to 9 fractional digits. The signed bytes carry them as epoch milliseconds. Digits past the millisecond are dropped, not rounded.", "Rosters come in two forms. If no entry has searchVisibility, verify the legacy bytes, which leave out the search fields. If every entry has it, verify the v1 bytes. If only some entries have it, refuse the roster.", "The production roster is a copy of https://resolver.gua.global/roster as served on 2026-10-27. It is signed with the production authority key listed under keys.", "Each expected placement is the homeserver the Java reference verifier chooses for a new account from the verified roster and policy. No context carries verified claims, so an affiliation the client states without proof never changes the result.", "Placements are evaluated at their evaluatedAt instant, not at the current time. Weights are summed in 64 bits, so weights whose total passes 2^31 do not wrap.", "A policy bundle or delegation zone is in effect from notBefore, inclusive, until expiresAt, exclusive. A missing bound leaves that side open, and so does a bound at 1970-01-01T00:00:00Z, because the signed bytes write both as 0. policyValidity checks a bundle at its edges and windows checks the rule itself.", "A resolve answer is located by the strongest match in the roster, whatever the entry order: an ACTIVE entry with the same serverName, baseUrl and masIssuer, then any entry with all three, then any entry with the serverName. Ties go to the entry served first. expectedEntryId names the entry that decided the match.", "In the signed roster bytes a null id, serverName, baseUrl or masIssuer is the text null. The other optional fields are empty.", "expectedOutcome is the outcome a client reports for a rejected roster or policy. A placement's unsignedRuleAbove says whether a matching rule in a zone without a valid delegate signature outranks the rule that decided, which makes the placement check indeterminate(unsigned_rule).", "policyLog cases check a served bundle, or a 404 when servedPolicy is null, against all events in log.events and the checkpoint given in each case.", "Consistency proofs are checked as RFC 9162 section 2.1.4.2 describes, including its rule that a proof fails when hashes remain after the path is complete.", "Vectors refer to rosters and policies by their ref field." ],
+  "notes" : [ "The test keys are the Ed25519 example keys from RFC 8032, section 7.1. They are public, so never use them outside tests.", "The signatures were made with deterministic Ed25519, so they can be reproduced exactly. Some libraries, Apple CryptoKit among them, randomize Ed25519 signatures. With those, verify the signatures here and do not compare their bytes.", "canonicalUtf8 is the exact byte string that gets signed, written as a JSON string, and canonicalHex is the same bytes in hex. gua-roster.v1 separates fields with the control character U+001F.", "Timestamps appear in JSON as ISO-8601 UTC strings with 0 to 9 fractional digits. The signed bytes carry them as epoch milliseconds. Digits past the millisecond are dropped, not rounded.", "Rosters come in two forms. If no entry has searchVisibility, verify the legacy bytes, which leave out the search fields. If every entry has it, verify the v1 bytes. If only some entries have it, refuse the roster.", "The production roster is a copy of https://resolver.gua.global/roster as served on 2026-10-27. It is signed with the production authority key listed under keys.", "Each expected placement is the homeserver the Java reference verifier chooses for a new account from the verified roster and policy. No context carries verified claims, so an affiliation the client states without proof never changes the result.", "Placements are evaluated at their evaluatedAt instant, not at the current time. Weights are summed in 64 bits, so weights whose total passes 2^31 do not wrap.", "A policy bundle or delegation zone is in effect from notBefore, inclusive, until expiresAt, exclusive, compared in whole milliseconds as the signed bytes carry them. A missing bound leaves that side open, and so does a bound in the first millisecond of 1970-01-01T00:00:00Z, because the signed bytes write both as 0. policyValidity checks a bundle at its edges and windows checks the rule itself.", "A resolve answer is located by the strongest match in the roster, whatever the entry order: an ACTIVE entry with the same serverName, baseUrl and masIssuer, then any entry with all three, then any entry with the serverName. Ties go to the entry served first. expectedEntryId names the entry that decided the match.", "In the signed roster bytes a null id, serverName, baseUrl or masIssuer is the text null. The other optional fields are empty.", "expectedOutcome is the outcome a client reports for a rejected roster or policy. A placement's unsignedRuleAbove says whether a matching rule in a zone without a valid delegate signature outranks the rule that decided, which makes the placement check indeterminate(unsigned_rule).", "policyLog cases check a served bundle, or a 404 when servedPolicy is null, against all events in log.events and the checkpoint given in each case.", "Consistency proofs are checked as RFC 9162 section 2.1.4.2 describes, including its rule that a proof fails when hashes remain after the path is complete.", "Vectors refer to rosters and policies by their ref field." ],
   "keys" : {
     "rfc8032-test1" : {
       "usedAsKeyId" : "authority-a",
@@ -933,6 +933,62 @@
     "verified" : false,
     "reason" : "A key counts once however often it appears, so the second required signature is missing.",
     "expectedOutcome" : "invalid(threshold_not_met)"
+  }, {
+    "name" : "a signature without a key id",
+    "form" : "v1",
+    "roster" : {
+      "version" : 3,
+      "issuedAt" : "2026-10-01T12:00:00.123456789Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE",
+        "member" : {
+          "schema" : "gua-member-entry.v1",
+          "alg" : "Ed25519",
+          "keyId" : "hs-br-1",
+          "sequence" : 1,
+          "notBefore" : "2026-09-01T00:00:00Z",
+          "notAfter" : "2027-09-01T00:00:00Z",
+          "signatures" : [ {
+            "keyId" : "hs-br-1",
+            "signatureB64" : "1nLx0yJDeZFExvr1K1mAra3rJ0NjicyHHckbZ8lrLebHGLvPi1k8AtlBpjbaOZ8sR3+PC1HscL4uiZvWk8wWCQ=="
+          } ]
+        }
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a",
+        "size" : 3
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : null,
+        "signatureB64" : "pLYiXt7eT4mwR/Qs/TRfmdLCS6UnKR3NXfipA0FSb+Jl6KFCGDPx7TzfNvp9f78A0/I68S1tSo1bgr6rdwtSCA=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=3\nissuedAt=1790856000123\nlog=1ff52e9366e9be8ab8db00f46e33991c4679d79b79c131b6f86c0d486002385a:3\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001FGROUP\u001FZ|a|b|é|😀|～\u001F1781678318255\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d330a69737375656441743d313739303835363030303132330a6c6f673d316666353265393336366539626538616238646230306634366533333939316334363739643739623739633133316236663836633064343836303032333835613a330a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f47524f55501f5a7c617c627cc3a97cf09f98807cefbd9e1f313738313637383331383235351f4143544956451f5b5d0a",
+    "sha256Hex" : "49422aa6da88d86f2e69af8e93c447238f8f8e60be5cc49ef131623db8a2b706",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 0,
+    "verified" : false,
+    "reason" : "A signature that names no key counts for none.",
+    "expectedOutcome" : "invalid(unknown_key_id)"
   }, {
     "name" : "a v1 roster checked against its legacy bytes",
     "form" : "legacy",
@@ -1873,6 +1929,136 @@
     "delegateVerifiedZones" : [ "edu-zone" ],
     "reason" : "The signed bytes changed, so the signature fails.",
     "expectedOutcome" : "invalid(bad_signature)"
+  }, {
+    "name" : "a bundle with no signatures list",
+    "bundle" : {
+      "schemaVersion" : "gua-routing-policy.v1",
+      "policyId" : "br-policy",
+      "version" : 3,
+      "issuedAt" : "2026-09-15T08:30:00.250Z",
+      "notBefore" : "2026-01-01T00:00:00Z",
+      "expiresAt" : "2030-01-01T00:00:00Z",
+      "delegationZones" : [ {
+        "id" : "sp-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+55119",
+        "delegatedAuthority" : "carrier:vivo",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "edu-zone",
+        "scopeType" : "INSTITUTION_DOMAIN",
+        "scopeValue" : "usp.br",
+        "delegatedAuthority" : "institution:usp",
+        "delegateKeyId" : "delegate-sp",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=",
+        "allowedHomeserverIds" : [ "hs-br" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      }, {
+        "id" : "na-zone",
+        "scopeType" : "PHONE_PREFIX",
+        "scopeValue" : "+1",
+        "delegatedAuthority" : "carrier:na",
+        "delegateKeyId" : "delegate-na",
+        "delegatePublicKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+        "allowedHomeserverIds" : [ "hs-ca" ],
+        "notBefore" : "2026-01-01T00:00:00Z",
+        "expiresAt" : "2030-01-01T00:00:00Z"
+      } ],
+      "rules" : [ {
+        "id" : "r-sp",
+        "priority" : 10,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+551198",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-br",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "carrier route",
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      }, {
+        "id" : "r-usp",
+        "priority" : 5,
+        "matchType" : "INSTITUTION_DOMAIN",
+        "matchValue" : "usp.br",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-br",
+        "delegatedZoneId" : "edu-zone",
+        "reason" : "institution route",
+        "assignmentPolicy" : "REQUIRES_CONFIRMATION",
+        "enabled" : true
+      }, {
+        "id" : "r-disabled",
+        "priority" : 1,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+55",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "sp-zone",
+        "reason" : "disabled rule",
+        "assignmentPolicy" : null,
+        "enabled" : false
+      }, {
+        "id" : "r-na",
+        "priority" : 2,
+        "matchType" : "PHONE_PREFIX",
+        "matchValue" : "+1",
+        "oidcIssuer" : null,
+        "oidcClaim" : null,
+        "targetHomeserverId" : "hs-ca",
+        "delegatedZoneId" : "na-zone",
+        "reason" : null,
+        "assignmentPolicy" : "PORTABLE",
+        "enabled" : true
+      } ],
+      "fallback" : {
+        "type" : "legacy-weighted",
+        "enabled" : true
+      },
+      "signatures" : null,
+      "delegateSignatures" : [ {
+        "zoneId" : "sp-zone",
+        "delegateKeyId" : "delegate-sp",
+        "signatureB64" : "VgCvs8Vs1KyBspnXoc4FHSPmHkC7zKGngNUWZoKmoDtXGpngv34KB1lC2hPNMS4L+HlUw5HS091RT1OKNCpzAw=="
+      }, {
+        "zoneId" : "edu-zone",
+        "delegateKeyId" : "delegate-sp",
+        "signatureB64" : "K+pg5oNgC5C2CHINEbBtxGmZUswgyF/ZlEP0bEET2a6mM461Ar3Dumo7H5YHKeVXPkOdgF9NITQYUNljnYR4Ag=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-routing-policy.v1\nschema=gua-routing-policy.v1\npolicyId=br-policy\nversion=3\nissuedAt=1789461000250\nnotBefore=1767225600000\nexpiresAt=1893456000000\nzone\u001Fedu-zone\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001Finstitution:usp\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nzone\u001Fna-zone\u001FPHONE_PREFIX\u001F+1\u001Fcarrier:na\u001Fdelegate-na\u001FMCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=\u001Fhs-ca\u001F1767225600000\u001F1893456000000\nzone\u001Fsp-zone\u001FPHONE_PREFIX\u001F+55119\u001Fcarrier:vivo\u001Fdelegate-sp\u001FMCowBQYDK2VwAyEAJ4EX/BRMcjQPZ9DyMW6Dhs7/vyskKMnFH+98WX8dQm4=\u001Fhs-br\u001F1767225600000\u001F1893456000000\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-br\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\nfallback=legacy-weighted:true\n",
+    "canonicalHex" : "6775612d726f7574696e672d706f6c6963792e76310a736368656d613d6775612d726f7574696e672d706f6c6963792e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a69737375656441743d313738393436313030303235300a6e6f744265666f72653d313736373232353630303030300a6578706972657341743d313839333435363030303030300a7a6f6e651f6564752d7a6f6e651f494e535449545554494f4e5f444f4d41494e1f7573702e62721f696e737469747574696f6e3a7573701f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a7a6f6e651f6e612d7a6f6e651f50484f4e455f5052454649581f2b311f636172726965723a6e611f64656c65676174652d6e611f4d436f77425159444b3256774179454150554158772b6844695671537477716e5452742b764a79594c4d3875784a614d774d3156385372305a67773d1f68732d63611f313736373232353630303030301f313839333435363030303030300a7a6f6e651f73702d7a6f6e651f50484f4e455f5052454649581f2b35353131391f636172726965723a7669766f1f64656c65676174652d73701f4d436f77425159444b325677417945414a3445582f42524d636a51505a3944794d5736446873372f7679736b4b4d6e46482b393857583864516d343d1f68732d62721f313736373232353630303030301f313839333435363030303030300a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d62721f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a66616c6c6261636b3d6c65676163792d77656967687465643a747275650a",
+    "sha256Hex" : "9d812418b57e63993281a43d79bef12299756775c215d4afeb298d13fb04d6d9",
+    "delegatedRules" : [ {
+      "zoneId" : "sp-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=sp-zone\nrule\u001Fr-disabled\u001F1\u001FPHONE_PREFIX\u001F+55\u001F\u001F\u001Fhs-ca\u001Fsp-zone\u001Fdisabled rule\u001FPORTABLE\u001Ffalse\nrule\u001Fr-sp\u001F10\u001FPHONE_PREFIX\u001F+551198\u001F\u001F\u001Fhs-br\u001Fsp-zone\u001Fcarrier route\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d73702d7a6f6e650a72756c651f722d64697361626c65641f311f50484f4e455f5052454649581f2b35351f1f1f68732d63611f73702d7a6f6e651f64697361626c65642072756c651f504f525441424c451f66616c73650a72756c651f722d73701f31301f50484f4e455f5052454649581f2b3535313139381f1f1f68732d62721f73702d7a6f6e651f6361727269657220726f7574651f504f525441424c451f747275650a"
+    }, {
+      "zoneId" : "edu-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=edu-zone\nrule\u001Fr-usp\u001F5\u001FINSTITUTION_DOMAIN\u001Fusp.br\u001F\u001F\u001Fhs-br\u001Fedu-zone\u001Finstitution route\u001FREQUIRES_CONFIRMATION\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6564752d7a6f6e650a72756c651f722d7573701f351f494e535449545554494f4e5f444f4d41494e1f7573702e62721f1f1f68732d62721f6564752d7a6f6e651f696e737469747574696f6e20726f7574651f52455155495245535f434f4e4649524d4154494f4e1f747275650a"
+    }, {
+      "zoneId" : "na-zone",
+      "canonicalUtf8" : "gua-delegated-rules.v1\npolicyId=br-policy\nversion=3\nzoneId=na-zone\nrule\u001Fr-na\u001F2\u001FPHONE_PREFIX\u001F+1\u001F\u001F\u001Fhs-ca\u001Fna-zone\u001F\u001FPORTABLE\u001Ftrue\n",
+      "canonicalHex" : "6775612d64656c6567617465642d72756c65732e76310a706f6c69637949643d62722d706f6c6963790a76657273696f6e3d330a7a6f6e6549643d6e612d7a6f6e650a72756c651f722d6e611f321f50484f4e455f5052454649581f2b311f1f1f68732d63611f6e612d7a6f6e651f1f504f525441424c451f747275650a"
+    } ],
+    "trustedKeys" : [ {
+      "id" : "governance-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA/FHNjmIYoaONpH7QAjDwWAgW7RO6MwOsXeuRFUiQgCU=",
+      "keyRef" : "rfc8032-test3"
+    } ],
+    "threshold" : 1,
+    "verified" : false,
+    "delegateVerifiedZones" : [ "edu-zone", "sp-zone" ],
+    "reason" : "A missing signatures list is the same as an empty one.",
+    "expectedOutcome" : "invalid(unknown_key_id)"
   }, {
     "name" : "no policy keys configured",
     "bundle" : {
