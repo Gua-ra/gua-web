@@ -483,7 +483,8 @@ export class ResolverVerification {
         return newest;
     }
 
-    // A roster that could not be read is read again; an invalid one is a result and is kept.
+    // Only a timeout or a failed fetch is retried; any other outcome is a result. Age is left to prepare(), since a
+    // restart here rarely settles before the redirect.
     private needsNewRun(run: ArtifactsRun): boolean {
         return run.isSettled && run.rosterVersion === null && run.failedTransiently;
     }

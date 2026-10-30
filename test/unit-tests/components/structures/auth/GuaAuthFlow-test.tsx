@@ -118,7 +118,7 @@ describe("GuaAuthFlow", () => {
         );
     }
 
-    async function reportLinesAtRedirect(): Promise<string[]> {
+    async function submitPhoneAndReadReport(): Promise<string[]> {
         let linesAtRedirect: string[] = [];
         jest.mocked(startGuaPhoneOidcLogin).mockImplementation(async () => {
             linesAtRedirect = reportLines();
@@ -158,7 +158,7 @@ describe("GuaAuthFlow", () => {
         );
         renderFlow();
 
-        const lines = await reportLinesAtRedirect();
+        const lines = await submitPhoneAndReadReport();
         releaseDocuments();
 
         expect(lines).toEqual([expect.stringContaining("rosterSignature=unverifiable(timeout)")]);
@@ -177,7 +177,7 @@ describe("GuaAuthFlow", () => {
         renderFlow();
         await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledWith(`${RESOLVER}/roster/log`, expect.anything()));
 
-        const lines = await reportLinesAtRedirect();
+        const lines = await submitPhoneAndReadReport();
 
         // jsdom has no Web Locks, so the pin is left alone.
         expect(lines).toEqual([
