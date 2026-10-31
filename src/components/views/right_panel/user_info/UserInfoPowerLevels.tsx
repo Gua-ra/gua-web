@@ -22,7 +22,8 @@ export const PowerLevelSection: React.FC<{
 }> = ({ user, room, roomPermissions }) => {
     const vm = useUserInfoPowerlevelViewModel(user, room);
 
-    if (roomPermissions.canEdit) {
+    // Gua: a creator's power comes from the room's create event and cannot be changed.
+    if (roomPermissions.canEdit && user.powerLevel !== Infinity) {
         return <PowerLevelEditor vm={vm} roomPermissions={roomPermissions} />;
     }
 

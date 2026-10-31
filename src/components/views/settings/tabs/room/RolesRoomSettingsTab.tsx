@@ -342,6 +342,11 @@ export default class RolesRoomSettingsTab extends React.Component<IProps, RolesR
 
         const eventsLevels = plContent.events || {};
         const userLevels = plContent.users || {};
+        // Gua: room version 12 creators have infinite power and no entry in users.
+        const creators = room
+            .getJoinedMembers()
+            .filter((member) => member.powerLevel === Infinity)
+            .map((member) => member.userId);
         const banLevel = parseIntWithDefault(plContent.ban, powerLevelDescriptors.ban.defaultValue);
         const defaultUserLevel = parseIntWithDefault(
             plContent.users_default,
@@ -358,11 +363,12 @@ export default class RolesRoomSettingsTab extends React.Component<IProps, RolesR
 
         let privilegedUsersSection = <div>{_t("room_settings|permissions|no_privileged_users")}</div>;
         let mutedUsersSection;
-        if (Object.keys(userLevels).length) {
+        if (Object.keys(userLevels).length || creators.length) {
             privilegedUsersSection = (
                 <PowerLevelSelector
                     title={_t("room_settings|permissions|privileged_users_section")}
                     userLevels={userLevels}
+                    creators={creators}
                     canChangeLevels={canChangeLevels}
                     currentUserLevel={currentUserLevel}
                     onClick={this.onUserPowerLevelChanged}

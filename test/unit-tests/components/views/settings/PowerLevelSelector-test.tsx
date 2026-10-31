@@ -166,4 +166,24 @@ describe("PowerLevelSelector", () => {
         // the power level should be back to initial value
         expect(select).toHaveValue("100");
     });
+
+    it("should display creators as read-only owners", () => {
+        renderPLS({ creators: ["@creator:server.org"], filter: () => false });
+
+        const creatorSelect = screen.getByRole("combobox", { name: "@creator:server.org" });
+        expect(creatorSelect).toBeDisabled();
+        expect(creatorSelect).toHaveDisplayValue("Owner");
+        expect(screen.queryByText("empty label")).not.toBeInTheDocument();
+    });
+
+    it("should not warn about the last admin when the room has a creator", async () => {
+        const onClick = jest.fn();
+        renderPLS({ creators: ["@creator:server.org"], onClick });
+
+        await userEvent.selectOptions(screen.getByRole("combobox", { name: currentUser }), "50");
+
+        expect(screen.queryByRole("button", { name: "Continue" })).not.toBeInTheDocument();
+        await userEvent.click(screen.getByRole("button", { name: "Apply" }));
+        expect(onClick).toHaveBeenCalledWith(50, currentUser);
+    });
 });
