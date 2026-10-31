@@ -1404,6 +1404,9 @@ export class RoomView extends React.Component<IRoomProps, IRoomState> {
     }
 
     private async calculateRecommendedVersion(room: Room): Promise<void> {
+        // Gua: without the server's room versions, the js-sdk treats every version above 10 as unstable.
+        const capabilities = await this.context.client?.getCapabilities().catch(() => undefined);
+        if (!capabilities?.["m.room_versions"]) return;
         const upgradeRecommendation = await room.getRecommendedVersion();
         if (this.unmounted) return;
         this.setState({ upgradeRecommendation });
