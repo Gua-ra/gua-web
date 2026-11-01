@@ -19,7 +19,6 @@ export function levelRoleMap(usersDefault: number): Record<number | "undefined",
 }
 
 export function textualPowerLevel(level: number, usersDefault: number): string {
-    // Gua: room version 12 gives room creators infinite power.
     if (level === Infinity) return _t("power_level|creator");
     const LEVEL_ROLE_MAP = levelRoleMap(usersDefault);
     if (LEVEL_ROLE_MAP[level]) {

@@ -109,10 +109,6 @@ describe("UserInfoAdminPowerlevelViewModel", () => {
         );
     };
 
-    /**
-     * Make `room.getMember` resolve levels the way the SDK does: an explicit `users` entry when there
-     * is one, otherwise `users_default`. Without this the room reports no members at all.
-     */
     const mockMembersFrom = (content: { users?: Record<string, number>; users_default?: number }): void => {
         mockRoom.getMember.mockImplementation((userId: string) => {
             const member = new RoomMember(defaultRoomId, userId);
@@ -220,7 +216,6 @@ describe("UserInfoAdminPowerlevelViewModel", () => {
     });
 
     it("shows warning when our own level comes from users_default", async () => {
-        // Nobody is listed in `users`, so both of us sit on `users_default`.
         const content = { users: {}, users_default: startPowerLevel };
         const powerLevelEvent = new MatrixEvent({ type: EventType.RoomPowerLevels, content });
         mockRoom.currentState.getStateEvents.mockReturnValue(powerLevelEvent);
@@ -241,7 +236,6 @@ describe("UserInfoAdminPowerlevelViewModel", () => {
         mockRoom.currentState.getStateEvents.mockReturnValue(powerLevelEvent);
         mockRoom.getMember.mockImplementation((userId: string) => {
             const member = new RoomMember(defaultRoomId, userId);
-            // Creators outrank every assignable level, so promoting to 100 cannot match us.
             member.powerLevel = userId === defaultMeId ? Infinity : startPowerLevel;
             return member;
         });

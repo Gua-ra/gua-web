@@ -67,7 +67,6 @@ export const useUserInfoPowerlevelViewModel = (user: RoomMember, room: Room): Us
             if (!powerLevelEvent) return;
 
             const myUserId = cli.getUserId();
-            // Gua: creators and members on users_default have no entry in the users map.
             const myPower = myUserId ? room.getMember(myUserId)?.powerLevel : undefined;
             if (myPower !== undefined && myPower <= powerLevel && myUserId !== target) {
                 const { finished } = Modal.createDialog(QuestionDialog, {
