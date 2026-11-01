@@ -11,7 +11,7 @@ import { type Room } from "matrix-js-sdk/src/matrix";
 
 import Modal from "../../../Modal";
 import { _t } from "../../../languageHandler";
-import { upgradeRoom } from "../../../utils/RoomUpgrade";
+import { getRoomUpgradeRecommendation, upgradeRoom } from "../../../utils/RoomUpgrade";
 import BaseDialog from "./BaseDialog";
 import ErrorDialog from "./ErrorDialog";
 import DialogButtons from "../elements/DialogButtons";
@@ -34,7 +34,11 @@ export default class RoomUpgradeDialog extends React.Component<IProps, IState> {
     };
 
     public async componentDidMount(): Promise<void> {
-        const recommended = await this.props.room.getRecommendedVersion();
+        const recommended = await getRoomUpgradeRecommendation(this.props.room);
+        if (!recommended) {
+            this.props.onFinished(false);
+            return;
+        }
         this.targetVersion = recommended.version;
         this.setState({ busy: false });
     }

@@ -133,6 +133,7 @@ import { PinnedMessageBanner } from "../views/rooms/PinnedMessageBanner";
 import { ScopedRoomContextProvider, useScopedRoomContext } from "../../contexts/ScopedRoomContext";
 import { DeclineAndBlockInviteDialog } from "../views/dialogs/DeclineAndBlockInviteDialog";
 import { type FocusMessageSearchPayload } from "../../dispatcher/payloads/FocusMessageSearchPayload.ts";
+import { getRoomUpgradeRecommendation } from "../../utils/RoomUpgrade";
 
 const DEBUG = false;
 const PREVENT_MULTIPLE_JITSI_WITHIN = 30_000;
@@ -1404,10 +1405,7 @@ export class RoomView extends React.Component<IRoomProps, IRoomState> {
     }
 
     private async calculateRecommendedVersion(room: Room): Promise<void> {
-        // Gua: without the server's room versions, the js-sdk treats every version above 10 as unstable.
-        const capabilities = await this.context.client?.getCapabilities().catch(() => undefined);
-        if (!capabilities?.["m.room_versions"]) return;
-        const upgradeRecommendation = await room.getRecommendedVersion();
+        const upgradeRecommendation = await getRoomUpgradeRecommendation(room);
         if (this.unmounted) return;
         this.setState({ upgradeRecommendation });
     }
