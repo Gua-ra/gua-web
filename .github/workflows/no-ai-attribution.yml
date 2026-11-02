@@ -2,15 +2,15 @@
 name: No AI attribution
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, edited]
+    pull_request:
+        types: [opened, synchronize, reopened, edited]
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  no-ai-attribution:
-    uses: Gua-ra/.github/.github/workflows/no-ai-attribution.yml@main
-    with:
-      upstream: element-hq/element-web
-      upstream_branch: develop
+    no-ai-attribution:
+        uses: Gua-ra/.github/.github/workflows/no-ai-attribution.yml@main
+        with:
+            upstream: element-hq/element-web
+            upstream_branch: develop
