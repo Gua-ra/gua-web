@@ -35,7 +35,7 @@ exports[`AppearanceUserSettingsTab should render 1`] = `
                 class="_root_19upo_16 mx_ThemeChoicePanel_ThemeSelectors"
               >
                 <div
-                  class="_inline-field_19upo_32 mx_ThemeChoicePanel_themeSelector mx_ThemeChoicePanel_themeSelector_disabled cpd-theme-light"
+                  class="_inline-field_19upo_32 mx_ThemeChoicePanel_themeSelector mx_ThemeChoicePanel_themeSelector_enabled cpd-theme-light"
                 >
                   <div
                     class="_inline-field-control_19upo_44"
@@ -44,8 +44,8 @@ exports[`AppearanceUserSettingsTab should render 1`] = `
                       class="_container_1e0uz_10"
                     >
                       <input
+                        checked=""
                         class="_input_1e0uz_18"
-                        disabled=""
                         id="radix-«r0»"
                         name="themeSelector"
                         title=""
@@ -69,7 +69,7 @@ exports[`AppearanceUserSettingsTab should render 1`] = `
                   </div>
                 </div>
                 <div
-                  class="_inline-field_19upo_32 mx_ThemeChoicePanel_themeSelector mx_ThemeChoicePanel_themeSelector_disabled cpd-theme-dark"
+                  class="_inline-field_19upo_32 mx_ThemeChoicePanel_themeSelector cpd-theme-dark"
                 >
                   <div
                     class="_inline-field-control_19upo_44"
@@ -79,7 +79,6 @@ exports[`AppearanceUserSettingsTab should render 1`] = `
                     >
                       <input
                         class="_input_1e0uz_18"
-                        disabled=""
                         id="radix-«r1»"
                         name="themeSelector"
                         title=""
@@ -103,7 +102,7 @@ exports[`AppearanceUserSettingsTab should render 1`] = `
                   </div>
                 </div>
                 <div
-                  class="_inline-field_19upo_32 mx_ThemeChoicePanel_themeSelector mx_ThemeChoicePanel_themeSelector_disabled cpd-theme-light"
+                  class="_inline-field_19upo_32 mx_ThemeChoicePanel_themeSelector cpd-theme-light"
                 >
                   <div
                     class="_inline-field-control_19upo_44"
@@ -113,7 +112,6 @@ exports[`AppearanceUserSettingsTab should render 1`] = `
                     >
                       <input
                         class="_input_1e0uz_18"
-                        disabled=""
                         id="radix-«r2»"
                         name="themeSelector"
                         title=""

@@ -76,10 +76,17 @@ describe("StopGapWidget", () => {
             if (setting === "theme") return "my-theme-for-testing";
             return originGetValue(setting);
         });
+        // Gua's config sets default_theme, so the theme in effect comes from the explicit setting levels.
+        const originGetValueAt = SettingsStore.getValueAt;
+        const atSpy = jest.spyOn(SettingsStore, "getValueAt").mockImplementation((level, setting, ...rest) => {
+            if (setting === "theme") return "my-theme-for-testing";
+            return originGetValueAt(level, setting, ...rest);
+        });
         expect(widget.embedUrl).toBe(
             "https://example.org/?user-id=%40userId%3Amatrix.org&device-id=ABCDEFGHI&base-url=https%3A%2F%2Fmatrix-client.matrix.org&theme=my-theme-for-testing&widgetId=test&parentUrl=http%3A%2F%2Flocalhost%2F",
         );
         spy.mockClear();
+        atSpy.mockRestore();
     });
 
     it("feeds incoming to-device messages to the widget", async () => {
@@ -140,6 +147,10 @@ describe("StopGapWidget", () => {
         const settingsSpy = jest
             .spyOn(SettingsStore, "getValue")
             .mockImplementation((name) => (name === "theme" ? theme : null));
+        // Gua's config sets default_theme, so the theme in effect comes from the explicit setting levels.
+        const settingsAtSpy = jest
+            .spyOn(SettingsStore, "getValueAt")
+            .mockImplementation((_level, name) => (name === "theme" ? theme : null));
         try {
             // Indicate that the widget is ready
             findLast(messaging.once.mock.calls, ([eventName]) => eventName === "ready")![1]();
@@ -150,6 +161,7 @@ describe("StopGapWidget", () => {
             expect(messaging.updateTheme).toHaveBeenLastCalledWith({ name: "dark" });
         } finally {
             settingsSpy.mockRestore();
+            settingsAtSpy.mockRestore();
         }
     });
 
