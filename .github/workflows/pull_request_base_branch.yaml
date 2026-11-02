@@ -10,8 +10,10 @@ jobs:
         steps:
             - uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
               with:
+                  # Gua work lands on gua/main. develop, staging and master mirror upstream Element,
+                  # so a PR into one of them is aimed at the wrong branch.
                   script: |
                       const baseBranch = context.payload.pull_request.base.ref;
-                      if (!['develop', 'staging'].includes(baseBranch) && !baseBranch.startsWith('feat/')) {
-                          core.setFailed(`Invalid base branch: ${baseBranch}`);
+                      if (["develop", "staging", "master"].includes(baseBranch)) {
+                          core.setFailed(`Invalid base branch: ${baseBranch}, Gua PRs target gua/main`);
                       }

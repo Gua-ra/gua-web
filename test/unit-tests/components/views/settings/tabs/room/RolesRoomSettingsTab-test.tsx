@@ -81,19 +81,19 @@ describe("RolesRoomSettingsTab", () => {
         };
 
         const getStartCallSelect = (tab: RenderResult): HTMLElement => {
-            return tab.container.querySelector("select[label='Start Element Call calls']")!;
+            return tab.container.querySelector("select[label='Start Gua Call calls']")!;
         };
 
         const getStartCallSelectedOption = (tab: RenderResult): HTMLElement => {
-            return tab.container.querySelector("select[label='Start Element Call calls'] option:checked")!;
+            return tab.container.querySelector("select[label='Start Gua Call calls'] option:checked")!;
         };
 
         const getJoinCallSelect = (tab: RenderResult): HTMLElement => {
-            return tab.container.querySelector("select[label='Join Element Call calls']")!;
+            return tab.container.querySelector("select[label='Join Gua Call calls']")!;
         };
 
         const getJoinCallSelectedOption = (tab: RenderResult): HTMLElement => {
-            return tab.container.querySelector("select[label='Join Element Call calls'] option:checked")!;
+            return tab.container.querySelector("select[label='Join Gua Call calls'] option:checked")!;
         };
 
         describe("Element Call enabled", () => {

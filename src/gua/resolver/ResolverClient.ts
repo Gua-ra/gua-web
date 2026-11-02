@@ -54,7 +54,7 @@ export default class ResolverClient {
         try {
             response = await fetch(`${this.baseUrl}/resolve`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", Accept: "application/json" },
+                headers: { "Content-Type": "application/json", "Accept": "application/json" },
                 body: JSON.stringify({ phone: phoneNumber }),
             });
         } catch (e) {

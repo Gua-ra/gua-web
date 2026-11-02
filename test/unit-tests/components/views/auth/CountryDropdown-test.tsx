@@ -38,6 +38,15 @@ describe("CountryDropdown", () => {
     });
 
     describe("defaultCountry", () => {
+        // Gua's default config sets default_country_code to BR. Clear it so the language fallback runs.
+        beforeEach(() => {
+            SdkConfig.add({ default_country_code: "" });
+        });
+
+        afterEach(() => {
+            SdkConfig.reset();
+        });
+
         it.each([
             ["en-GB", 44],
             ["en-ie", 353],

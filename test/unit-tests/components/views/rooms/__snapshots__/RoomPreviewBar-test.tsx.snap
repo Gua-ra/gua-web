@@ -238,7 +238,7 @@ exports[`<RoomPreviewBar /> with an invite with an invited email when client has
     This invite to RoomPreviewBar-test-room was sent to test@test.com
   </h3>
   <p>
-    Share this email in Settings to receive invites directly in Element.
+    Share this email in Settings to receive invites directly in Gua.
   </p>
 </div>
 `;
@@ -283,7 +283,7 @@ exports[`<RoomPreviewBar /> with an invite with an invited email when client has
     This invite to RoomPreviewBar-test-room was sent to test@test.com
   </h3>
   <p>
-    Use an identity server in Settings to receive invites directly in Element.
+    Use an identity server in Settings to receive invites directly in Gua.
   </p>
 </div>
 `;
@@ -296,7 +296,7 @@ exports[`<RoomPreviewBar /> with an invite with an invited email when invitedEma
     This invite to RoomPreviewBar-test-room was sent to test@test.com which is not associated with your account
   </h3>
   <p>
-    Link this email with your account in Settings to receive invites directly in Element.
+    Link this email with your account in Settings to receive invites directly in Gua.
   </p>
 </div>
 `;
