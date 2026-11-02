@@ -422,7 +422,7 @@ describe("<LocationShareMenu />", () => {
                 QuestionDialog,
                 expect.objectContaining({
                     button: "Try again",
-                    description: "Element could not send your location. Please try again later.",
+                    description: "Gua could not send your location. Please try again later.",
                     title: `We couldn't send your location`,
                     cancelButton: "Cancel",
                 }),

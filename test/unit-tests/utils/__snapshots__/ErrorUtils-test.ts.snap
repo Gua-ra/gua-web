@@ -54,7 +54,16 @@ exports[`messageForConnectionError should match snapshot for unknown error 1`] =
 
 exports[`messageForLoginError should match snapshot for 401 1`] = `
 <DocumentFragment>
-  Incorrect username and/or password.
+  <div>
+    <div>
+      Incorrect username and/or password.
+    </div>
+    <div
+      class="mx_Login_smallError"
+    >
+      Please note you are logging into the hsName server, not matrix.org.
+    </div>
+  </div>
 </DocumentFragment>
 `;
 

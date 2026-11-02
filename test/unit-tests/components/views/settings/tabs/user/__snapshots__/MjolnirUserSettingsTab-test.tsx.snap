@@ -24,7 +24,7 @@ exports[`<MjolnirUserSettingsTab /> renders correctly when user has no ignored u
             </strong>
             <p>
               <span>
-                Add users and servers you want to ignore here. Use asterisks to have Element match any characters. For example, 
+                Add users and servers you want to ignore here. Use asterisks to have Gua match any characters. For example, 
                 <code>
                   @bot:*
                 </code>

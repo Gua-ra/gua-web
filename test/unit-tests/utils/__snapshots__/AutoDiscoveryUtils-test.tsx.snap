@@ -4,11 +4,11 @@ exports[`AutoDiscoveryUtils authComponentStateForError should return expected er
 {
   "serverDeadError": <div>
     <strong>
-      Your Element is misconfigured
+      Your Gua is misconfigured
     </strong>
     <div>
       <span>
-        Ask your Element admin to check 
+        Ask your Gua admin to check 
         <a
           href="https://github.com/vector-im/element-web/blob/master/docs/config.md"
           rel="noreferrer noopener"
