@@ -84,6 +84,68 @@ describe("<VerificationPanel />", () => {
         });
     });
 
+    describe("'Cancelled' phase", () => {
+        it("does not attribute a self-verification cancel to either device", () => {
+            const container = renderComponent({
+                request: makeMockVerificationRequest({
+                    phase: Phase.Cancelled,
+                    isSelfVerification: true,
+                    cancellationCode: "m.user",
+                    cancellingUserId: client.getSafeUserId(),
+                    otherUserId: client.getSafeUserId(),
+                }),
+                layout: "dialog",
+            });
+            container.getByRole("heading", { name: "Verification cancelled" });
+            container.getByText("Start verification again from the notification.");
+            expect(container.container).not.toHaveTextContent("on your other device");
+            expect(container.container).not.toHaveTextContent("You cancelled verification.");
+        });
+
+        it("still says a self-verification timed out", () => {
+            const container = renderComponent({
+                request: makeMockVerificationRequest({
+                    phase: Phase.Cancelled,
+                    isSelfVerification: true,
+                    cancellationCode: "m.timeout",
+                    cancellingUserId: client.getSafeUserId(),
+                    otherUserId: client.getSafeUserId(),
+                }),
+                layout: "dialog",
+            });
+            container.getByRole("heading", { name: "Verification cancelled" });
+            container.getByText("Verification timed out. Start verification again from the notification.");
+        });
+
+        it("names the other user when they cancelled", () => {
+            const container = renderComponent({
+                request: makeMockVerificationRequest({
+                    phase: Phase.Cancelled,
+                    isSelfVerification: false,
+                    cancellationCode: "m.user",
+                    cancellingUserId: "@other:user",
+                    otherUserId: "@other:user",
+                }),
+                member: new User("@other:user"),
+            });
+            container.getByText("@other:user cancelled verification. Start verification again from their profile.");
+        });
+
+        it("says we cancelled when we cancelled verifying another user", () => {
+            const container = renderComponent({
+                request: makeMockVerificationRequest({
+                    phase: Phase.Cancelled,
+                    isSelfVerification: false,
+                    cancellationCode: "m.user",
+                    cancellingUserId: client.getSafeUserId(),
+                    otherUserId: "@other:user",
+                }),
+                member: new User("@other:user"),
+            });
+            container.getByText("You cancelled verification. Start verification again from their profile.");
+        });
+    });
+
     describe("'Verify by emoji' flow", () => {
         let mockVerifier: Mocked<Verifier>;
         let mockRequest: Mocked<VerificationRequest>;
