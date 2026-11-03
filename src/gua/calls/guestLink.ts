@@ -22,15 +22,15 @@ export function guestLinkName(roomName: string): string {
 }
 
 // Guests join through the host's server: version 12 room IDs carry no server name.
-export function buildGuestLink(guestSpaUrl: string, roomName: string, roomId: string, serverName: string): string {
-    const base = guestSpaUrl.replace(/\/+$/, "");
+export function buildGuestLink(guestUrl: string, roomName: string, roomId: string, serverName: string): string {
+    const base = guestUrl.replace(/\/+$/, "");
     const params = `roomId=${encodeURIComponent(roomId)}&viaServers=${encodeURIComponent(serverName)}`;
     return `${base}/room/#/${guestLinkName(roomName)}?${params}`;
 }
 
 export function getGuestLink(room: Room, roomName: string, joinRule: JoinRule): string | null {
-    const guestSpaUrl = SdkConfig.get("element_call")?.guest_spa_url;
-    if (joinRule !== JoinRule.Knock || !guestSpaUrl || !isCallHost(room.client.getUserId())) return null;
+    const guestUrl = SdkConfig.get("gua_call")?.guest_url;
+    if (joinRule !== JoinRule.Knock || !guestUrl || !isCallHost(room.client.getUserId())) return null;
     const serverName = room.client.getDomain();
-    return serverName ? buildGuestLink(guestSpaUrl, roomName, room.roomId, serverName) : null;
+    return serverName ? buildGuestLink(guestUrl, roomName, room.roomId, serverName) : null;
 }

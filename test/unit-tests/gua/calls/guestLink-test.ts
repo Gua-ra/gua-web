@@ -48,7 +48,7 @@ describe("getGuestLink", () => {
         new Room(ROOM_ID, getMockClientWithEventEmitter(mockClientMethodsUser(userId)), userId);
 
     beforeEach(() => {
-        SdkConfig.put({ gua_call: { hosts: [HOST] }, element_call: { guest_spa_url: "https://call.example.org" } });
+        SdkConfig.put({ gua_call: { hosts: [HOST], guest_url: "https://call.example.org" } });
     });
 
     afterEach(() => {
@@ -71,7 +71,7 @@ describe("getGuestLink", () => {
     });
 
     it("gives no link without a guest page", () => {
-        SdkConfig.put({ gua_call: { hosts: [HOST] } });
+        SdkConfig.put({ gua_call: { hosts: [HOST] }, element_call: { guest_spa_url: "https://call.example.org" } });
         expect(getGuestLink(roomFor(HOST), "Stand-up", JoinRule.Knock)).toBeNull();
     });
 });

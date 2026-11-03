@@ -788,8 +788,7 @@ describe("RoomHeader", () => {
     describe("call hosts", () => {
         beforeEach(() => {
             SdkConfig.put({
-                gua_call: { hosts: [MatrixClientPeg.safeGet().getSafeUserId()] },
-                element_call: { guest_spa_url: "https://call.example.org" },
+                gua_call: { hosts: [MatrixClientPeg.safeGet().getSafeUserId()], guest_url: "https://call.example.org" },
                 setting_defaults: { [UIFeature.Voip]: false },
             });
         });
@@ -835,6 +834,7 @@ describe("RoomHeader", () => {
             });
 
             it("shows the guest link in place of the share call link while a host views the call", () => {
+                SdkConfig.add({ element_call: { guest_spa_url: "https://call.example.org" } });
                 jest.spyOn(SdkContextClass.instance.roomViewStore, "isViewingCall").mockReturnValue(true);
                 render(<RoomHeader room={room} />, getWrapper());
 
