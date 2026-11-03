@@ -18,6 +18,7 @@ import {
     RoomStateEvent,
 } from "matrix-js-sdk/src/matrix";
 import { KnownMembership } from "matrix-js-sdk/src/types";
+import EventEmitter from "events";
 import React from "react";
 
 import ErrorDialog from "../../../../../src/components/views/dialogs/ErrorDialog";
@@ -35,7 +36,9 @@ import {
 } from "../../../../test-utils";
 import * as languageHandler from "../../../../../src/languageHandler";
 import SdkConfig from "../../../../../src/SdkConfig";
-import { COLLEAGUE, GUEST, ROOM_ID, setUpGuestCallRoom } from "../../../gua/calls/guestCallRoom";
+import { type Call, CallEvent, ConnectionState } from "../../../../../src/models/Call";
+import { CallStore } from "../../../../../src/stores/CallStore";
+import { COLLEAGUE, GUEST, HOST, ROOM_ID, setUpGuestCallRoom, THIS_DEVICE } from "../../../gua/calls/guestCallRoom";
 
 describe("RoomKnocksBar", () => {
     const userId = "@alice:example.org";
@@ -337,7 +340,14 @@ describe("RoomKnocksBar in a room with a guest link", () => {
     afterEach(() => {
         SdkConfig.reset();
         unmockClientPeg();
+        jest.restoreAllMocks();
     });
+
+    const callInThisTab = (state: ConnectionState): EventEmitter & { connectionState: ConnectionState } => {
+        const call = Object.assign(new EventEmitter(), { connectionState: state });
+        jest.spyOn(CallStore.instance, "getCall").mockReturnValue(call as unknown as Call);
+        return call;
+    };
 
     it("lets a guest in once the host is in the call", async () => {
         const { client, room, hostJoinsCall } = setUpGuestCallRoom();
@@ -354,6 +364,51 @@ describe("RoomKnocksBar in a room with a guest link", () => {
         fireEvent.click(getButton("Approve"));
         await act(() => flushPromises());
         expect(client.invite).toHaveBeenCalledWith(ROOM_ID, GUEST);
+    });
+
+    it("holds a guest back for a call this browser left without hanging up", () => {
+        const { hostJoinsCall, room } = setUpGuestCallRoom();
+        callInThisTab(ConnectionState.Disconnected);
+        render(<RoomKnocksBar room={room} />);
+
+        act(() => hostJoinsCall(THIS_DEVICE));
+        expect(getButton("Approve")).toHaveAttribute("disabled");
+        expect(screen.getByText(hint)).toBeInTheDocument();
+    });
+
+    it("lets a guest in only while this tab is in the call", () => {
+        const { hostJoinsCall, room } = setUpGuestCallRoom();
+        const call = callInThisTab(ConnectionState.Connected);
+        render(<RoomKnocksBar room={room} />);
+
+        act(() => hostJoinsCall(THIS_DEVICE));
+        expect(getButton("Approve")).not.toHaveAttribute("disabled");
+        expect(screen.queryByText(hint)).not.toBeInTheDocument();
+
+        act(() => {
+            call.connectionState = ConnectionState.Disconnected;
+            call.emit(CallEvent.ConnectionState, ConnectionState.Disconnected, ConnectionState.Connected);
+        });
+        expect(getButton("Approve")).toHaveAttribute("disabled");
+        expect(screen.getByText(hint)).toBeInTheDocument();
+    });
+
+    it("holds a guest back while only someone else is in the call", () => {
+        const { joinsCall, room } = setUpGuestCallRoom();
+        render(<RoomKnocksBar room={room} />);
+
+        act(() => joinsCall(COLLEAGUE, "COLLEAGUE_PHONE"));
+        expect(getButton("Approve")).toHaveAttribute("disabled");
+        expect(screen.getByText(hint)).toBeInTheDocument();
+    });
+
+    it("counts the host's other device as in the call", () => {
+        const { joinsCall, room } = setUpGuestCallRoom();
+        callInThisTab(ConnectionState.Disconnected);
+        render(<RoomKnocksBar room={room} />);
+
+        act(() => joinsCall(HOST, "PHONE"));
+        expect(getButton("Approve")).not.toHaveAttribute("disabled");
     });
 
     it("does not hold back someone from the host's own server", () => {

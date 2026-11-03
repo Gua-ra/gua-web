@@ -10,6 +10,8 @@ import { type Room } from "matrix-js-sdk/src/matrix";
 import { MatrixRTCSessionEvent } from "matrix-js-sdk/src/matrixrtc";
 
 import { useTypedEventEmitterState } from "../../hooks/useEventEmitter";
+import { useCall, useConnectionState } from "../../hooks/useCall";
+import { ConnectionState } from "../../models/Call";
 import { getServerName } from "../../utils/permalinks/Permalinks";
 import { useGuestLink } from "./guestLink";
 
@@ -23,11 +25,26 @@ export function useMustJoinBeforeAdmitting(room: Room): (userId: string) => bool
     const client = room.client;
     const ownUserId = client.getUserId();
     const session = guarded ? client.matrixRTC.getRoomSession(room) : undefined;
-    const hostInCall = useTypedEventEmitterState(
+    const otherDeviceInCall = useTypedEventEmitterState(
         session,
         MatrixRTCSessionEvent.MembershipsChanged,
-        useCallback(() => !!session?.memberships.some((m) => m.sender === ownUserId), [session, ownUserId]),
+        useCallback(
+            () => !!session?.memberships.some((m) => m.sender === ownUserId && m.deviceId !== client.getDeviceId()),
+            [session, ownUserId, client],
+        ),
     );
+    const thisDeviceListed = useTypedEventEmitterState(
+        session,
+        MatrixRTCSessionEvent.MembershipsChanged,
+        useCallback(
+            () => !!session?.memberships.some((m) => m.sender === ownUserId && m.deviceId === client.getDeviceId()),
+            [session, ownUserId, client],
+        ),
+    );
+    // Without delayed events a membership outlives a reload or a closed tab for hours, so this
+    // browser's own one counts only while this tab is in the call.
+    const connectedHere = useConnectionState(useCall(room.roomId)) === ConnectionState.Connected;
+    const hostInCall = otherDeviceInCall || (thisDeviceListed && connectedHere);
 
     return useCallback(
         (userId: string) => guarded && !hostInCall && getServerName(userId) !== client.getDomain(),

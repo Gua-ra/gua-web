@@ -19,11 +19,13 @@ export const HOST = "@host:example.org";
 export const GUEST = "@guest:guest.example.org";
 export const COLLEAGUE = "@colleague:example.org";
 export const ROOM_ID = "!aB3-dE_fG9hIjK";
+export const THIS_DEVICE = "WEB";
 
 export interface GuestCallRoom {
     client: MockedObject<MatrixClient>;
     room: Room;
     hostJoinsCall(deviceId?: string): void;
+    joinsCall(sender: string, deviceId: string): void;
 }
 
 /** An Ask to join room, signed in as a call host, with people knocking and nobody in the call yet. */
@@ -62,13 +64,16 @@ export function setUpGuestCallRoom({ creator = HOST, knockers = [GUEST] } = {}):
         ),
     ]);
     room.updateMyMembership(KnownMembership.Join);
+    client.getDeviceId.mockReturnValue(THIS_DEVICE);
 
+    const joinsCall = (sender: string, deviceId: string): void => {
+        session.memberships = [{ sender, deviceId } as CallMembership];
+        session.emit(MatrixRTCSessionEvent.MembershipsChanged, [], session.memberships);
+    };
     return {
         client,
         room,
-        hostJoinsCall: (deviceId = "PHONE") => {
-            session.memberships = [{ sender: HOST, deviceId } as CallMembership];
-            session.emit(MatrixRTCSessionEvent.MembershipsChanged, [], session.memberships);
-        },
+        hostJoinsCall: (deviceId = "PHONE") => joinsCall(HOST, deviceId),
+        joinsCall,
     };
 }
