@@ -379,16 +379,24 @@ describe("RoomKnocksBar in a room with a guest link", () => {
     it("lets a guest in only while this tab is in the call", () => {
         const { hostJoinsCall, room } = setUpGuestCallRoom();
         const call = callInThisTab(ConnectionState.Connected);
+        const setConnectionState = (state: ConnectionState): void =>
+            act(() => {
+                const previous = call.connectionState;
+                call.connectionState = state;
+                call.emit(CallEvent.ConnectionState, state, previous);
+            });
         render(<RoomKnocksBar room={room} />);
+        // Element Call reports the join before the membership it sent comes back.
+        expect(getButton("Approve")).toHaveAttribute("disabled");
 
         act(() => hostJoinsCall(THIS_DEVICE));
         expect(getButton("Approve")).not.toHaveAttribute("disabled");
         expect(screen.queryByText(hint)).not.toBeInTheDocument();
 
-        act(() => {
-            call.connectionState = ConnectionState.Disconnected;
-            call.emit(CallEvent.ConnectionState, ConnectionState.Disconnected, ConnectionState.Connected);
-        });
+        setConnectionState(ConnectionState.Disconnecting);
+        expect(getButton("Approve")).toHaveAttribute("disabled");
+
+        setConnectionState(ConnectionState.Disconnected);
         expect(getButton("Approve")).toHaveAttribute("disabled");
         expect(screen.getByText(hint)).toBeInTheDocument();
     });
