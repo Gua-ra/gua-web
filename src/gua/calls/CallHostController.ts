@@ -38,7 +38,7 @@ export default class CallHostController extends MatrixClientBackedController {
 
     public getValueOverride(): unknown {
         // MatrixClientPeg has the signed-in client before startup passes it to the controllers, and none after logout.
-        return isCallHost(MatrixClientPeg.get()?.getUserId()) ? this.hostValue() : null;
+        return isCallHost(MatrixClientPeg.get()?.credentials?.userId) ? this.hostValue() : null;
     }
 
     public onChange(): void {

@@ -30,9 +30,7 @@ export function buildGuestLink(guestSpaUrl: string, roomName: string, roomId: st
 
 export function getGuestLink(room: Room, roomName: string, joinRule: JoinRule): string | null {
     const guestSpaUrl = SdkConfig.get("element_call")?.guest_spa_url;
+    if (joinRule !== JoinRule.Knock || !guestSpaUrl || !isCallHost(room.client.getUserId())) return null;
     const serverName = room.client.getDomain();
-    if (joinRule !== JoinRule.Knock || !guestSpaUrl || !serverName || !isCallHost(room.client.getUserId())) {
-        return null;
-    }
-    return buildGuestLink(guestSpaUrl, roomName, room.roomId, serverName);
+    return serverName ? buildGuestLink(guestSpaUrl, roomName, room.roomId, serverName) : null;
 }
