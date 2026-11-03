@@ -47,7 +47,7 @@ import SettingsStore from "../../../../../../src/settings/SettingsStore";
 import SdkConfig from "../../../../../../src/SdkConfig";
 import dispatcher from "../../../../../../src/dispatcher/dispatcher";
 import { CallStore } from "../../../../../../src/stores/CallStore";
-import { type Call } from "../../../../../../src/models/Call";
+import { type Call, ConnectionState } from "../../../../../../src/models/Call";
 import * as ShieldUtils from "../../../../../../src/utils/ShieldUtils";
 import { Container, WidgetLayoutStore } from "../../../../../../src/stores/widgets/WidgetLayoutStore";
 import MatrixClientContext from "../../../../../../src/contexts/MatrixClientContext";
@@ -823,6 +823,48 @@ describe("RoomHeader", () => {
             render(<RoomHeader room={room} />, getWrapper());
 
             expect(queryByLabelText(document.body, "Join")).not.toBeInTheDocument();
+        });
+
+        it("lets a host start a call in a room with a guest link", () => {
+            makeGuestLinkRoom();
+            mockRoomMembers(room, 2);
+            render(<RoomHeader room={room} />, getWrapper());
+
+            expect(screen.getByRole("button", { name: "Video call" })).toBeInTheDocument();
+        });
+
+        it("does not let a host start a call in a room without a guest link", () => {
+            mockRoomMembers(room, 2);
+            render(<RoomHeader room={room} />, getWrapper());
+
+            expect(screen.queryByRole("button", { name: "Video call" })).not.toBeInTheDocument();
+        });
+
+        it("keeps the close lobby button for a host in a room without a guest link", () => {
+            mockRoomMembers(room, 2);
+            jest.spyOn(SdkContextClass.instance.roomViewStore, "isViewingCall").mockReturnValue(true);
+            render(<RoomHeader room={room} />, getWrapper());
+
+            expect(getByLabelText(document.body, "Close lobby")).toBeInTheDocument();
+        });
+
+        it("keeps the call toggle for a host in a call in a room without a guest link", () => {
+            mockRoomMembers(room, 2);
+            jest.spyOn(CallStore.instance, "getCall").mockReturnValue({
+                ...createMockCall(ROOM_ID, 2),
+                connectionState: ConnectionState.Connected,
+            } as unknown as Call);
+            render(<RoomHeader room={room} />, getWrapper());
+
+            expect(getByLabelText(document.body, "Maximise call")).toBeInTheDocument();
+        });
+
+        it("keeps call buttons unchanged for other accounts", () => {
+            SdkConfig.add({ gua_call: { hosts: ["@host:example.org"] }, setting_defaults: { [UIFeature.Voip]: true } });
+            mockRoomMembers(room, 2);
+            render(<RoomHeader room={room} />, getWrapper());
+
+            expect(screen.getByRole("button", { name: "Video call" })).toBeInTheDocument();
         });
 
         describe("in an Ask to join room", () => {

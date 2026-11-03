@@ -56,6 +56,7 @@ import { ToggleableIcon } from "./toggle/ToggleableIcon.tsx";
 import { CurrentRightPanelPhaseContextProvider } from "../../../../contexts/CurrentRightPanelPhaseContext.tsx";
 import { CopyGuestLinkButton } from "../../../../gua/calls/CopyGuestLinkButton.tsx";
 import { useGuestLink } from "../../../../gua/calls/guestLink.ts";
+import { isCallHost } from "../../../../gua/calls/hosts.ts";
 
 export default function RoomHeader({
     room,
@@ -229,6 +230,9 @@ export default function RoomHeader({
         videoCallButton = toggleCallButton;
     } else if (isViewingCall) {
         videoCallButton = closeLobbyButton;
+    } else if (isCallHost(client.getUserId()) && !guestLink) {
+        // The call gate admits only hosts and guests, so hosts start calls only where guests can join.
+        videoCallButton = undefined;
     }
 
     if (!showVideoCallButton) {
