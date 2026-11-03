@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Afrita gestatengil",
+            "join_before_admitting": "Taktu þátt í símtalinu til að hleypa viðkomandi inn."
+        },
         "footer": {
             "developed_by": "Þróað af %(name)s"
         }

@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopijuoti nuorodą svečiams",
+            "join_before_admitting": "Prisijunkite prie skambučio, kad galėtumėte suteikti prieigą."
+        },
         "footer": {
             "developed_by": "Sukūrė %(name)s"
         }

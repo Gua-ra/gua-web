@@ -31,7 +31,7 @@ import { getPlatformCallTypeProps, useRoomCall } from "../../../../hooks/room/us
 import { useRoomThreadNotifications } from "../../../../hooks/room/useRoomThreadNotifications.ts";
 import { useGlobalNotificationState } from "../../../../hooks/useGlobalNotificationState.ts";
 import SdkConfig from "../../../../SdkConfig.ts";
-import { useFeatureEnabled } from "../../../../hooks/useSettings.ts";
+import { useFeatureEnabled, useSettingValue } from "../../../../hooks/useSettings.ts";
 import { useEncryptionStatus } from "../../../../hooks/useEncryptionStatus.ts";
 import { E2EStatus } from "../../../../utils/ShieldUtils.ts";
 import FacePile from "../../elements/FacePile.tsx";
@@ -54,6 +54,10 @@ import { RoomSettingsTab } from "../../dialogs/RoomSettingsDialog.tsx";
 import { useScopedRoomContext } from "../../../../contexts/ScopedRoomContext.tsx";
 import { ToggleableIcon } from "./toggle/ToggleableIcon.tsx";
 import { CurrentRightPanelPhaseContextProvider } from "../../../../contexts/CurrentRightPanelPhaseContext.tsx";
+import { CopyGuestLinkButton } from "../../../../gua/calls/CopyGuestLinkButton.tsx";
+import { useGuestLink } from "../../../../gua/calls/guestLink.ts";
+import { isCallHost } from "../../../../gua/calls/hosts.ts";
+import { UIFeature } from "../../../../settings/UIFeature.ts";
 
 export default function RoomHeader({
     room,
@@ -87,6 +91,7 @@ export default function RoomHeader({
     } = useRoomCall(room);
 
     const groupCallsEnabled = useFeatureEnabled("feature_group_calls");
+    const voipEnabled = useSettingValue(UIFeature.Voip);
     /**
      * A special mode where only Element Call is used. In this case we want to
      * hide the voice call button
@@ -105,6 +110,8 @@ export default function RoomHeader({
     const notificationsEnabled = useFeatureEnabled("feature_notifications");
 
     const askToJoinEnabled = useFeatureEnabled("feature_ask_to_join");
+
+    const guestLink = useGuestLink(room);
 
     const videoClick = useCallback(
         (ev: React.MouseEvent) => videoCallClick(ev, callOptions[0]),
@@ -225,6 +232,9 @@ export default function RoomHeader({
         videoCallButton = toggleCallButton;
     } else if (isViewingCall) {
         videoCallButton = closeLobbyButton;
+    } else if (isCallHost(client.getUserId()) && !guestLink) {
+        // The call gate admits only hosts and guests, so hosts start calls only where guests can join.
+        videoCallButton = undefined;
     }
 
     if (!showVideoCallButton) {
@@ -336,10 +346,14 @@ export default function RoomHeader({
                         );
                     })}
 
-                    {isViewingCall && <CallGuestLinkButton room={room} />}
+                    {guestLink ? (
+                        <CopyGuestLinkButton link={guestLink} />
+                    ) : (
+                        isViewingCall && <CallGuestLinkButton room={room} />
+                    )}
 
                     {hasActiveCallSession && !isConnectedToCall && !isViewingCall ? (
-                        joinCallButton
+                        voipEnabled && joinCallButton
                     ) : (
                         <>
                             {!isVideoRoom && videoCallButton}

@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Adikao ny rohy ho an'ny vahiny",
+            "join_before_admitting": "Midira amin'ny antso mba hampiditra azy."
+        },
         "footer": {
             "developed_by": "Novolavolain'i %(name)s"
         }
