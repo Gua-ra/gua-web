@@ -1,0 +1,375 @@
+{
+  "encoding" : "gua-lp.v1",
+  "decision" : "docs/decisions/ADM-007-canonical-encoding-and-member-entries.md",
+  "protocol" : "docs/verification/gua-resolver-verification-protocol.md, section 'Member self-signature'",
+  "notes" : [ "Keys are the RFC 8032 section 7.1 TEST 1 and TEST 2 Ed25519 keys: published test constants that must never sign anything real.", "Ed25519 is deterministic, so every signature below is reproducible from the key and the canonical bytes.", "int64 primitive values are JSON strings so that no JSON parser rounds them.", "member.notBefore and member.notAfter are the transport form (ISO-8601, UTC, millisecond precision); the canonical bytes carry their epoch milliseconds, repeated here as notBeforeEpochMs and notAfterEpochMs.", "A conforming implementation reproduces every canonicalHex and sha256Hex, and refuses every entry under rejections; the reason strings are informative, not normative." ],
+  "keys" : {
+    "rfc8032-test1" : {
+      "seedHex" : "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+      "publicKeyHex" : "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+      "privateKeyPkcs8B64" : "MC4CAQAwBQYDK2VwBCIEIJ1hsZ3v/VpguoRK9JLsLMREScVpezJpGXA7rAMcrn9g"
+    },
+    "rfc8032-test2" : {
+      "seedHex" : "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb",
+      "publicKeyHex" : "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+      "privateKeyPkcs8B64" : "MC4CAQAwBQYDK2VwBCIEIEzNCJso/5banbbDRuwRTg9bijGfNaumJNqM9u1PuKb7"
+    }
+  },
+  "primitives" : [ {
+    "name" : "empty string",
+    "type" : "string",
+    "value" : "",
+    "hex" : "00000000"
+  }, {
+    "name" : "string holding the 0x1F byte CanonicalRoster uses as a field separator",
+    "type" : "string",
+    "value" : "a\u001Fb",
+    "hex" : "00000003611f62"
+  }, {
+    "name" : "multi-byte UTF-8: the length prefix counts bytes",
+    "type" : "string",
+    "value" : "São Paulo, école, 北京",
+    "hex" : "0000001a53c3a36f205061756c6f2c20c3a9636f6c652c20e58c97e4baac"
+  }, {
+    "name" : "int64 zero",
+    "type" : "int64",
+    "value" : "0",
+    "hex" : "0000000000000000"
+  }, {
+    "name" : "int64 minus one",
+    "type" : "int64",
+    "value" : "-1",
+    "hex" : "ffffffffffffffff"
+  }, {
+    "name" : "int64 maximum",
+    "type" : "int64",
+    "value" : "9223372036854775807",
+    "hex" : "7fffffffffffffff"
+  }, {
+    "name" : "int64 epoch milliseconds for 2026-09-11T00:00:00Z",
+    "type" : "int64",
+    "value" : "1789084800000",
+    "hex" : "000001a08dc39400"
+  }, {
+    "name" : "bool false",
+    "type" : "bool",
+    "value" : false,
+    "hex" : "00"
+  }, {
+    "name" : "bool true",
+    "type" : "bool",
+    "value" : true,
+    "hex" : "01"
+  }, {
+    "name" : "optional string absent",
+    "type" : "optionalString",
+    "value" : null,
+    "hex" : "00"
+  }, {
+    "name" : "optional string present and empty",
+    "type" : "optionalString",
+    "value" : "",
+    "hex" : "0100000000"
+  }, {
+    "name" : "set of strings sorted by unsigned UTF-8 byte order, so the accented element sorts last",
+    "type" : "stringSet",
+    "value" : [ "b", "a", "B", "é", "aa", "z" ],
+    "hex" : "00000006000000014200000001610000000261610000000162000000017a00000002c3a9"
+  }, {
+    "name" : "list of strings keeps its order",
+    "type" : "stringList",
+    "value" : [ "b", "a" ],
+    "hex" : "0000000200000001620000000161"
+  }, {
+    "name" : "enum by canonical name",
+    "type" : "enum",
+    "value" : "GROUP",
+    "hex" : "0000000547524f5550"
+  } ],
+  "memberEntries" : [ {
+    "name" : "global visibility, region present, first attestation",
+    "signingKeyRef" : "rfc8032-test1",
+    "homeserver" : {
+      "id" : "hs-example",
+      "serverName" : "example.gua.test",
+      "baseUrl" : "https://matrix.example.gua.test",
+      "masIssuer" : "https://account.example.gua.test/",
+      "region" : "BR",
+      "signingKey" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+      "searchVisibility" : "GLOBAL",
+      "searchGroups" : [ ]
+    },
+    "member" : {
+      "schema" : "gua-member-entry.v1",
+      "alg" : "Ed25519",
+      "keyId" : "hs-example-1",
+      "sequence" : 1,
+      "notBefore" : "2026-09-11T00:00:00Z",
+      "notAfter" : "2027-10-16T00:00:00Z",
+      "signatures" : [ {
+        "keyId" : "hs-example-1",
+        "signatureB64" : "l2STjUmh2PKNkzWB+6dMZpeGDlxmrIkA+t6tGHdKbB9LWL7zSpSGKATCUeKaRJ3/UoRqNbFxAAUGYSIp/p5tDg=="
+      } ]
+    },
+    "notBeforeEpochMs" : 1789084800000,
+    "notAfterEpochMs" : 1823644800000,
+    "canonicalHex" : "000000136775612d6d656d6265722d656e7472792e76310000000a68732d6578616d706c65000000106578616d706c652e6775612e746573740000001f68747470733a2f2f6d61747269782e6578616d706c652e6775612e746573740000002168747470733a2f2f6163636f756e742e6578616d706c652e6775612e746573742f00000007456432353531390000003c4d436f77425159444b325677417945413131715941594b7843726656532f3754795751484f6737686376506170694d6c727749616150634855526f3d0000000c68732d6578616d706c652d310000000000000001000001a08dc39400000001a899b354000100000002425200000006474c4f42414c00000000",
+    "sha256Hex" : "b44576d1b216cfbc0c0b422a371ebfe51ef671d5dbfdba8e0796c1f59f6e8d91"
+  }, {
+    "name" : "group visibility, region absent, search groups sent unsorted",
+    "signingKeyRef" : "rfc8032-test2",
+    "homeserver" : {
+      "id" : "hs-edu",
+      "serverName" : "edu.gua.test",
+      "baseUrl" : "https://matrix.edu.gua.test",
+      "masIssuer" : "https://account.edu.gua.test/",
+      "region" : null,
+      "signingKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+      "searchVisibility" : "GROUP",
+      "searchGroups" : [ "edu-br", "Edu-BR", "écoles" ]
+    },
+    "member" : {
+      "schema" : "gua-member-entry.v1",
+      "alg" : "Ed25519",
+      "keyId" : "hs-edu-7",
+      "sequence" : 7,
+      "notBefore" : "2026-09-11T00:00:00Z",
+      "notAfter" : "2027-10-16T00:00:00Z",
+      "signatures" : [ {
+        "keyId" : "hs-edu-7",
+        "signatureB64" : "XLXNeWO2JbGNHKWJMZztO9w7zuHnktSA7lU+6ZUJCDmnqTTOtADdNI5mtqdX6BkS3f0/ZVZVarnpAI/NFZ0oAQ=="
+      } ]
+    },
+    "notBeforeEpochMs" : 1789084800000,
+    "notAfterEpochMs" : 1823644800000,
+    "canonicalHex" : "000000136775612d6d656d6265722d656e7472792e76310000000668732d6564750000000c6564752e6775612e746573740000001b68747470733a2f2f6d61747269782e6564752e6775612e746573740000001d68747470733a2f2f6163636f756e742e6564752e6775612e746573742f00000007456432353531390000003c4d436f77425159444b3256774179454150554158772b6844695671537477716e5452742b764a79594c4d3875784a614d774d3156385372305a67773d0000000868732d6564752d370000000000000007000001a08dc39400000001a899b35400000000000547524f555000000003000000064564752d4252000000066564752d627200000007c3a9636f6c6573",
+    "sha256Hex" : "86b102806d019b53292544da6a148dc51508e8a82ded35042bc19a045b86ba5f"
+  }, {
+    "name" : "region present but empty, which is not the same bytes as absent",
+    "signingKeyRef" : "rfc8032-test1",
+    "homeserver" : {
+      "id" : "hs-empty-region",
+      "serverName" : "empty.gua.test",
+      "baseUrl" : "https://matrix.empty.gua.test",
+      "masIssuer" : "https://account.empty.gua.test/",
+      "region" : "",
+      "signingKey" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+      "searchVisibility" : "SERVER",
+      "searchGroups" : [ ]
+    },
+    "member" : {
+      "schema" : "gua-member-entry.v1",
+      "alg" : "Ed25519",
+      "keyId" : "hs-empty-1",
+      "sequence" : 1,
+      "notBefore" : "2026-09-11T00:00:00Z",
+      "notAfter" : "2027-10-16T00:00:00Z",
+      "signatures" : [ {
+        "keyId" : "hs-empty-1",
+        "signatureB64" : "tGmja58Nv+ThgM7V4nTRNu45DlVSAOLbQ4fDRQa8qdm3RFwOXQlrmTmgUhubB1ZkNIbN8PMF0k6nltr95QYoDw=="
+      } ]
+    },
+    "notBeforeEpochMs" : 1789084800000,
+    "notAfterEpochMs" : 1823644800000,
+    "canonicalHex" : "000000136775612d6d656d6265722d656e7472792e76310000000f68732d656d7074792d726567696f6e0000000e656d7074792e6775612e746573740000001d68747470733a2f2f6d61747269782e656d7074792e6775612e746573740000001f68747470733a2f2f6163636f756e742e656d7074792e6775612e746573742f00000007456432353531390000003c4d436f77425159444b325677417945413131715941594b7843726656532f3754795751484f6737686376506170694d6c727749616150634855526f3d0000000a68732d656d7074792d310000000000000001000001a08dc39400000001a899b3540001000000000000000653455256455200000000",
+    "sha256Hex" : "670f726bd02b109cf6dbf6f253e65876d2f300e2afbe39ca365cbe8b0d1c1362"
+  }, {
+    "name" : "key rotation from test1 to test2, signed by both keys",
+    "signingKeyRef" : "rfc8032-test2",
+    "homeserver" : {
+      "id" : "hs-example",
+      "serverName" : "example.gua.test",
+      "baseUrl" : "https://matrix.example.gua.test",
+      "masIssuer" : "https://account.example.gua.test/",
+      "region" : "BR",
+      "signingKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+      "searchVisibility" : "GLOBAL",
+      "searchGroups" : [ ]
+    },
+    "member" : {
+      "schema" : "gua-member-entry.v1",
+      "alg" : "Ed25519",
+      "keyId" : "hs-example-2",
+      "sequence" : 2,
+      "notBefore" : "2026-10-01T00:00:00.250Z",
+      "notAfter" : "2027-11-05T00:00:00.250Z",
+      "signatures" : [ {
+        "keyId" : "hs-example-2",
+        "signatureB64" : "Z2QkPPw0+Rd4FfITBdl51cbIy7W6MBHW2znMY5y4vh19DJx4H+c35fnYd+XNunEHgtvpIz+9tHsnxa4Bj+fSAw=="
+      }, {
+        "keyId" : "hs-example-1",
+        "signatureB64" : "EQyT4NkysNH5YKGBafXnEZzd1JuXcxW/j/n2w/racLe7DAapTL8UF7g2+cZFYKvhqauP6lrZjA/wmwwvUchABw=="
+      } ]
+    },
+    "notBeforeEpochMs" : 1790812800250,
+    "notAfterEpochMs" : 1825372800250,
+    "canonicalHex" : "000000136775612d6d656d6265722d656e7472792e76310000000a68732d6578616d706c65000000106578616d706c652e6775612e746573740000001f68747470733a2f2f6d61747269782e6578616d706c652e6775612e746573740000002168747470733a2f2f6163636f756e742e6578616d706c652e6775612e746573742f00000007456432353531390000003c4d436f77425159444b3256774179454150554158772b6844695671537477716e5452742b764a79594c4d3875784a614d774d3156385372305a67773d0000000c68732d6578616d706c652d320000000000000002000001a0f4c2c4fa000001a900b284fa0100000002425200000006474c4f42414c00000000",
+    "sha256Hex" : "c40ae148e80a37dad0ec9a956b432cd7253747a05536e76295808182097b94b4",
+    "previous" : {
+      "keyId" : "hs-example-1",
+      "signingKey" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+      "sequence" : 1,
+      "entryHash" : "b44576d1b216cfbc0c0b422a371ebfe51ef671d5dbfdba8e0796c1f59f6e8d91"
+    }
+  } ],
+  "rejections" : [ {
+    "name" : "duplicate search group",
+    "homeserver" : {
+      "id" : "hs-edu",
+      "serverName" : "edu.gua.test",
+      "baseUrl" : "https://matrix.edu.gua.test",
+      "masIssuer" : "https://account.edu.gua.test/",
+      "region" : null,
+      "signingKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+      "searchVisibility" : "GROUP",
+      "searchGroups" : [ "edu-br", "edu-br" ]
+    },
+    "member" : {
+      "schema" : "gua-member-entry.v1",
+      "alg" : "Ed25519",
+      "keyId" : "hs-edu-7",
+      "sequence" : 7,
+      "notBefore" : "2026-09-11T00:00:00Z",
+      "notAfter" : "2027-10-16T00:00:00Z",
+      "signatures" : [ {
+        "keyId" : "hs-edu-7",
+        "signatureB64" : "XLXNeWO2JbGNHKWJMZztO9w7zuHnktSA7lU+6ZUJCDmnqTTOtADdNI5mtqdX6BkS3f0/ZVZVarnpAI/NFZ0oAQ=="
+      } ]
+    },
+    "reason" : "a set with a duplicate element has no canonical encoding"
+  }, {
+    "name" : "baseUrl substituted under the member's original signature",
+    "homeserver" : {
+      "id" : "hs-example",
+      "serverName" : "example.gua.test",
+      "baseUrl" : "https://attacker.gua.test",
+      "masIssuer" : "https://account.example.gua.test/",
+      "region" : "BR",
+      "signingKey" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+      "searchVisibility" : "GLOBAL",
+      "searchGroups" : [ ]
+    },
+    "member" : {
+      "schema" : "gua-member-entry.v1",
+      "alg" : "Ed25519",
+      "keyId" : "hs-example-1",
+      "sequence" : 1,
+      "notBefore" : "2026-09-11T00:00:00Z",
+      "notAfter" : "2027-10-16T00:00:00Z",
+      "signatures" : [ {
+        "keyId" : "hs-example-1",
+        "signatureB64" : "l2STjUmh2PKNkzWB+6dMZpeGDlxmrIkA+t6tGHdKbB9LWL7zSpSGKATCUeKaRJ3/UoRqNbFxAAUGYSIp/p5tDg=="
+      } ]
+    },
+    "reason" : "the signature no longer verifies"
+  }, {
+    "name" : "key rotation carrying only the new key's signature",
+    "homeserver" : {
+      "id" : "hs-example",
+      "serverName" : "example.gua.test",
+      "baseUrl" : "https://matrix.example.gua.test",
+      "masIssuer" : "https://account.example.gua.test/",
+      "region" : "BR",
+      "signingKey" : "MCowBQYDK2VwAyEAPUAXw+hDiVqStwqnTRt+vJyYLM8uxJaMwM1V8Sr0Zgw=",
+      "searchVisibility" : "GLOBAL",
+      "searchGroups" : [ ]
+    },
+    "member" : {
+      "schema" : "gua-member-entry.v1",
+      "alg" : "Ed25519",
+      "keyId" : "hs-example-2",
+      "sequence" : 2,
+      "notBefore" : "2026-10-01T00:00:00.250Z",
+      "notAfter" : "2027-11-05T00:00:00.250Z",
+      "signatures" : [ {
+        "keyId" : "hs-example-2",
+        "signatureB64" : "Z2QkPPw0+Rd4FfITBdl51cbIy7W6MBHW2znMY5y4vh19DJx4H+c35fnYd+XNunEHgtvpIz+9tHsnxa4Bj+fSAw=="
+      } ]
+    },
+    "previous" : {
+      "keyId" : "hs-example-1",
+      "signingKey" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+      "sequence" : 1,
+      "entryHash" : "b44576d1b216cfbc0c0b422a371ebfe51ef671d5dbfdba8e0796c1f59f6e8d91"
+    },
+    "reason" : "a rotation must also be signed by the previous key"
+  }, {
+    "name" : "unknown field inside the signed sub-object",
+    "homeserver" : {
+      "id" : "hs-example",
+      "serverName" : "example.gua.test",
+      "baseUrl" : "https://matrix.example.gua.test",
+      "masIssuer" : "https://account.example.gua.test/",
+      "region" : "BR",
+      "signingKey" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+      "searchVisibility" : "GLOBAL",
+      "searchGroups" : [ ]
+    },
+    "member" : {
+      "schema" : "gua-member-entry.v1",
+      "alg" : "Ed25519",
+      "keyId" : "hs-example-1",
+      "sequence" : 1,
+      "notBefore" : "2026-09-11T00:00:00Z",
+      "notAfter" : "2027-10-16T00:00:00Z",
+      "signatures" : [ {
+        "keyId" : "hs-example-1",
+        "signatureB64" : "l2STjUmh2PKNkzWB+6dMZpeGDlxmrIkA+t6tGHdKbB9LWL7zSpSGKATCUeKaRJ3/UoRqNbFxAAUGYSIp/p5tDg=="
+      } ],
+      "weight" : 100
+    },
+    "reason" : "the member block is parsed strictly; unknown fields are refused"
+  }, {
+    "name" : "sub-millisecond timestamp",
+    "homeserver" : {
+      "id" : "hs-example",
+      "serverName" : "example.gua.test",
+      "baseUrl" : "https://matrix.example.gua.test",
+      "masIssuer" : "https://account.example.gua.test/",
+      "region" : "BR",
+      "signingKey" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+      "searchVisibility" : "GLOBAL",
+      "searchGroups" : [ ]
+    },
+    "member" : {
+      "schema" : "gua-member-entry.v1",
+      "alg" : "Ed25519",
+      "keyId" : "hs-example-1",
+      "sequence" : 1,
+      "notBefore" : "2026-09-11T00:00:00.000001Z",
+      "notAfter" : "2027-10-16T00:00:00Z",
+      "signatures" : [ {
+        "keyId" : "hs-example-1",
+        "signatureB64" : "l2STjUmh2PKNkzWB+6dMZpeGDlxmrIkA+t6tGHdKbB9LWL7zSpSGKATCUeKaRJ3/UoRqNbFxAAUGYSIp/p5tDg=="
+      } ]
+    },
+    "reason" : "timestamps carry millisecond precision only"
+  }, {
+    "name" : "validity window longer than the 400 day maximum",
+    "homeserver" : {
+      "id" : "hs-example",
+      "serverName" : "example.gua.test",
+      "baseUrl" : "https://matrix.example.gua.test",
+      "masIssuer" : "https://account.example.gua.test/",
+      "region" : "BR",
+      "signingKey" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+      "searchVisibility" : "GLOBAL",
+      "searchGroups" : [ ]
+    },
+    "member" : {
+      "schema" : "gua-member-entry.v1",
+      "alg" : "Ed25519",
+      "keyId" : "hs-example-1",
+      "sequence" : 1,
+      "notBefore" : "2026-09-11T00:00:00Z",
+      "notAfter" : "2027-10-17T00:00:00Z",
+      "signatures" : [ {
+        "keyId" : "hs-example-1",
+        "signatureB64" : "l2STjUmh2PKNkzWB+6dMZpeGDlxmrIkA+t6tGHdKbB9LWL7zSpSGKATCUeKaRJ3/UoRqNbFxAAUGYSIp/p5tDg=="
+      } ]
+    },
+    "reason" : "the window exceeds the maximum entry lifetime"
+  } ]
+}
