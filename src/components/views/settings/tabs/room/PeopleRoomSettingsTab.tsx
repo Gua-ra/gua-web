@@ -21,6 +21,7 @@ import AccessibleButton from "../../../elements/AccessibleButton";
 import SettingsFieldset from "../../SettingsFieldset";
 import { SettingsSection } from "../../shared/SettingsSection";
 import SettingsTab from "../SettingsTab";
+import { useMustJoinBeforeAdmitting } from "../../../../../gua/calls/useMustJoinBeforeAdmitting";
 
 const Timestamp: FC<{ roomMember: RoomMember }> = ({ roomMember }) => {
     const timestamp = roomMember.events.member?.event.origin_server_ts;
@@ -54,10 +55,11 @@ const SeeMoreOrLess: FC<{ roomMember: RoomMember }> = ({ roomMember }) => {
 const Knock: FC<{
     canInvite: boolean;
     canKick: boolean;
+    mustJoinCall: boolean;
     onApprove: (userId: string) => Promise<void>;
     onDeny: (userId: string) => Promise<void>;
     roomMember: RoomMember;
-}> = ({ canKick, canInvite, onApprove, onDeny, roomMember }) => {
+}> = ({ canKick, canInvite, mustJoinCall, onApprove, onDeny, roomMember }) => {
     const [disabled, setDisabled] = useState(false);
 
     const handleApprove = (userId: string): void => {
@@ -80,6 +82,9 @@ const Knock: FC<{
                 <Timestamp roomMember={roomMember} />
                 <span className="mx_PeopleRoomSettingsTab_userId">{roomMember.userId}</span>
                 <SeeMoreOrLess roomMember={roomMember} />
+                {mustJoinCall && (
+                    <p className="mx_PeopleRoomSettingsTab_paragraph">{_t("gua|call|join_before_admitting")}</p>
+                )}
             </div>
             <AccessibleButton
                 className="mx_PeopleRoomSettingsTab_action"
@@ -92,7 +97,7 @@ const Knock: FC<{
             </AccessibleButton>
             <AccessibleButton
                 className="mx_PeopleRoomSettingsTab_action"
-                disabled={!canInvite || disabled}
+                disabled={!canInvite || disabled || mustJoinCall}
                 kind="icon_primary"
                 onClick={() => handleApprove(roomMember.userId)}
                 title={_t("action|approve")}
@@ -139,6 +144,7 @@ export const PeopleRoomSettingsTab: FC<{ room: Room }> = ({ room }) => {
         RoomStateEvent.Update,
         useCallback(() => room.getMembersWithMembership(KnownMembership.Knock), [room]),
     );
+    const mustJoinBeforeAdmitting = useMustJoinBeforeAdmitting(room);
 
     return (
         <SettingsTab>
@@ -150,6 +156,7 @@ export const PeopleRoomSettingsTab: FC<{ room: Room }> = ({ room }) => {
                                 canInvite={canInvite}
                                 canKick={canKick}
                                 key={knockMember.userId}
+                                mustJoinCall={mustJoinBeforeAdmitting(knockMember.userId)}
                                 onApprove={handleApprove}
                                 onDeny={handleDeny}
                                 roomMember={knockMember}

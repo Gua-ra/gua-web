@@ -1264,7 +1264,8 @@
     },
     "gua": {
         "call": {
-            "copy_guest_link": "Copy guest link"
+            "copy_guest_link": "Copy guest link",
+            "join_before_admitting": "Join the call to let them in."
         },
         "deactivate": {
             "cancel": "Cancel",

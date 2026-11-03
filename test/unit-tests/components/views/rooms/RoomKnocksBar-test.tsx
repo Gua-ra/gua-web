@@ -31,8 +31,11 @@ import {
     flushPromises,
     getMockClientWithEventEmitter,
     mockClientMethodsUser,
+    unmockClientPeg,
 } from "../../../../test-utils";
 import * as languageHandler from "../../../../../src/languageHandler";
+import SdkConfig from "../../../../../src/SdkConfig";
+import { COLLEAGUE, GUEST, ROOM_ID, setUpGuestCallRoom } from "../../../gua/calls/guestCallRoom";
 
 describe("RoomKnocksBar", () => {
     const userId = "@alice:example.org";
@@ -324,5 +327,48 @@ describe("RoomKnocksBar", () => {
                 );
             });
         });
+    });
+});
+
+describe("RoomKnocksBar in a room with a guest link", () => {
+    const hint = "Join the call to let them in.";
+    const getButton = (name: "Approve" | "Deny") => screen.getByRole("button", { name });
+
+    afterEach(() => {
+        SdkConfig.reset();
+        unmockClientPeg();
+    });
+
+    it("lets a guest in once the host is in the call", async () => {
+        const { client, room, hostJoinsCall } = setUpGuestCallRoom();
+        render(<RoomKnocksBar room={room} />);
+
+        expect(getButton("Approve")).toHaveAttribute("disabled");
+        expect(getButton("Deny")).not.toHaveAttribute("disabled");
+        expect(screen.getByText(hint)).toBeInTheDocument();
+
+        act(() => hostJoinsCall());
+        expect(getButton("Approve")).not.toHaveAttribute("disabled");
+        expect(screen.queryByText(hint)).not.toBeInTheDocument();
+
+        fireEvent.click(getButton("Approve"));
+        await act(() => flushPromises());
+        expect(client.invite).toHaveBeenCalledWith(ROOM_ID, GUEST);
+    });
+
+    it("does not hold back someone from the host's own server", () => {
+        const { room } = setUpGuestCallRoom({ knockers: [COLLEAGUE] });
+        render(<RoomKnocksBar room={room} />);
+
+        expect(getButton("Approve")).not.toHaveAttribute("disabled");
+        expect(screen.queryByText(hint)).not.toBeInTheDocument();
+    });
+
+    it("does not hold back guests in a room without a guest link", () => {
+        const { room } = setUpGuestCallRoom({ creator: COLLEAGUE });
+        render(<RoomKnocksBar room={room} />);
+
+        expect(getButton("Approve")).not.toHaveAttribute("disabled");
+        expect(screen.queryByText(hint)).not.toBeInTheDocument();
     });
 });
