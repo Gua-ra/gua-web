@@ -774,8 +774,8 @@ describe("RoomHeader", () => {
     });
 
     describe("ask to join enabled", () => {
-        it("does render the RoomKnocksBar", () => {
-            SettingsStore.setValue("feature_ask_to_join", null, SettingLevel.DEVICE, true);
+        it("does render the RoomKnocksBar", async () => {
+            await SettingsStore.setValue("feature_ask_to_join", null, SettingLevel.DEVICE, true);
             jest.spyOn(room, "canInvite").mockReturnValue(true);
             jest.spyOn(room, "getJoinRule").mockReturnValue(JoinRule.Knock);
             jest.spyOn(room, "getMembersWithMembership").mockReturnValue([new RoomMember(room.roomId, "@foo")]);

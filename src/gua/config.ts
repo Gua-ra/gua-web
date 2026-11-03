@@ -39,6 +39,9 @@ export const GUA_CONFIG_DEFAULTS: Partial<IConfigOptions> = {
     gua_auth: {
         phone_oidc_login: true,
     },
+    gua_call: {
+        hosts: [],
+    },
     disable_custom_urls: true,
     disable_guests: true,
     disable_3pid_login: true,

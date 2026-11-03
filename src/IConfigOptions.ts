@@ -61,6 +61,12 @@ export interface IConfigOptions {
     gua_resolver?: {
         base_url: string;
     };
+    // User IDs that get calls and Ask to join whatever the rest of the config says.
+    // host_url replaces the embedded Element Call for them.
+    gua_call?: {
+        hosts: string[];
+        host_url?: string;
+    };
 
     brand: string;
     branding?: {
