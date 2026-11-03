@@ -54,6 +54,7 @@ import RoomListStore from "../../../src/stores/room-list/RoomListStore.ts";
 import { DefaultTagID } from "../../../src/stores/room-list/models.ts";
 import DMRoomMap from "../../../src/utils/DMRoomMap.ts";
 
+const realGetValue = SettingsStore.getValue;
 const enabledSettings = new Set(["feature_group_calls", "feature_video_rooms", "feature_element_call_video_rooms"]);
 jest.spyOn(SettingsStore, "getValue").mockImplementation(
     (settingName): any => enabledSettings.has(settingName) || undefined,
@@ -596,6 +597,23 @@ describe("ElementCall", () => {
             const call = ElementCall.get(room);
             expect(call?.widget.url.startsWith("https://call.element.dev/")).toBeTruthy();
             SettingsStore.getValue = originalGetValue;
+        });
+
+        it("loads the host page with its path for a call host", () => {
+            const hostUrl = "https://call-host.example.org/room";
+            SdkConfig.put({ gua_call: { hosts: [client.credentials.userId!], host_url: hostUrl } });
+            const originalGetValue = SettingsStore.getValue;
+            SettingsStore.getValue = ((name: SettingKey): any =>
+                name === "Developer.elementCallUrl"
+                    ? realGetValue.call(SettingsStore, name)
+                    : enabledSettings.has(name) || undefined) as typeof SettingsStore.getValue;
+
+            ElementCall.create(room);
+            const url = ElementCall.get(room)?.widget.url;
+            SettingsStore.getValue = originalGetValue;
+
+            expect(url?.startsWith(`${hostUrl}#?`)).toBe(true);
+            expect(new URL(url!).pathname).toBe("/room");
         });
 
         it("finds ongoing calls that are created by the session manager", async () => {
