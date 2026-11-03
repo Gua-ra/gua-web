@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopiera gästlänk",
+            "join_before_admitting": "Gå med i samtalet för att släppa in personen."
+        },
         "footer": {
             "developed_by": "Utvecklad av %(name)s"
         }

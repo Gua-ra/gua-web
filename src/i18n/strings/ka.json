@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "სტუმრის ბმულის კოპირება",
+            "join_before_admitting": "შეუერთდით ზარს, რათა ის შემოუშვათ."
+        },
         "footer": {
             "developed_by": "შემუშავებულია %(name)s-ის მიერ"
         }

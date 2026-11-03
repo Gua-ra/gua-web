@@ -21,6 +21,7 @@ import { RoomSettingsTab } from "../dialogs/RoomSettingsDialog";
 import AccessibleButton from "../elements/AccessibleButton";
 import Heading from "../typography/Heading";
 import { formatList } from "../../../utils/FormattingUtils";
+import { useMustJoinBeforeAdmitting } from "../../../gua/calls/useMustJoinBeforeAdmitting";
 
 export const RoomKnocksBar: FC<{ room: Room }> = ({ room }) => {
     const [disabled, setDisabled] = useState(false);
@@ -29,6 +30,7 @@ export const RoomKnocksBar: FC<{ room: Room }> = ({ room }) => {
         RoomStateEvent.Update,
         useCallback(() => room.getMembersWithMembership(KnownMembership.Knock), [room]),
     );
+    const mustJoinBeforeAdmitting = useMustJoinBeforeAdmitting(room);
     const knockMembersCount = knockMembers.length;
 
     if (room.getJoinRule() !== JoinRule.Knock || knockMembersCount === 0) return null;
@@ -81,7 +83,9 @@ export const RoomKnocksBar: FC<{ room: Room }> = ({ room }) => {
         true,
     );
     let link: ReactNode = null;
+    let hint: ReactNode = null;
     if (knockMembersCount === 1) {
+        const waitForCall = mustJoinBeforeAdmitting(knockMembers[0].userId);
         buttons = (
             <>
                 <AccessibleButton
@@ -95,7 +99,7 @@ export const RoomKnocksBar: FC<{ room: Room }> = ({ room }) => {
                 </AccessibleButton>
                 <AccessibleButton
                     className="mx_RoomKnocksBar_action"
-                    disabled={!canInvite || disabled}
+                    disabled={!canInvite || disabled || waitForCall}
                     kind="icon_primary"
                     onClick={() => handleApprove(knockMembers[0].userId)}
                     title={_t("action|approve")}
@@ -115,6 +119,9 @@ export const RoomKnocksBar: FC<{ room: Room }> = ({ room }) => {
                 {_t("action|view_message")}
             </AccessibleButton>
         );
+        if (waitForCall) {
+            hint = <p className="mx_RoomKnocksBar_paragraph">{_t("gua|call|join_before_admitting")}</p>;
+        }
     }
 
     return (
@@ -133,6 +140,7 @@ export const RoomKnocksBar: FC<{ room: Room }> = ({ room }) => {
                     {names}
                     {link}
                 </p>
+                {hint}
             </div>
             {buttons}
         </div>

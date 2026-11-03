@@ -7,7 +7,7 @@ exports[`<AuthHeaderLogo /> should match snapshot 1`] = `
   >
     <img
       alt="Gua"
-      src="themes/gua/img/logos/app-logo.png"
+      src="themes/gua/img/logos/logo.svg"
     />
   </aside>
 </DocumentFragment>

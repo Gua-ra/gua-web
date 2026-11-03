@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Copia collegamento per ospiti",
+            "join_before_admitting": "Partecipa alla chiamata per consentire l'accesso."
+        },
         "footer": {
             "developed_by": "Sviluppato da %(name)s"
         }

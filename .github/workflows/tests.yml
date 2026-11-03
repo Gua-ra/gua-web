@@ -50,9 +50,7 @@ jobs:
                   cache: "yarn"
 
             - name: Install Deps
-              run: "./scripts/layered.sh"
-              env:
-                  JS_SDK_GITHUB_BASE_REF: ${{ inputs.matrix-js-sdk-sha }}
+              run: "yarn install --frozen-lockfile"
 
             - name: Jest Cache
               uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4

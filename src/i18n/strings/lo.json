@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "ສຳເນົາລິ້ງສຳລັບແຂກ",
+            "join_before_admitting": "ເຂົ້າຮ່ວມການໂທເພື່ອອະນຸຍາດໃຫ້ເຂົ້າ."
+        },
         "footer": {
             "developed_by": "ພັດທະນາໂດຍ %(name)s"
         }

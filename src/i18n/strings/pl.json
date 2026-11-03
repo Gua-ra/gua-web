@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopiuj link dla gości",
+            "join_before_admitting": "Dołącz do rozmowy, aby wpuścić tę osobę."
+        },
         "footer": {
             "developed_by": "Stworzone przez %(name)s"
         }

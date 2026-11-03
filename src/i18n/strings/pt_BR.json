@@ -1,13 +1,16 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Copiar link para convidados",
+            "join_before_admitting": "Entre na chamada para permitir a entrada."
+        },
         "footer": {
             "developed_by": "Desenvolvido por %(name)s"
         },
         "phone": {
             "title": "Digite seu número de telefone",
             "subtitle": "Enviaremos um código de verificação por SMS.",
-            "number_label": "Número de telefone",
-            "invalid": "Digite um número de telefone válido."
+            "number_label": "Número de telefone"
         },
         "otp": {
             "title": "Digite o código",
@@ -40,8 +43,7 @@
             "setup_confirm_title": "Confirme seu PIN",
             "setup_confirm_subtitle": "Digite seu PIN novamente para confirmar.",
             "mismatch": "Os PINs não coincidem. Tente novamente.",
-            "skip": "Pular por enquanto",
-            "continue": "Continuar"
+            "skip": "Pular por enquanto"
         },
         "two_step": {
             "title": "Verificação em duas etapas",
@@ -85,6 +87,9 @@
             "phone_already_linked": "Este número de telefone já está vinculado a outra conta.",
             "invalid_reauth_token": "Sua verificação expirou. Solicite um novo código.",
             "generic": "Algo deu errado. Tente novamente."
+        },
+        "welcome": {
+            "registration_disabled": "A criação de contas pela web não está disponível durante o beta."
         }
     },
     "a11y": {

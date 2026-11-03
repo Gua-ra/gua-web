@@ -73,6 +73,19 @@ describe("RolesRoomSettingsTab", () => {
         expect(container.querySelector(`[placeholder="@admin:server"]`)).toBeDisabled();
     });
 
+    it("should list joined room creators as read-only owners", async () => {
+        const creator = new RoomMember(roomId, "@creator:server.org");
+        creator.powerLevel = Infinity;
+        mocked(room.getJoinedMembers).mockReturnValue([creator]);
+        await renderTab();
+
+        const privilegedUsersSection = screen.getByRole("group", { name: "Privileged Users" });
+        const creatorSelect = getByRole(privilegedUsersSection, "combobox", { name: "@creator:server.org" });
+        expect(creatorSelect).toBeDisabled();
+        expect(creatorSelect).toHaveDisplayValue("Owner");
+        expect(screen.queryByText("No users have specific privileges in this room")).not.toBeInTheDocument();
+    });
+
     describe("Element Call", () => {
         const setGroupCallsEnabled = (val: boolean): void => {
             jest.spyOn(SettingsStore, "getValue").mockImplementation((name: string): any => {
@@ -81,19 +94,19 @@ describe("RolesRoomSettingsTab", () => {
         };
 
         const getStartCallSelect = (tab: RenderResult): HTMLElement => {
-            return tab.container.querySelector("select[label='Start Element Call calls']")!;
+            return tab.container.querySelector("select[label='Start Gua Call calls']")!;
         };
 
         const getStartCallSelectedOption = (tab: RenderResult): HTMLElement => {
-            return tab.container.querySelector("select[label='Start Element Call calls'] option:checked")!;
+            return tab.container.querySelector("select[label='Start Gua Call calls'] option:checked")!;
         };
 
         const getJoinCallSelect = (tab: RenderResult): HTMLElement => {
-            return tab.container.querySelector("select[label='Join Element Call calls']")!;
+            return tab.container.querySelector("select[label='Join Gua Call calls']")!;
         };
 
         const getJoinCallSelectedOption = (tab: RenderResult): HTMLElement => {
-            return tab.container.querySelector("select[label='Join Element Call calls'] option:checked")!;
+            return tab.container.querySelector("select[label='Join Gua Call calls'] option:checked")!;
         };
 
         describe("Element Call enabled", () => {

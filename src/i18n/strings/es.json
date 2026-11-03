@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Copiar enlace para invitados",
+            "join_before_admitting": "Únete a la llamada para darle acceso."
+        },
         "footer": {
             "developed_by": "Desarrollado por %(name)s"
         }
@@ -1465,6 +1469,7 @@
         "unable_edit_title": "Encuesta no editable"
     },
     "power_level": {
+        "creator": "Propietario",
         "custom": "Personalizado (%(level)s)",
         "custom_level": "Nivel personalizado",
         "default": "Por defecto",

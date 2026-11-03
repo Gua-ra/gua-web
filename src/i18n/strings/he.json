@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "העתק קישור לאורחים",
+            "join_before_admitting": "הצטרף לשיחה כדי לאשר את הכניסה."
+        },
         "footer": {
             "developed_by": "פותח על ידי %(name)s"
         }

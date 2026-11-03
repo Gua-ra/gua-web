@@ -133,13 +133,37 @@ describe("<PowerLevelEditor />", () => {
         expect(screen.getByText("Admin")).toBeInTheDocument();
     });
 
+    it("renders a read-only Owner role for a room creator", () => {
+        const powerLevelEvent = new MatrixEvent({
+            type: EventType.RoomPowerLevels,
+            content: { users: {}, users_default: 0 },
+        });
+        mockRoom.currentState.getStateEvents.mockReturnValue(powerLevelEvent);
+        const creator = new RoomMember(defaultRoomId, defaultUserId);
+        creator.powerLevel = Infinity;
+
+        renderComponent({
+            ...defaultProps,
+            user: creator,
+            room: mockRoom,
+            roomPermissions: { ...defaultProps.roomPermissions, canEdit: true, modifyLevelMax: Infinity },
+        });
+
+        expect(screen.getByText("Owner")).toBeInTheDocument();
+        expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+        expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
+    });
+
     it("renders a combobox and attempts to change power level on change of the combobox", async () => {
         const startPowerLevel = 999;
         const powerLevelEvent = new MatrixEvent({
             type: EventType.RoomPowerLevels,
             content: { users: { [defaultUserId]: startPowerLevel }, users_default: 1 },
         });
+        const self = new RoomMember(defaultRoomId, defaultUserId);
+        self.powerLevel = startPowerLevel;
         mockRoom.currentState.getStateEvents.mockReturnValue(powerLevelEvent);
+        mockRoom.getMember.mockReturnValue(self);
         mockClient.getSafeUserId.mockReturnValueOnce(defaultUserId);
         mockClient.getUserId.mockReturnValueOnce(defaultUserId);
         renderComponent({
