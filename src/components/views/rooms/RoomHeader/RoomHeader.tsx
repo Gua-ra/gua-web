@@ -31,7 +31,7 @@ import { getPlatformCallTypeProps, useRoomCall } from "../../../../hooks/room/us
 import { useRoomThreadNotifications } from "../../../../hooks/room/useRoomThreadNotifications.ts";
 import { useGlobalNotificationState } from "../../../../hooks/useGlobalNotificationState.ts";
 import SdkConfig from "../../../../SdkConfig.ts";
-import { useFeatureEnabled } from "../../../../hooks/useSettings.ts";
+import { useFeatureEnabled, useSettingValue } from "../../../../hooks/useSettings.ts";
 import { useEncryptionStatus } from "../../../../hooks/useEncryptionStatus.ts";
 import { E2EStatus } from "../../../../utils/ShieldUtils.ts";
 import FacePile from "../../elements/FacePile.tsx";
@@ -57,6 +57,7 @@ import { CurrentRightPanelPhaseContextProvider } from "../../../../contexts/Curr
 import { CopyGuestLinkButton } from "../../../../gua/calls/CopyGuestLinkButton.tsx";
 import { useGuestLink } from "../../../../gua/calls/guestLink.ts";
 import { isCallHost } from "../../../../gua/calls/hosts.ts";
+import { UIFeature } from "../../../../settings/UIFeature.ts";
 
 export default function RoomHeader({
     room,
@@ -90,6 +91,7 @@ export default function RoomHeader({
     } = useRoomCall(room);
 
     const groupCallsEnabled = useFeatureEnabled("feature_group_calls");
+    const voipEnabled = useSettingValue(UIFeature.Voip);
     /**
      * A special mode where only Element Call is used. In this case we want to
      * hide the voice call button
@@ -351,7 +353,7 @@ export default function RoomHeader({
                     )}
 
                     {hasActiveCallSession && !isConnectedToCall && !isViewingCall ? (
-                        showVideoCallButton && joinCallButton
+                        voipEnabled && joinCallButton
                     ) : (
                         <>
                             {!isVideoRoom && videoCallButton}

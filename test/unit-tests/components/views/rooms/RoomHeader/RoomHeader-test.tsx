@@ -766,6 +766,24 @@ describe("RoomHeader", () => {
         expect(event.stopPropagation).toHaveBeenCalled();
     });
 
+    describe("UIFeature.Widgets disabled with an ongoing call", () => {
+        beforeEach(() => {
+            SdkConfig.put({ setting_defaults: { [UIFeature.Widgets]: false } });
+        });
+
+        afterEach(() => {
+            SdkConfig.reset();
+        });
+
+        it("shows the join button in a room with more than 2 members", () => {
+            mockRoomMembers(room, 3);
+            jest.spyOn(CallStore.instance, "getCall").mockReturnValue(createMockCall(ROOM_ID, 3));
+            render(<RoomHeader room={room} />, getWrapper());
+
+            expect(getByLabelText(document.body, "Join")).toBeInTheDocument();
+        });
+    });
+
     describe("ask to join disabled", () => {
         it("does not render the RoomKnocksBar", () => {
             render(<RoomHeader room={room} />, getWrapper());
