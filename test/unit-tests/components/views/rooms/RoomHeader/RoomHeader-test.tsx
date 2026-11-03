@@ -785,6 +785,36 @@ describe("RoomHeader", () => {
         });
     });
 
+    describe("call hosts", () => {
+        beforeEach(() => {
+            SdkConfig.put({
+                gua_call: { hosts: [MatrixClientPeg.safeGet().getSafeUserId()] },
+                setting_defaults: { [UIFeature.Voip]: false },
+            });
+        });
+
+        afterEach(() => {
+            SdkConfig.reset();
+        });
+
+        it("shows a host the join button for an ongoing call", () => {
+            mockRoomMembers(room, 3);
+            jest.spyOn(CallStore.instance, "getCall").mockReturnValue(createMockCall(ROOM_ID, 3));
+            render(<RoomHeader room={room} />, getWrapper());
+
+            expect(getByLabelText(document.body, "Join")).toBeInTheDocument();
+        });
+
+        it("hides the join button from other accounts while calls are hidden", () => {
+            SdkConfig.add({ gua_call: { hosts: ["@host:example.org"] } });
+            mockRoomMembers(room, 3);
+            jest.spyOn(CallStore.instance, "getCall").mockReturnValue(createMockCall(ROOM_ID, 3));
+            render(<RoomHeader room={room} />, getWrapper());
+
+            expect(queryByLabelText(document.body, "Join")).not.toBeInTheDocument();
+        });
+    });
+
     it("should open room settings when clicking the room avatar", async () => {
         const user = userEvent.setup();
         render(<RoomHeader room={room} />, getWrapper());

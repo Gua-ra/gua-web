@@ -339,7 +339,7 @@ export default function RoomHeader({
                     {isViewingCall && <CallGuestLinkButton room={room} />}
 
                     {hasActiveCallSession && !isConnectedToCall && !isViewingCall ? (
-                        joinCallButton
+                        showVideoCallButton && joinCallButton
                     ) : (
                         <>
                             {!isVideoRoom && videoCallButton}
