@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopēt viesu saiti"
+        },
         "footer": {
             "developed_by": "Izstrādāja %(name)s"
         }

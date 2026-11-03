@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopjo lidhjen për mysafirët"
+        },
         "footer": {
             "developed_by": "Zhvilluar nga %(name)s"
         }

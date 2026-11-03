@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopírovať odkaz pre hostí"
+        },
         "footer": {
             "developed_by": "Vyvinuté %(name)s"
         }

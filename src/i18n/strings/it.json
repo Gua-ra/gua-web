@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Copia collegamento per ospiti"
+        },
         "footer": {
             "developed_by": "Sviluppato da %(name)s"
         }

@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Copiar ligazón para convidadas"
+        },
         "footer": {
             "developed_by": "Desenvolvido por %(name)s"
         }

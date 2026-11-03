@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Copïo dolen gwestai"
+        },
         "footer": {
             "developed_by": "Datblygwyd gan %(name)s"
         }

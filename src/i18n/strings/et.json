@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopeeri külalislink"
+        },
         "footer": {
             "developed_by": "Arendanud %(name)s"
         }

@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Salin tautan tamu"
+        },
         "footer": {
             "developed_by": "Dikembangkan oleh %(name)s"
         }

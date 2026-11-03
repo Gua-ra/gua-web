@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopioi vieraslinkki"
+        },
         "footer": {
             "developed_by": "Kehittänyt %(name)s"
         }

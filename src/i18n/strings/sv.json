@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopiera gästlänk"
+        },
         "footer": {
             "developed_by": "Utvecklad av %(name)s"
         }

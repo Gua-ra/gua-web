@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "ゲスト用リンクをコピー"
+        },
         "footer": {
             "developed_by": "%(name)s によって開発"
         }

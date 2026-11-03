@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Afrita gestatengil"
+        },
         "footer": {
             "developed_by": "Þróað af %(name)s"
         }

@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Adikao ny rohy ho an'ny vahiny"
+        },
         "footer": {
             "developed_by": "Novolavolain'i %(name)s"
         }

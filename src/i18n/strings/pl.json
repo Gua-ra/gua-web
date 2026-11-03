@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopiuj link dla gości"
+        },
         "footer": {
             "developed_by": "Stworzone przez %(name)s"
         }

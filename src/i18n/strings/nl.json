@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Gastlink kopiëren"
+        },
         "footer": {
             "developed_by": "Ontwikkeld door %(name)s"
         }

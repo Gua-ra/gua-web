@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopijuoti nuorodą svečiams"
+        },
         "footer": {
             "developed_by": "Sukūrė %(name)s"
         }

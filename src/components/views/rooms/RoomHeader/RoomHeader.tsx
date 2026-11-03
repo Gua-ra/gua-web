@@ -54,6 +54,8 @@ import { RoomSettingsTab } from "../../dialogs/RoomSettingsDialog.tsx";
 import { useScopedRoomContext } from "../../../../contexts/ScopedRoomContext.tsx";
 import { ToggleableIcon } from "./toggle/ToggleableIcon.tsx";
 import { CurrentRightPanelPhaseContextProvider } from "../../../../contexts/CurrentRightPanelPhaseContext.tsx";
+import { CopyGuestLinkButton } from "../../../../gua/calls/CopyGuestLinkButton.tsx";
+import { getGuestLink } from "../../../../gua/calls/guestLink.ts";
 
 export default function RoomHeader({
     room,
@@ -105,6 +107,8 @@ export default function RoomHeader({
     const notificationsEnabled = useFeatureEnabled("feature_notifications");
 
     const askToJoinEnabled = useFeatureEnabled("feature_ask_to_join");
+
+    const guestLink = getGuestLink(room, roomName, joinRule);
 
     const videoClick = useCallback(
         (ev: React.MouseEvent) => videoCallClick(ev, callOptions[0]),
@@ -336,7 +340,11 @@ export default function RoomHeader({
                         );
                     })}
 
-                    {isViewingCall && <CallGuestLinkButton room={room} />}
+                    {guestLink ? (
+                        <CopyGuestLinkButton link={guestLink} />
+                    ) : (
+                        isViewingCall && <CallGuestLinkButton room={room} />
+                    )}
 
                     {hasActiveCallSession && !isConnectedToCall && !isViewingCall ? (
                         showVideoCallButton && joinCallButton

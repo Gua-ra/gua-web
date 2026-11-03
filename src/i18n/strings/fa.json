@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "رونوشت لینک مهمان"
+        },
         "footer": {
             "developed_by": "توسعه داده شده توسط %(name)s"
         }

@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Αντιγραφή συνδέσμου επισκεπτών"
+        },
         "footer": {
             "developed_by": "Αναπτύχθηκε από %(name)s"
         }

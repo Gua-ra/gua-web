@@ -1263,6 +1263,9 @@
         "sent": "Sent"
     },
     "gua": {
+        "call": {
+            "copy_guest_link": "Copy guest link"
+        },
         "deactivate": {
             "cancel": "Cancel",
             "confirm": "Deactivate account",

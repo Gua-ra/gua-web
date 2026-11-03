@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Sao chép liên kết cho khách"
+        },
         "footer": {
             "developed_by": "Được phát triển bởi %(name)s"
         }

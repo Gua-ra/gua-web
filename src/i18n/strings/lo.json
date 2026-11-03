@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "ສຳເນົາລິ້ງສຳລັບແຂກ"
+        },
         "footer": {
             "developed_by": "ພັດທະນາໂດຍ %(name)s"
         }

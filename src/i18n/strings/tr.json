@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Misafir bağlantısını kopyala"
+        },
         "footer": {
             "developed_by": "%(name)s tarafından geliştirildi"
         }

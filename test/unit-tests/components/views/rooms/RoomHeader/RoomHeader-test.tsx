@@ -789,6 +789,7 @@ describe("RoomHeader", () => {
         beforeEach(() => {
             SdkConfig.put({
                 gua_call: { hosts: [MatrixClientPeg.safeGet().getSafeUserId()] },
+                element_call: { guest_spa_url: "https://call.example.org" },
                 setting_defaults: { [UIFeature.Voip]: false },
             });
         });
@@ -812,6 +813,41 @@ describe("RoomHeader", () => {
             render(<RoomHeader room={room} />, getWrapper());
 
             expect(queryByLabelText(document.body, "Join")).not.toBeInTheDocument();
+        });
+
+        describe("in an Ask to join room", () => {
+            beforeEach(() => {
+                room.currentState.setStateEvents([
+                    new MatrixEvent({
+                        type: EventType.RoomJoinRules,
+                        content: { join_rule: JoinRule.Knock },
+                        sender: "@alice:example.org",
+                        state_key: "",
+                        room_id: ROOM_ID,
+                    }),
+                ]);
+            });
+
+            it("offers a host the guest link without a call", () => {
+                render(<RoomHeader room={room} />, getWrapper());
+
+                expect(screen.getByRole("button", { name: "Copy guest link" })).toBeInTheDocument();
+            });
+
+            it("shows the guest link in place of the share call link while a host views the call", () => {
+                jest.spyOn(SdkContextClass.instance.roomViewStore, "isViewingCall").mockReturnValue(true);
+                render(<RoomHeader room={room} />, getWrapper());
+
+                expect(screen.getByRole("button", { name: "Copy guest link" })).toBeInTheDocument();
+                expect(screen.queryByRole("button", { name: _t("voip|get_call_link") })).not.toBeInTheDocument();
+            });
+
+            it("does not offer the guest link to other accounts", () => {
+                SdkConfig.add({ gua_call: { hosts: ["@host:example.org"] } });
+                render(<RoomHeader room={room} />, getWrapper());
+
+                expect(screen.queryByRole("button", { name: "Copy guest link" })).not.toBeInTheDocument();
+            });
         });
     });
 

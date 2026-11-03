@@ -1,5 +1,8 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopii ligilon por gastoj"
+        },
         "footer": {
             "developed_by": "Disvolvita de %(name)s"
         }
