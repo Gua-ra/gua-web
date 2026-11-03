@@ -6,7 +6,13 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import { ClientEvent, EventType, type MatrixClient, type Room } from "matrix-js-sdk/src/matrix";
+import {
+    ClientEvent,
+    EventType,
+    type IRecommendedVersion,
+    type MatrixClient,
+    type Room,
+} from "matrix-js-sdk/src/matrix";
 import { KnownMembership } from "matrix-js-sdk/src/types";
 import { logger } from "matrix-js-sdk/src/logger";
 
@@ -160,4 +166,11 @@ async function inviteUsersToRoom(
     const result = await inviteMultipleToRoom(client, roomId, userIds, inviteOptions);
     const room = client.getRoom(roomId)!;
     showAnyInviteErrors(result.states, room, result.inviter);
+}
+
+// Gua: without the server's room versions, the js-sdk treats every version above 10 as unstable.
+export async function getRoomUpgradeRecommendation(room: Room): Promise<IRecommendedVersion | undefined> {
+    const capabilities = await room.client.getCapabilities().catch(() => undefined);
+    if (!capabilities?.["m.room_versions"]) return undefined;
+    return room.getRecommendedVersion();
 }
