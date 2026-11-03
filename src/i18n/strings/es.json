@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Copiar enlace para invitados",
+            "join_before_admitting": "Únete a la llamada para darle acceso."
+        },
         "footer": {
             "developed_by": "Desarrollado por %(name)s"
         }

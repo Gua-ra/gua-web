@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "رونوشت لینک مهمان",
+            "join_before_admitting": "به تماس بپیوندید تا او را راه دهید."
+        },
         "footer": {
             "developed_by": "توسعه داده شده توسط %(name)s"
         }

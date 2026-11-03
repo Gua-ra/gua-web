@@ -1263,6 +1263,10 @@
         "sent": "Sent"
     },
     "gua": {
+        "call": {
+            "copy_guest_link": "Copy guest link",
+            "join_before_admitting": "Join the call to let them in."
+        },
         "deactivate": {
             "cancel": "Cancel",
             "confirm": "Deactivate account",
@@ -1346,6 +1350,9 @@
             "status_off": "Add a PIN for extra security when signing in on a new device.",
             "status_on": "Two-step verification is on. You'll be asked for your PIN when signing in on a new device.",
             "title": "Two-step verification"
+        },
+        "welcome": {
+            "registration_disabled": "Web account creation is unavailable during the beta."
         }
     },
     "identity_server": {

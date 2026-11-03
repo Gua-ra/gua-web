@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopioi vieraslinkki",
+            "join_before_admitting": "Liity puheluun päästääksesi hänet sisään."
+        },
         "footer": {
             "developed_by": "Kehittänyt %(name)s"
         }

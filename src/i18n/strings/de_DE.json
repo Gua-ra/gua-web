@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Gastlink kopieren",
+            "join_before_admitting": "Tritt dem Anruf bei, um die Person hereinzulassen."
+        },
         "footer": {
             "developed_by": "Entwickelt von %(name)s"
         }

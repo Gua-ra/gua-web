@@ -125,7 +125,7 @@ exports[`<MatrixChat /> Multi-tab lockout waits for other tab to stop during sta
         style="display: flex; z-index: 1; background: rgba(255, 255, 255, 0.59); border-radius: 8px;"
       >
         <div
-          class="mx_Welcome"
+          class="mx_Welcome mx_WelcomePage_registrationDisabled"
           data-testid="mx_welcome_screen"
         >
           <div
@@ -243,7 +243,7 @@ exports[`<MatrixChat /> with a soft-logged-out session should show the soft-logo
           >
             <img
               alt="Test"
-              src="themes/gua/img/logos/app-logo.png"
+              src="themes/gua/img/logos/logo.svg"
             />
           </aside>
           <div
