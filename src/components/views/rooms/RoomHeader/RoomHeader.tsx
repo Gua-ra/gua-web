@@ -55,7 +55,7 @@ import { useScopedRoomContext } from "../../../../contexts/ScopedRoomContext.tsx
 import { ToggleableIcon } from "./toggle/ToggleableIcon.tsx";
 import { CurrentRightPanelPhaseContextProvider } from "../../../../contexts/CurrentRightPanelPhaseContext.tsx";
 import { CopyGuestLinkButton } from "../../../../gua/calls/CopyGuestLinkButton.tsx";
-import { getGuestLink } from "../../../../gua/calls/guestLink.ts";
+import { useGuestLink } from "../../../../gua/calls/guestLink.ts";
 
 export default function RoomHeader({
     room,
@@ -108,7 +108,7 @@ export default function RoomHeader({
 
     const askToJoinEnabled = useFeatureEnabled("feature_ask_to_join");
 
-    const guestLink = getGuestLink(room, roomName, joinRule);
+    const guestLink = useGuestLink(room);
 
     const videoClick = useCallback(
         (ev: React.MouseEvent) => videoCallClick(ev, callOptions[0]),

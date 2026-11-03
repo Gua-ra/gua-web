@@ -5,9 +5,11 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
 Please see LICENSE files in the repository root for full details.
 */
 
-import { JoinRule, type Room } from "matrix-js-sdk/src/matrix";
+import { EventType, type IPowerLevelsContent, JoinRule, type Room } from "matrix-js-sdk/src/matrix";
 
 import SdkConfig from "../../SdkConfig";
+import { ElementCallMemberEventType } from "../../call-types";
+import { useRoomState } from "../../hooks/useRoomState";
 import { isCallHost } from "./hosts";
 
 // Element Call reads its parameters from the first "?" in the fragment, so the name keeps to URL-safe characters.
@@ -28,9 +30,46 @@ export function buildGuestLink(guestUrl: string, roomName: string, roomId: strin
     return `${base}/room/#/${guestLinkName(roomName)}?${params}`;
 }
 
-export function getGuestLink(room: Room, roomName: string, joinRule: JoinRule): string | null {
+// Guests sit at users_default and have to be able to send their call membership.
+function guestsCanJoinCall(room: Room): boolean {
+    const powerLevels = room.currentState
+        .getStateEvents(EventType.RoomPowerLevels, "")
+        ?.getContent<IPowerLevelsContent>();
+    // Without a power levels event every state event needs level 0.
+    if (!powerLevels) return true;
+
+    const level = (value: unknown, fallback: number): number =>
+        Number.isSafeInteger(value) ? (value as number) : fallback;
+    const required = level(powerLevels.events?.[ElementCallMemberEventType.name], level(powerLevels.state_default, 50));
+    return required <= level(powerLevels.users_default, 0);
+}
+
+/**
+ * The link a call host gives guests, or null where a guest could not get into the call.
+ * The call gate only serves rooms whose creator is a host.
+ */
+export function getGuestLink(room: Room): string | null {
     const guestUrl = SdkConfig.get("gua_call")?.guest_url;
-    if (joinRule !== JoinRule.Knock || !guestUrl || !isCallHost(room.client.getUserId())) return null;
+    if (!guestUrl || room.getJoinRule() !== JoinRule.Knock) return null;
+
+    const userId = room.client.getUserId();
     const serverName = room.client.getDomain();
-    return serverName ? buildGuestLink(guestUrl, roomName, room.roomId, serverName) : null;
+    if (
+        !userId ||
+        !serverName ||
+        !isCallHost(userId) ||
+        !isCallHost(room.getCreator()) ||
+        !room.canInvite(userId) ||
+        !guestsCanJoinCall(room)
+    ) {
+        return null;
+    }
+
+    // The computed name of an unnamed room lists its members.
+    const name = room.currentState.getStateEvents(EventType.RoomName, "")?.getContent().name;
+    return buildGuestLink(guestUrl, typeof name === "string" ? name : "", room.roomId, serverName);
+}
+
+export function useGuestLink(room: Room): string | null {
+    return useRoomState(room, () => getGuestLink(room));
 }

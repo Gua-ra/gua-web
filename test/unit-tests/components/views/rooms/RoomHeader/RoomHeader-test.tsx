@@ -786,6 +786,17 @@ describe("RoomHeader", () => {
     });
 
     describe("call hosts", () => {
+        const roomState = (type: EventType, content: object, sender: string): MatrixEvent =>
+            new MatrixEvent({ type, content, sender, state_key: "", room_id: ROOM_ID });
+
+        const makeGuestLinkRoom = (creator = MatrixClientPeg.safeGet().getSafeUserId()): void => {
+            room.currentState.setStateEvents([
+                roomState(EventType.RoomCreate, { room_version: "12" }, creator),
+                roomState(EventType.RoomJoinRules, { join_rule: JoinRule.Knock }, creator),
+            ]);
+            jest.spyOn(room, "canInvite").mockReturnValue(true);
+        };
+
         beforeEach(() => {
             SdkConfig.put({
                 gua_call: { hosts: [MatrixClientPeg.safeGet().getSafeUserId()], guest_url: "https://call.example.org" },
@@ -815,19 +826,8 @@ describe("RoomHeader", () => {
         });
 
         describe("in an Ask to join room", () => {
-            beforeEach(() => {
-                room.currentState.setStateEvents([
-                    new MatrixEvent({
-                        type: EventType.RoomJoinRules,
-                        content: { join_rule: JoinRule.Knock },
-                        sender: "@alice:example.org",
-                        state_key: "",
-                        room_id: ROOM_ID,
-                    }),
-                ]);
-            });
-
             it("offers a host the guest link without a call", () => {
+                makeGuestLinkRoom();
                 render(<RoomHeader room={room} />, getWrapper());
 
                 expect(screen.getByRole("button", { name: "Copy guest link" })).toBeInTheDocument();
@@ -835,6 +835,7 @@ describe("RoomHeader", () => {
 
             it("shows the guest link in place of the share call link while a host views the call", () => {
                 SdkConfig.add({ element_call: { guest_spa_url: "https://call.example.org" } });
+                makeGuestLinkRoom();
                 jest.spyOn(SdkContextClass.instance.roomViewStore, "isViewingCall").mockReturnValue(true);
                 render(<RoomHeader room={room} />, getWrapper());
 
@@ -844,6 +845,14 @@ describe("RoomHeader", () => {
 
             it("does not offer the guest link to other accounts", () => {
                 SdkConfig.add({ gua_call: { hosts: ["@host:example.org"] } });
+                makeGuestLinkRoom("@host:example.org");
+                render(<RoomHeader room={room} />, getWrapper());
+
+                expect(screen.queryByRole("button", { name: "Copy guest link" })).not.toBeInTheDocument();
+            });
+
+            it("does not offer the guest link in a room someone else created", () => {
+                makeGuestLinkRoom("@alice:example.org");
                 render(<RoomHeader room={room} />, getWrapper());
 
                 expect(screen.queryByRole("button", { name: "Copy guest link" })).not.toBeInTheDocument();
