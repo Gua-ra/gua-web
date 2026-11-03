@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "Vendéghivatkozás másolása"
+            "copy_guest_link": "Vendéghivatkozás másolása",
+            "join_before_admitting": "Csatlakozzon a híváshoz, hogy beengedhesse."
         },
         "footer": {
             "developed_by": "Fejlesztette: %(name)s"

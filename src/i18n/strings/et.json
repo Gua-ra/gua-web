@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "Kopeeri külalislink"
+            "copy_guest_link": "Kopeeri külalislink",
+            "join_before_admitting": "Liitu kõnega, et ta sisse lasta."
         },
         "footer": {
             "developed_by": "Arendanud %(name)s"

@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "Kopii ligilon por gastoj"
+            "copy_guest_link": "Kopii ligilon por gastoj",
+            "join_before_admitting": "Aliĝu al la voko por enlasi la personon."
         },
         "footer": {
             "developed_by": "Disvolvita de %(name)s"

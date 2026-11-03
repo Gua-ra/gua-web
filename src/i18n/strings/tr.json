@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "Misafir bağlantısını kopyala"
+            "copy_guest_link": "Misafir bağlantısını kopyala",
+            "join_before_admitting": "İçeri almak için aramaya katılın."
         },
         "footer": {
             "developed_by": "%(name)s tarafından geliştirildi"

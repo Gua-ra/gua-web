@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "Salin tautan tamu"
+            "copy_guest_link": "Salin tautan tamu",
+            "join_before_admitting": "Bergabunglah ke panggilan untuk mengizinkannya masuk."
         },
         "footer": {
             "developed_by": "Dikembangkan oleh %(name)s"

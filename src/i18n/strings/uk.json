@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "Копіювати посилання для гостей"
+            "copy_guest_link": "Копіювати посилання для гостей",
+            "join_before_admitting": "Приєднайтеся до виклику, щоб дозволити вхід."
         },
         "footer": {
             "developed_by": "Розроблено %(name)s"

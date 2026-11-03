@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "Kopírovat odkaz pro hosty"
+            "copy_guest_link": "Kopírovat odkaz pro hosty",
+            "join_before_admitting": "Připojte se k hovoru, abyste mohli povolit vstup."
         },
         "footer": {
             "developed_by": "Vyvinuto %(name)s"

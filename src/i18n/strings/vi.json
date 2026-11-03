@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "Sao chép liên kết cho khách"
+            "copy_guest_link": "Sao chép liên kết cho khách",
+            "join_before_admitting": "Tham gia cuộc gọi để cho họ vào."
         },
         "footer": {
             "developed_by": "Được phát triển bởi %(name)s"

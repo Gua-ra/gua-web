@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "Copïo dolen gwestai"
+            "copy_guest_link": "Copïo dolen gwestai",
+            "join_before_admitting": "Ymunwch â'r alwad i'w gadael i mewn."
         },
         "footer": {
             "developed_by": "Datblygwyd gan %(name)s"

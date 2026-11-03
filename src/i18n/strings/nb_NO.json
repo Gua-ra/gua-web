@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "Kopier gjestelenke"
+            "copy_guest_link": "Kopier gjestelenke",
+            "join_before_admitting": "Bli med i samtalen for å slippe personen inn."
         },
         "footer": {
             "developed_by": "Utviklet av %(name)s"

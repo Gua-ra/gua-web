@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "複製訪客連結"
+            "copy_guest_link": "複製訪客連結",
+            "join_before_admitting": "加入通話後即可讓對方進入。"
         },
         "footer": {
             "developed_by": "由 %(name)s 開發"

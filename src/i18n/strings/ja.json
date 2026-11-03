@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "ゲスト用リンクをコピー"
+            "copy_guest_link": "ゲスト用リンクをコピー",
+            "join_before_admitting": "入室を許可するには、通話に参加してください。"
         },
         "footer": {
             "developed_by": "%(name)s によって開発"

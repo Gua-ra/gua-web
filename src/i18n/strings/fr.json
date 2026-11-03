@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "Copier le lien pour les invités"
+            "copy_guest_link": "Copier le lien pour les invités",
+            "join_before_admitting": "Rejoignez l’appel pour l’admettre."
         },
         "footer": {
             "developed_by": "Développé par %(name)s"

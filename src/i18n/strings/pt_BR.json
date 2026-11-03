@@ -1,7 +1,8 @@
 {
     "gua": {
         "call": {
-            "copy_guest_link": "Copiar link para convidados"
+            "copy_guest_link": "Copiar link para convidados",
+            "join_before_admitting": "Entre na chamada para permitir a entrada."
         },
         "footer": {
             "developed_by": "Desenvolvido por %(name)s"
