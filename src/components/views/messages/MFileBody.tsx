@@ -127,10 +127,10 @@ export default class MFileBody extends React.Component<IProps, IState> {
         return downloadLabelForFile(this.content, true);
     }
 
-    private downloadFile(fileName: string, text: string): void {
-        if (!this.state.decryptedBlob) return;
+    private downloadFile(fileName: string, text: string, blob = this.state.decryptedBlob): void {
+        if (!blob) return;
         this.fileDownloader.download({
-            blob: this.state.decryptedBlob,
+            blob,
             name: fileName,
             autoDownload: this.userDidClick,
             opts: {
@@ -142,15 +142,15 @@ export default class MFileBody extends React.Component<IProps, IState> {
         });
     }
 
-    private decryptFile = async (): Promise<void> => {
+    private decryptFile = async (): Promise<Blob | undefined> => {
         if (this.state.decryptedBlob) {
-            return;
+            return this.state.decryptedBlob;
         }
         try {
             this.userDidClick = true;
-            this.setState({
-                decryptedBlob: await this.props.mediaEventHelper!.sourceBlob.value,
-            });
+            const decryptedBlob = await this.props.mediaEventHelper!.sourceBlob.value;
+            this.setState({ decryptedBlob });
+            return decryptedBlob;
         } catch (err) {
             logger.warn("Unable to decrypt attachment: ", err);
             Modal.createDialog(ErrorDialog, {
@@ -163,8 +163,8 @@ export default class MFileBody extends React.Component<IProps, IState> {
     private onPlaceholderClick = async (): Promise<void> => {
         const mediaHelper = this.props.mediaEventHelper;
         if (mediaHelper?.media.isEncrypted) {
-            await this.decryptFile();
-            this.downloadFile(this.fileName, this.linkText);
+            const blob = await this.decryptFile();
+            this.downloadFile(this.fileName, this.linkText, blob);
         } else {
             // As a button we're missing the `download` attribute for styling reasons, so
             // download with the file downloader.
