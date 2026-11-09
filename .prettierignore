@@ -45,3 +45,6 @@ res/jitsi_external_api.min.js
 /playwright/html-report/
 /playwright/logs/
 /playwright/snapshots/
+
+# Golden vectors copied byte for byte from gua-resolver
+/test/unit-tests/gua/resolver/verification/fixtures/
