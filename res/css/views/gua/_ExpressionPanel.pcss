@@ -1,0 +1,392 @@
+/*
+Copyright 2026 Gua
+
+SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
+Please see LICENSE files in the repository root for full details.
+*/
+
+.mx_GuaExpressionPanel {
+    width: 340px;
+    display: flex;
+    flex-direction: column;
+}
+
+.mx_GuaExpressionPanel_tabs {
+    display: flex;
+    border-bottom: 1px solid var(--cpd-color-border-interactive-secondary);
+}
+
+.mx_GuaExpressionPanel_tab {
+    flex: 1;
+    min-height: 44px;
+    padding: 0 var(--cpd-space-2x);
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--cpd-color-text-secondary);
+    font: var(--cpd-font-body-md-semibold);
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--cpd-color-bg-subtle-secondary);
+    }
+}
+
+.mx_GuaExpressionPanel_tab_selected {
+    border-bottom-color: var(--cpd-color-bg-accent-rest);
+    color: var(--cpd-color-text-primary);
+}
+
+.mx_GuaExpressionPanel_content {
+    height: 450px;
+    display: flex;
+    flex-direction: column;
+}
+
+.mx_GuaExpressionPanel_message {
+    margin: var(--cpd-space-6x) var(--cpd-space-4x);
+    color: var(--cpd-color-text-secondary);
+    font: var(--cpd-font-body-md-regular);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--cpd-space-3x);
+
+    p {
+        margin: 0;
+    }
+}
+
+.mx_GuaExpressionPanel_bottomBar {
+    display: flex;
+    gap: var(--cpd-space-1x);
+    padding: var(--cpd-space-1x) var(--cpd-space-2x);
+    border-top: 1px solid var(--cpd-color-border-interactive-secondary);
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+
+.mx_GuaExpressionPanel_barButton {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    color: var(--cpd-color-icon-secondary);
+    cursor: pointer;
+
+    &:hover,
+    &[aria-pressed="true"] {
+        background-color: var(--cpd-color-bg-subtle-secondary);
+        color: var(--cpd-color-icon-primary);
+    }
+
+    img {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+}
+
+.mx_GuaExpressionSearch {
+    display: flex;
+    align-items: center;
+    gap: var(--cpd-space-2x);
+    margin: var(--cpd-space-2x);
+    padding: 0 var(--cpd-space-3x);
+    border: 1px solid var(--cpd-color-border-interactive-primary);
+    border-radius: 20px;
+    background-color: var(--cpd-color-bg-canvas-default);
+    color: var(--cpd-color-icon-secondary);
+    flex-shrink: 0;
+
+    /* The pill shows focus, not the input inside it. */
+    &:focus-within {
+        border-color: var(--cpd-color-border-focused);
+    }
+
+    input {
+        flex: 1;
+        min-width: 0;
+        height: 38px;
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--cpd-color-text-primary);
+        font: var(--cpd-font-body-md-regular);
+
+        &::placeholder {
+            color: var(--cpd-color-text-secondary);
+        }
+
+        &::-webkit-search-cancel-button {
+            display: none;
+        }
+
+        &:focus,
+        &:focus-visible {
+            outline: none;
+        }
+    }
+}
+
+.mx_GuaExpressionSearch_clear {
+    display: flex;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--cpd-color-icon-secondary);
+    cursor: pointer;
+}
+
+.mx_GuaStickersTab,
+.mx_GuaGifsTab,
+.mx_GuaGifPreview {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.mx_GuaStickersTab_sections,
+.mx_GuaGifsTab_results {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 var(--cpd-space-2x) var(--cpd-space-2x);
+}
+
+.mx_GuaStickersTab_sectionTitle {
+    margin: var(--cpd-space-2x) var(--cpd-space-1x);
+    color: var(--cpd-color-text-secondary);
+    font: var(--cpd-font-body-sm-semibold);
+}
+
+.mx_GuaStickersTab_grid {
+    display: grid;
+    grid-template-columns: repeat(4, 72px);
+    justify-content: space-between;
+    row-gap: var(--cpd-space-2x);
+}
+
+.mx_GuaStickersTab_tile,
+.mx_GuaStickersTab_create {
+    width: 72px;
+    height: 72px;
+    padding: var(--cpd-space-1x);
+    border: none;
+    border-radius: 8px;
+    background: none;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background-color: var(--cpd-color-bg-subtle-secondary);
+    }
+}
+
+.mx_GuaStickersTab_tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.mx_GuaStickersTab_create {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border: 1px dashed var(--cpd-color-border-interactive-primary);
+    color: var(--cpd-color-text-secondary);
+
+    span {
+        font: var(--cpd-font-body-xs-medium);
+        line-height: 1.15;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        overflow-wrap: anywhere;
+    }
+}
+
+.mx_GuaGifsTab_grid {
+    display: flex;
+    gap: var(--cpd-space-2x);
+    align-items: flex-start;
+}
+
+.mx_GuaGifsTab_column {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cpd-space-2x);
+}
+
+.mx_GuaGifsTab_tile {
+    position: relative;
+    width: 100%;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--cpd-color-bg-subtle-primary);
+    cursor: pointer;
+
+    img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--cpd-color-border-focused);
+        outline-offset: 2px;
+    }
+}
+
+.mx_GuaGifsTab_favouriteBadge {
+    position: absolute;
+    top: var(--cpd-space-1x);
+    right: var(--cpd-space-1x);
+    width: 20px;
+    height: 20px;
+    color: var(--cpd-color-icon-on-solid-primary);
+    filter: drop-shadow(0 0 2px rgb(0 0 0 / 60%));
+}
+
+.mx_GuaGifPreview_header {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--cpd-space-1x) var(--cpd-space-2x);
+}
+
+.mx_GuaGifPreview_image {
+    flex: 1;
+    min-height: 0;
+    width: calc(100% - 2 * var(--cpd-space-4x));
+    margin: 0 auto;
+    object-fit: contain;
+}
+
+.mx_GuaGifPreview_compose {
+    display: flex;
+    gap: var(--cpd-space-2x);
+    padding: var(--cpd-space-3x);
+
+    input {
+        &:focus,
+        &:focus-visible {
+            outline: none;
+            border-color: var(--cpd-color-border-focused);
+        }
+
+        flex: 1;
+        min-width: 0;
+        padding: var(--cpd-space-2x) var(--cpd-space-3x);
+        border: 1px solid var(--cpd-color-border-interactive-primary);
+        border-radius: 20px;
+        background-color: var(--cpd-color-bg-canvas-default);
+        color: var(--cpd-color-text-primary);
+        font: var(--cpd-font-body-md-regular);
+    }
+}
+
+.mx_GuaGifPreview_error,
+.mx_GuaStickerEditorDialog_error,
+.mx_GuaStickerDetailsDialog_error {
+    margin: 0 var(--cpd-space-3x) var(--cpd-space-3x);
+    color: var(--cpd-color-text-critical-primary);
+    font: var(--cpd-font-body-sm-regular);
+}
+
+.mx_GuaExpressionButton_fileInput {
+    display: none;
+}
+
+.mx_GuaStickerEditorDialog {
+    width: 520px;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cpd-space-3x);
+}
+
+.mx_GuaStickerEditorDialog_canvas {
+    width: 320px;
+    height: 320px;
+    max-width: 100%;
+    align-self: center;
+    border-radius: 12px;
+    touch-action: none;
+    cursor: grab;
+    /* A checkerboard shows which parts will be transparent. */
+    background: repeating-conic-gradient(
+            var(--cpd-color-bg-subtle-secondary) 0% 25%,
+            var(--cpd-color-bg-canvas-default) 0% 50%
+        )
+        50% / 20px 20px;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+.mx_GuaStickerEditorDialog_field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cpd-space-1x);
+    font: var(--cpd-font-body-sm-semibold);
+    color: var(--cpd-color-text-secondary);
+
+    input[type="text"] {
+        margin: 0;
+        padding: var(--cpd-space-2x) var(--cpd-space-3x);
+        border: 1px solid var(--cpd-color-border-interactive-primary);
+        border-radius: 8px;
+        background-color: var(--cpd-color-bg-canvas-default);
+        color: var(--cpd-color-text-primary);
+        font: var(--cpd-font-body-md-regular);
+    }
+}
+
+.mx_GuaStickerEditorDialog_note {
+    margin: 0;
+    color: var(--cpd-color-text-secondary);
+    font: var(--cpd-font-body-sm-regular);
+}
+
+.mx_GuaStickerDetailsDialog {
+    width: 420px;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--cpd-space-3x);
+
+    p {
+        margin: 0;
+        color: var(--cpd-color-text-secondary);
+        font: var(--cpd-font-body-md-regular);
+    }
+}
+
+.mx_GuaStickerDetailsDialog_image {
+    max-width: 256px;
+    max-height: 256px;
+    object-fit: contain;
+}
+
+.mx_MStickerBody_wrapper_actionable {
+    cursor: pointer;
+}
