@@ -401,6 +401,7 @@ export function renderReplyTile(
                 getRelationsForEvent,
                 isSeeingThroughMessageHiddenForModeration,
                 permalinkCreator,
+                inhibitInteraction: true,
                 showHiddenEvents,
             }),
     );
