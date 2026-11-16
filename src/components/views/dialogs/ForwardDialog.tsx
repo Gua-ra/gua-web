@@ -57,6 +57,7 @@ import {
 import { getKeyBindingsManager } from "../../../KeyBindingsManager";
 import { KeyBindingAction } from "../../../accessibility/KeyboardShortcuts";
 import { OverflowTileView } from "../rooms/OverflowTileView";
+import { GUA_ACTIONS_KEY } from "../../../gua/messages/messageActions";
 
 const AVATAR_SIZE = 30;
 
@@ -185,6 +186,8 @@ const transformEvent = (event: MatrixEvent): { type: string; content: IContent }
         // We're taking a shallow copy here to avoid https://github.com/vector-im/element-web/issues/10924
         ...content
     } = event.getContent();
+    // A forwarded copy keeps the links in its body but never the original sender's action buttons.
+    delete content[GUA_ACTIONS_KEY];
 
     // beacon pulses get transformed into static locations on forward
     const type = M_BEACON.matches(event.getType()) ? EventType.RoomMessage : event.getType();
