@@ -45,3 +45,6 @@ res/jitsi_external_api.min.js
 /playwright/html-report/
 /playwright/logs/
 /playwright/snapshots/
+
+# Shared with the other Gua clients and kept byte-identical
+/test/unit-tests/gua/messages/fixtures/
