@@ -7,7 +7,7 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React, { type JSX, createRef, type SyntheticEvent, type MouseEvent } from "react";
-import { MsgType } from "matrix-js-sdk/src/matrix";
+import { MsgType, RelationType } from "matrix-js-sdk/src/matrix";
 
 import EventContentBody from "./EventContentBody.tsx";
 import { formatDate } from "../../../DateUtils";
@@ -321,8 +321,14 @@ export default class TextualBody extends React.Component<IBodyProps, IState> {
             content.msgtype as MsgType,
         );
 
-        const actions =
-            this.props.forExport || this.props.inhibitInteraction || isEmote || isCaption ? [] : getGuaActions(content);
+        // An edit's own tile shows its top-level fallback, not the m.new_content the actions belong to.
+        const hidesActions =
+            this.props.forExport ||
+            this.props.inhibitInteraction ||
+            isEmote ||
+            isCaption ||
+            mxEvent.isRelation(RelationType.Replace);
+        const actions = hidesActions ? [] : getGuaActions(content);
 
         const willHaveWrapper =
             this.props.replacingEventId || this.props.isSeeingThroughMessageHiddenForModeration || isEmote;

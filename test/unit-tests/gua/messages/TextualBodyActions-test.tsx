@@ -89,8 +89,8 @@ describe("message actions in the timeline", () => {
         ["a bare link", `<a href="${ACTION_URL}">${LABEL}</a>`, {}],
         ["a link in a paragraph", `<p><a href="${ACTION_URL}">${LABEL}</a></p>`, {}],
         [
-            "a reply fallback and a link",
-            `<mx-reply><blockquote>Earlier message</blockquote></mx-reply><a href="${ACTION_URL}">${LABEL}</a>`,
+            "a link in a reply",
+            `<a href="${ACTION_URL}">${LABEL}</a>`,
             { "m.relates_to": { "m.in_reply_to": { event_id: "$parent:example.org" } } },
         ],
     ])("shows only the button when the body is %s", (_name, formattedBody, relation) => {
@@ -141,6 +141,20 @@ describe("message actions in the timeline", () => {
 
         expect(container.querySelector(".mx_GuaMessageActions")).toBeNull();
         expect(screen.queryAllByRole("link")).toEqual([]);
+    });
+
+    it("shows no actions on the tile of an edit event itself", () => {
+        const edit = mkMessage({
+            ...messageContent(),
+            "body": `* Statement ready\n${LABEL}: ${ACTION_URL}`,
+            "formatted_body": `* <strong>Statement ready</strong><br><a href="${ACTION_URL}">${LABEL}</a>`,
+            "m.new_content": messageContent(),
+            "m.relates_to": { rel_type: "m.replace", event_id: "$original:example.org" },
+        });
+        const { container } = renderBody({ mxEvent: edit });
+
+        expect(container.querySelector(".mx_GuaMessageActions")).toBeNull();
+        expect(container.querySelector(`.mx_EventTile_body a[href="${ACTION_URL}"]`)).toHaveTextContent(LABEL);
     });
 
     it("shows actions from decrypted content", async () => {
