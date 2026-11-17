@@ -1,0 +1,2806 @@
+[
+  {
+    "name": "trailing link becomes the button",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "trailing link inside a paragraph",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<p>August statement</p><p><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></p>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "trailing br and whitespace are ignored",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a><br> \n",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a trailing no-break space is ignored",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>&nbsp;<br>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a body that is only the link",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "21 open elements mean no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "August statement<br><div><div><div><blockquote><blockquote><blockquote><span><span><span><b><b><b><i><i><i><em><em><em><strong><strong><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></strong></strong></em></em></em></i></i></i></b></b></b></span></span></span></blockquote></blockquote></blockquote></div></div></div>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a link inside 19 elements keeps its actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "August statement<br><div><div><div><blockquote><blockquote><blockquote><span><span><span><b><b><b><i><i><i><em><em><em><strong><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></strong></em></em></em></i></i></i></b></b></b></span></span></span></blockquote></blockquote></blockquote></div></div></div>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a trailing link inside divs, a paragraph and spans is hidden",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "August statement<br><div><div><div><p><span><span><span><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></span></span></span></p></div></div></div>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "three nested elements with the same name keep the actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><b><b><b><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></b></b></b>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "four nested elements with the same name mean no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><b><b><b><b><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></b></b></b></b>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "href with an encoded ampersand",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "Text<br><a href=\"https://bills.example.org/s?a=1&amp;b=2\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/s?a=1&b=2"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/s?a=1&b=2"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a single-quoted href keeps the actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href='https://bills.example.org/statement/2026-08'>View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "an unquoted href means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=https://bills.example.org/statement/2026-08>View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "spaces around the equals sign mean no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href = \"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a line feed before href keeps the actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a\nhref=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a repeated href means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/other\" href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an attribute other than href means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\" title=\"Statement\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an attribute on another element means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong class=\"x\">August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a payment details span means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><span data-msc4286-external-payment-details><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></span>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a greater-than sign inside the href means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08?x=>\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "link in the middle stays visible",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "See <a href=\"https://bills.example.org/statement/2026-08\">View statement</a> today.",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "trailing link with other text keeps the link",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">Open</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a comment means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a><!-- sent by a bot -->",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an end tag outside the allowed list means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></body>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a CDATA section means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a><![CDATA[ ]]>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a processing instruction means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a><?BR>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a body ending in a cut-off processing instruction means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a><?",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a doctype means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<!DOCTYPE html><strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an empty trailing paragraph keeps the link visible",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<p>August statement</p><p><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></p><p></p>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "line breaks with a slash keep the actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br/>Total: <strong>$10.00</strong><br /><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a slash in another start tag means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong/>August statement<br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a slash and a space in a start tag mean no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<span / >August statement</span><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a space before the closing bracket means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong >August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an end tag with a space means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong ><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an end tag for br means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></br>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a literal less-than sign means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "Total < $20<br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a greater-than sign in text keeps the actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "Total > $5<br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a body ending in an equals sign keeps the actions shown",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a><br>Reference: dGVzdA==",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a misnested end tag means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<b>August <i>statement</b></i><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an element left open means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<b>August statement<br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an end tag with nothing open means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "August statement</b><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a link around a paragraph is the trailing link",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\"><p>View statement</p></a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "bold around a paragraph keeps the actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<b><p>August statement</p></b><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a paragraph inside a paragraph means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<p>August <p>statement</p></p><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a list inside a paragraph means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<p>August statement<ul><li>Due</li></ul></p><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "nested lists keep the actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<ul><li>August<ol><li>statement</li></ol></li></ul><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a list item outside a list means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<li>August statement</li><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a list item inside bold inside a list means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<ul><b><li>August statement</li></b></ul><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a heading inside a heading means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<h1>August <b><h2>statement</h2></b></h1><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a link inside a link means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<a href=\"https://bills.example.org/other\">August <a href=\"https://bills.example.org/statement/2026-08\">View statement</a></a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a link directly inside a list means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "August statement<ul><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></ul>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "text directly inside a list means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<ul>August statement<li>Due</li></ul><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a line break directly inside a list means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<ul><li>August</li><br><li>statement</li></ul><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a reference directly inside a list means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<ul>&#32;<li>August statement</li></ul><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "whitespace between list items keeps the actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<ul>\n  <li>August</li>\r\n\t<li>statement</li>\f</ul><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "text directly inside a list nested in a list item means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<ul><li>August<ol>statement<li>Due</li></ol></li></ul><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a noncharacter means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong>\uffff<br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a noncharacter written as a reference means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>&#xFFFF;<a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a noncharacter from U+FDD0 to U+FDEF means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>&#64976;<a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "the last noncharacter of the last plane means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>&#x10FFFF;<a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a byte order mark and a replacement character in text keep the actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August\ufeff statement \ufffd&#xFFFD;</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a label that starts with a byte order mark keeps it",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "\ufeffView statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "\ufeffView statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a url that starts with a byte order mark means no action",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "\ufeffhttps://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an actions key that starts with a byte order mark is ignored",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "\ufeffglobal.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a line break inside the link text adds nothing",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View <br>statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "carriage returns in the link text read as line feeds",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View\r\nstatement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View\nstatement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View\nstatement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a style element means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\"><style>View statement</style></a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "url not in the body is dropped",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/other\">Other</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "http is rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"http://bills.example.org/x\">x</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "x",
+          "url": "http://bills.example.org/x"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "javascript is rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"javascript:alert(1)\">x</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "x",
+          "url": "javascript:alert(1)"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "user info is rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://user@bills.example.org/x\">x</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "x",
+          "url": "https://user@bills.example.org/x"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "empty user info is rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://@bills.example.org/x\">x</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "x",
+          "url": "https://@bills.example.org/x"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an upper-case scheme is rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"HTTPS://bills.example.org/x\">x</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "x",
+          "url": "HTTPS://bills.example.org/x"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "three slashes are rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https:///bills.example.org/x\">x</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "x",
+          "url": "https:///bills.example.org/x"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a non-ASCII character is rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/café\">x</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "x",
+          "url": "https://bills.example.org/café"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a backslash is rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/a\\b\">x</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "x",
+          "url": "https://bills.example.org/a\\b"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a hyphen at the end of a host label is rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills-.example.org/x\">x</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "x",
+          "url": "https://bills-.example.org/x"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a port above 65535 is rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org:65536/x\">x</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "x",
+          "url": "https://bills.example.org:65536/x"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a second # is rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/x#a#b\">x</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "x",
+          "url": "https://bills.example.org/x#a#b"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a port is accepted",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org:8443/statement\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org:8443/statement"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org:8443/statement"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "percent escapes are accepted",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/caf%C3%A9?q=a%20b\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/caf%C3%A9?q=a%20b"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/caf%C3%A9?q=a%20b"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a bad percent escape is rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/a%2\">x</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "x",
+          "url": "https://bills.example.org/a%2"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "blank label is rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "   ",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "label over 40 characters is rejected",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "label of exactly 40 characters is kept",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "label is trimmed",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "  View statement ",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a label is trimmed of no-break spaces",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": " View statement ",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "other types are ignored",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "run_command",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "missing url is ignored",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "non-array value is ignored",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": {
+        "type": "open_url",
+        "label": "View statement",
+        "url": "https://bills.example.org/statement/2026-08"
+      }
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "absent key",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>"
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "only the first three are considered",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08/0\">L0</a> <a href=\"https://bills.example.org/statement/2026-08/1\">L1</a> <a href=\"https://bills.example.org/statement/2026-08/2\">L2</a> <a href=\"https://bills.example.org/statement/2026-08/3\">L3</a> ",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "L0",
+          "url": "https://bills.example.org/statement/2026-08/0"
+        },
+        {
+          "type": "open_url",
+          "label": "L1",
+          "url": "https://bills.example.org/statement/2026-08/1"
+        },
+        {
+          "type": "open_url",
+          "label": "L2",
+          "url": "https://bills.example.org/statement/2026-08/2"
+        },
+        {
+          "type": "open_url",
+          "label": "L3",
+          "url": "https://bills.example.org/statement/2026-08/3"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "L0",
+          "url": "https://bills.example.org/statement/2026-08/0"
+        },
+        {
+          "label": "L1",
+          "url": "https://bills.example.org/statement/2026-08/1"
+        },
+        {
+          "label": "L2",
+          "url": "https://bills.example.org/statement/2026-08/2"
+        }
+      ],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "duplicate urls keep the first",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        },
+        {
+          "type": "open_url",
+          "label": "Other",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "an invalid entry does not hide a later one with the same url",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "   ",
+          "url": "https://bills.example.org/statement/2026-08"
+        },
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "plain text message",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "non-html format",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.example.other",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a formatted_body of 4096 characters keeps its actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<p>𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞</p><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a formatted_body over 4096 characters has no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<p>𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞𝄞</p><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a body with 200 start tags keeps its actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a body with 201 start tags has no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a link inside template means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "Statement ready<template><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></template>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an svg element means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><svg></svg><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an upper-case MATH element means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><MATH></MATH><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a NUL in formatted_body means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August\u0000 statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "upper-case tag names mean no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<STRONG>August statement</STRONG><BR><A HREF=\"https://bills.example.org/statement/2026-08\">View statement</A>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an upper-case attribute name means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a HREF=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a table element means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><table></table><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an hr element means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><hr><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a script element means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><script><!--<SCRIPT></script><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></script>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a reply fallback means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<mx-reply><blockquote><a href=\"https://bills.example.org/statement/2026-08\">View statement</a></blockquote></mx-reply>Thanks",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a tag name with a non-ASCII letter means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><bloc\u212aquote>x</bloc\u212aquote><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a control character in an attribute name means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a title=\"x\"\u000bhref=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a C1 control character means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August\u009f statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "allowed character references keep the actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/s?a=1&b=2",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August &lt;statement&gt;</strong><br>&quot;Total&quot; &apos;$10&apos;&nbsp;&#39;&#x1D11E;&#X41;<br><a href=\"https://bills.example.org/s?a=1&amp;b=2\">View &amp; pay</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View & pay",
+          "url": "https://bills.example.org/s?a=1&b=2"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View & pay",
+          "url": "https://bills.example.org/s?a=1&b=2"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "a named reference outside the allowed set means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>2 &times; $5<br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a reference without a semicolon means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>&copy 2026<br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an upper-case named reference means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August &AMP; September</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a bare ampersand means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August & September</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a numeric reference to NUL means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement&#0;</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a numeric reference to a C1 control means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">Pay &#x80;5</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "Pay €5",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a numeric reference to a surrogate means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August &#xD800; statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a numeric reference past U+10FFFF means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August &#x110000; statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "a numeric reference with eight digits means no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "August statement\nView statement: https://bills.example.org/statement/2026-08",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August &#00000065; statement</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "emote is not supported",
+    "content": {
+      "msgtype": "m.emote",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "notice is supported",
+    "content": {
+      "msgtype": "m.notice",
+      "body": "x",
+      "format": "org.matrix.custom.html",
+      "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ]
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "an edit reads m.new_content",
+    "content": {
+      "msgtype": "m.text",
+      "body": "* x",
+      "m.new_content": {
+        "msgtype": "m.text",
+        "body": "x",
+        "format": "org.matrix.custom.html",
+        "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+        "global.gua.actions": [
+          {
+            "type": "open_url",
+            "label": "View statement",
+            "url": "https://bills.example.org/statement/2026-08"
+          }
+        ]
+      },
+      "m.relates_to": {
+        "rel_type": "m.replace",
+        "event_id": "$original"
+      }
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  },
+  {
+    "name": "an edit without the key has no actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "* x",
+      "global.gua.actions": [
+        {
+          "type": "open_url",
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "m.new_content": {
+        "msgtype": "m.text",
+        "body": "x",
+        "format": "org.matrix.custom.html",
+        "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>"
+      },
+      "m.relates_to": {
+        "rel_type": "m.replace",
+        "event_id": "$original"
+      }
+    },
+    "expect": {
+      "actions": [],
+      "fallback_hidden": false
+    }
+  },
+  {
+    "name": "an edit whose new content repeats the relation keeps its actions",
+    "content": {
+      "msgtype": "m.text",
+      "body": "* x",
+      "m.new_content": {
+        "msgtype": "m.text",
+        "body": "x",
+        "format": "org.matrix.custom.html",
+        "formatted_body": "<strong>August statement</strong><br>Total: <strong>$10.00</strong><br><a href=\"https://bills.example.org/statement/2026-08\">View statement</a>",
+        "global.gua.actions": [
+          {
+            "type": "open_url",
+            "label": "View statement",
+            "url": "https://bills.example.org/statement/2026-08"
+          }
+        ],
+        "m.relates_to": {
+          "rel_type": "m.replace",
+          "event_id": "$original"
+        }
+      },
+      "m.relates_to": {
+        "rel_type": "m.replace",
+        "event_id": "$original"
+      }
+    },
+    "expect": {
+      "actions": [
+        {
+          "label": "View statement",
+          "url": "https://bills.example.org/statement/2026-08"
+        }
+      ],
+      "fallback_hidden": true
+    }
+  }
+]
