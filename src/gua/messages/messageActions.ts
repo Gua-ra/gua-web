@@ -52,10 +52,15 @@ export interface GuaAction {
     url: string;
 }
 
+export interface GuaMessage {
+    readonly actions: readonly GuaAction[];
+    /** Display only, for the tile that shows `actions`: the input itself when there are none. */
+    readonly shown: IContent;
+}
+
 const NO_ACTIONS: readonly GuaAction[] = Object.freeze([]);
 
-const actionsCache = new WeakMap<IContent, readonly GuaAction[]>();
-const strippedCache = new WeakMap<IContent, { actions: readonly GuaAction[]; content: IContent }>();
+const messageCache = new WeakMap<IContent, GuaMessage>();
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null && !Array.isArray(value);
@@ -193,50 +198,6 @@ function isAllowedUrl(url: string): boolean {
     return (port === undefined || Number(port) <= MAX_PORT) && url.indexOf("#") === url.lastIndexOf("#");
 }
 
-function readActions(content: IContent): readonly GuaAction[] {
-    if (content.msgtype !== MsgType.Text && content.msgtype !== MsgType.Notice) return NO_ACTIONS;
-    const html = content.formatted_body;
-    const raw = content[GUA_ACTIONS_KEY];
-    if (content.format !== "org.matrix.custom.html" || typeof html !== "string" || !Array.isArray(raw)) {
-        return NO_ACTIONS;
-    }
-    if (failsRawChecks(html)) return NO_ACTIONS;
-
-    const candidates: GuaAction[] = [];
-    for (const item of raw.slice(0, MAX_ACTIONS)) {
-        if (!isObject(item) || item.type !== "open_url") continue;
-        if (typeof item.label !== "string" || typeof item.url !== "string") continue;
-        const label = trimWhiteSpace(item.label);
-        const labelLength = scalarLength(label);
-        if (labelLength < 1 || labelLength > MAX_LABEL_LENGTH || !isAllowedUrl(item.url)) continue;
-        candidates.push({ label, url: item.url });
-    }
-    if (!candidates.length) return NO_ACTIONS;
-
-    const body = parseHtml(html);
-    const hrefs = new Set(Array.from(body.querySelectorAll("a[href]"), (link) => link.getAttribute("href")));
-    const seen = new Set<string>();
-    const actions = candidates.filter(({ url }) => {
-        if (!hrefs.has(url) || seen.has(url)) return false;
-        seen.add(url);
-        return true;
-    });
-    return actions.length ? actions : NO_ACTIONS;
-}
-
-/**
- * `content` must be the displayed content, as MatrixEvent.getContent() returns it: an edit is already resolved
- * to its m.new_content, so it is never unwrapped here and an m.relates_to inside it is ignored.
- */
-export function getGuaActions(content: IContent): readonly GuaAction[] {
-    let actions = actionsCache.get(content);
-    if (!actions) {
-        actions = readActions(content);
-        actionsCache.set(content, actions);
-    }
-    return actions;
-}
-
 const isSpace = (node: Node): boolean =>
     node.nodeName === "BR" || (node.nodeType === Node.TEXT_NODE && trimWhiteSpace(node.textContent ?? "") === "");
 
@@ -259,14 +220,14 @@ function removeWithSpace(node: ChildNode): void {
     node.remove();
 }
 
-function withoutTrailingLink(html: string, actions: readonly GuaAction[]): string | undefined {
-    const body = parseHtml(html);
+/** Removes the trailing link of one of `actions` and the wrappers it leaves empty. */
+function removeFallbackLink(body: HTMLElement, actions: readonly GuaAction[]): boolean {
     const link = trailingLink(body);
-    if (!link) return undefined;
+    if (!link) return false;
 
     const href = link.getAttribute("href");
     const text = trimWhiteSpace(link.textContent ?? "");
-    if (!actions.some((action) => action.url === href && action.label === text)) return undefined;
+    if (!actions.some((action) => action.url === href && action.label === text)) return false;
 
     let removed: ChildNode = link;
     for (;;) {
@@ -275,21 +236,55 @@ function withoutTrailingLink(html: string, actions: readonly GuaAction[]): strin
         if (parent === body || lastContent(parent)) break;
         removed = parent;
     }
-    return body.innerHTML;
+    return true;
+}
+
+function readMessage(content: IContent): GuaMessage {
+    const none: GuaMessage = { actions: NO_ACTIONS, shown: content };
+    if (content.msgtype !== MsgType.Text && content.msgtype !== MsgType.Notice) return none;
+    const html = content.formatted_body;
+    const raw = content[GUA_ACTIONS_KEY];
+    if (content.format !== "org.matrix.custom.html" || typeof html !== "string" || !Array.isArray(raw)) return none;
+    if (failsRawChecks(html)) return none;
+
+    const candidates: GuaAction[] = [];
+    for (const item of raw.slice(0, MAX_ACTIONS)) {
+        if (!isObject(item) || item.type !== "open_url") continue;
+        if (typeof item.label !== "string" || typeof item.url !== "string") continue;
+        const label = trimWhiteSpace(item.label);
+        const labelLength = scalarLength(label);
+        if (labelLength < 1 || labelLength > MAX_LABEL_LENGTH || !isAllowedUrl(item.url)) continue;
+        candidates.push({ label, url: item.url });
+    }
+    if (!candidates.length) return none;
+
+    const body = parseHtml(html);
+    const hrefs = new Set(Array.from(body.querySelectorAll("a[href]"), (link) => link.getAttribute("href")));
+    const seen = new Set<string>();
+    const actions = candidates.filter(({ url }) => {
+        if (!hrefs.has(url) || seen.has(url)) return false;
+        seen.add(url);
+        return true;
+    });
+    if (!actions.length) return none;
+
+    const removed = removeFallbackLink(body, actions);
+    // Serialized from the tree the hrefs came from, so the bubble shows the links the actions were checked against.
+    const shown: IContent = { ...content, formatted_body: body.innerHTML };
+    // EventContentBody falls back to the plain body when the formatted one renders empty, and that body has the link.
+    if (removed) shown.body = "";
+    return { actions, shown };
 }
 
 /**
- * A display-only copy of `content` without the trailing fallback link of one of `actions`. Copy, edit
- * and reply previews keep reading the event itself.
+ * `content` must be the displayed content, as MatrixEvent.getContent() returns it: an edit is already resolved
+ * to its m.new_content, so it is never unwrapped here and an m.relates_to inside it is ignored.
  */
-export function withoutTrailingActionLinks(content: IContent, actions: readonly GuaAction[]): IContent {
-    if (!actions.length || typeof content.formatted_body !== "string") return content;
-    const cached = strippedCache.get(content);
-    if (cached?.actions === actions) return cached.content;
-
-    const stripped = withoutTrailingLink(content.formatted_body, actions);
-    // EventContentBody falls back to the plain body when the formatted one renders empty, and that body has the link.
-    const result = stripped === undefined ? content : { ...content, formatted_body: stripped, body: "" };
-    strippedCache.set(content, { actions, content: result });
-    return result;
+export function getGuaMessage(content: IContent): GuaMessage {
+    let message = messageCache.get(content);
+    if (!message) {
+        message = readMessage(content);
+        messageCache.set(content, message);
+    }
+    return message;
 }

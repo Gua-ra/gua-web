@@ -29,7 +29,7 @@ import { options as linkifyOpts } from "../../../linkify-matrix";
 import { getParentEventId } from "../../../utils/Reply";
 import { EditWysiwygComposer } from "../rooms/wysiwyg_composer";
 import { type IEventTileOps } from "../rooms/EventTile";
-import { getGuaActions, withoutTrailingActionLinks } from "../../../gua/messages/messageActions";
+import { getGuaMessage } from "../../../gua/messages/messageActions";
 import { MessageActionButtons } from "../../../gua/messages/MessageActionButtons";
 
 interface IState {
@@ -328,7 +328,7 @@ export default class TextualBody extends React.Component<IBodyProps, IState> {
             isEmote ||
             isCaption ||
             mxEvent.isRelation(RelationType.Replace);
-        const actions = hidesActions ? [] : getGuaActions(content);
+        const { actions, shown } = hidesActions ? { actions: [], shown: content } : getGuaMessage(content);
 
         const willHaveWrapper =
             this.props.replacingEventId || this.props.isSeeingThroughMessageHiddenForModeration || isEmote;
@@ -339,7 +339,7 @@ export default class TextualBody extends React.Component<IBodyProps, IState> {
                 as={willHaveWrapper ? "span" : "div"}
                 includeDir={false}
                 mxEvent={mxEvent}
-                content={withoutTrailingActionLinks(content, actions)}
+                content={shown}
                 stripReply={stripReply}
                 linkify
                 highlights={this.props.highlights}

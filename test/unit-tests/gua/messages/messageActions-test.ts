@@ -7,12 +7,7 @@ Please see LICENSE files in the repository root for full details.
 
 import { type IContent } from "matrix-js-sdk/src/matrix";
 
-import {
-    GUA_ACTIONS_KEY,
-    type GuaAction,
-    getGuaActions,
-    withoutTrailingActionLinks,
-} from "../../../../src/gua/messages/messageActions";
+import { GUA_ACTIONS_KEY, type GuaAction, getGuaMessage } from "../../../../src/gua/messages/messageActions";
 import fixtureFile from "./fixtures/message-actions.json";
 
 interface Fixture {
@@ -60,7 +55,8 @@ const fixtures = decodeFixtures(fixtureFile);
 const displayedContent = (content: IContent): IContent =>
     content["m.relates_to"]?.rel_type === "m.replace" ? (content["m.new_content"] ?? {}) : content;
 
-const shownContent = (content: IContent): IContent => withoutTrailingActionLinks(content, getGuaActions(content));
+const getGuaActions = (content: IContent): readonly GuaAction[] => getGuaMessage(content).actions;
+const shownContent = (content: IContent): IContent => getGuaMessage(content).shown;
 
 const linkCount = (html: unknown): number => {
     if (typeof html !== "string") return 0;
@@ -94,7 +90,7 @@ describe("message actions", () => {
                 const shown = shownContent(displayed);
                 const hiddenLinks = linkCount(displayed.formatted_body) - linkCount(shown.formatted_body);
                 expect(hiddenLinks).toBe(expected.fallback_hidden ? 1 : 0);
-                expect(shown !== displayed).toBe(expected.fallback_hidden);
+                expect(shown.body).toBe(expected.fallback_hidden ? "" : displayed.body);
             });
         },
     );
@@ -165,6 +161,14 @@ describe("message actions", () => {
     it("returns the same actions for the same content", () => {
         const content = message(`<a href="${ACTION_URL}">Open</a>`);
         expect(getGuaActions(content)).toBe(getGuaActions(content));
+    });
+
+    it("has no actions and leaves the content as it is when no action passes", () => {
+        const content = message(`Ready<br><a href="${ACTION_URL}">Open</a>`, [
+            { type: "open_url", label: "Open", url: "http://example.org/" },
+        ]);
+        expect(getGuaMessage(content)).toEqual({ actions: [], shown: content });
+        expect(shownContent(content)).toBe(content);
     });
 
     it("parses the body in a no-quirks document", () => {
@@ -408,7 +412,7 @@ describe("message actions", () => {
         });
     });
 
-    describe("withoutTrailingActionLinks", () => {
+    describe("shown content", () => {
         it.each([
             ["a link after a line break", `Ready<br><a href="${ACTION_URL}">Open</a>`, "Ready"],
             ["a link with trailing breaks", `Ready<br><br><a href="${ACTION_URL}">Open</a><br> \n`, "Ready"],
@@ -435,8 +439,15 @@ describe("message actions", () => {
             ["a link followed by an empty span", `Ready<br><a href="${ACTION_URL}">Open</a><span></span>`],
         ])("leaves %s", (_name, formattedBody) => {
             const content = message(formattedBody);
+            const shown = shownContent(content);
             expect(getGuaActions(content)).toHaveLength(1);
-            expect(shownContent(content)).toBe(content);
+            expect(linkCount(shown.formatted_body)).toBe(linkCount(formattedBody));
+            expect(shown.body).toBe(content.body);
+        });
+
+        it("serializes the body from the parse that validated the actions", () => {
+            const content = message(`Ready<br/><a href='${ACTION_URL}'>Open</a> &apos;done&apos;<br />`);
+            expect(shownContent(content).formatted_body).toBe(`Ready<br><a href="${ACTION_URL}">Open</a> 'done'<br>`);
         });
 
         it("reads CR and CRLF as LF", () => {
