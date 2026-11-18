@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopēt viesu saiti",
+            "join_before_admitting": "Pievienojieties zvanam, lai ielaistu šo personu."
+        },
         "footer": {
             "developed_by": "Izstrādāja %(name)s"
         }

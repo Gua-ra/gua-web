@@ -10,9 +10,17 @@ Please see LICENSE files in the repository root for full details.
     flex-direction: column;
     align-items: center;
     &.mx_WelcomePage_registrationDisabled {
-        .mx_ButtonCreateAccount {
+        .mx_ButtonCreateAccount:not(.mx_ButtonCreateAccount_disabled) {
             display: none;
         }
+    }
+
+    .mx_ButtonCreateAccount_disabled {
+        background-color: var(--cpd-color-bg-subtle-secondary);
+        color: var(--cpd-color-text-disabled) !important;
+        cursor: not-allowed;
+        filter: grayscale(1);
+        opacity: 0.72;
     }
 }
 

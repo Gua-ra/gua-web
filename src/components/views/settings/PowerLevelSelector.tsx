@@ -11,6 +11,7 @@ import { Button } from "@vector-im/compound-web";
 
 import { useMatrixClientContext } from "../../../contexts/MatrixClientContext";
 import PowerSelector from "../elements/PowerSelector";
+import Field from "../elements/Field";
 import { _t } from "../../../languageHandler";
 import SettingsFieldset from "./SettingsFieldset";
 import Modal from "../../../Modal";
@@ -27,6 +28,10 @@ interface PowerLevelSelectorProps {
      * The key is the user id and the value is the power level
      */
     userLevels: Record<string, number>;
+    /**
+     * Gua: the user ids of the room creators, shown with a read-only Owner role
+     */
+    creators?: string[];
     /**
      * Whether the user can change the power levels of other users
      */
@@ -54,6 +59,7 @@ interface PowerLevelSelectorProps {
 
 export function PowerLevelSelector({
     userLevels,
+    creators = [],
     canChangeLevels,
     currentUserLevel,
     onClick,
@@ -77,10 +83,12 @@ export function PowerLevelSelector({
         .filter(filter);
 
     // No user to display, we return the children into fragment to convert it to JSX.Element type
-    if (!users.length) return <>{children}</>;
+    if (!users.length && !creators.length) return <>{children}</>;
 
     // check at least one admin in the list
     const roomHasAtLeastOneAdmin = (usersLevels: Record<string, number>): boolean => {
+        // Gua: creators keep their power, so the room cannot lose its last privileged user.
+        if (creators.length) return true;
         const userLevelValues = Object.values(usersLevels);
         // At least one user as the pL 100 which means he is admin
         return userLevelValues.some((uL) => uL === 100);
@@ -126,6 +134,14 @@ export function PowerLevelSelector({
                     />
                 );
             })}
+
+            {creators.map((userId) => (
+                <div className="mx_PowerSelector" key={userId}>
+                    <Field element="select" label={userId} value="creator" disabled>
+                        <option value="creator">{_t("power_level|creator")}</option>
+                    </Field>
+                </div>
+            ))}
 
             <Button
                 size="sm"

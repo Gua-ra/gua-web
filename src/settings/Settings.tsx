@@ -50,6 +50,7 @@ import { SortingAlgorithm } from "../stores/room-list-v3/skip-list/sorters/index
 import MediaPreviewConfigController from "./controllers/MediaPreviewConfigController.ts";
 import InviteRulesConfigController from "./controllers/InviteRulesConfigController.ts";
 import { type ComputedInviteConfig } from "../@types/invite-rules.ts";
+import CallHostController from "../gua/calls/CallHostController.ts";
 
 export const defaultWatchManager = new WatchManager();
 
@@ -625,7 +626,7 @@ export const SETTINGS: Settings = {
         supportedLevels: LEVELS_DEVICE_ONLY_SETTINGS_WITH_CONFIG_PRIORITISED,
         supportedLevelsAreOrdered: true,
         displayName: _td("labs|group_calls"),
-        controller: new ReloadOnChangeController(),
+        controller: new CallHostController("feature_group_calls", defaultWatchManager, { reloadOnChange: true }),
         default: false,
     },
     "feature_disable_call_per_sender_encryption": {
@@ -773,6 +774,7 @@ export const SETTINGS: Settings = {
         displayName: _td("labs|ask_to_join"),
         supportedLevels: LEVELS_DEVICE_ONLY_SETTINGS_WITH_CONFIG_PRIORITISED,
         supportedLevelsAreOrdered: true,
+        controller: new CallHostController("feature_ask_to_join", defaultWatchManager),
     },
     "feature_notifications": {
         isFeature: true,
@@ -1378,6 +1380,7 @@ export const SETTINGS: Settings = {
     [UIFeature.Voip]: {
         supportedLevels: LEVELS_UI_FEATURE,
         default: true,
+        controller: new CallHostController(UIFeature.Voip, defaultWatchManager),
     },
     [UIFeature.Feedback]: {
         supportedLevels: LEVELS_UI_FEATURE,
@@ -1462,5 +1465,8 @@ export const SETTINGS: Settings = {
         supportedLevels: [SettingLevel.DEVICE],
         displayName: _td("devtools|settings|elementCallUrl"),
         default: "",
+        controller: new CallHostController("Developer.elementCallUrl", defaultWatchManager, {
+            hostValue: () => SdkConfig.get("gua_call")?.host_url,
+        }),
     },
 };

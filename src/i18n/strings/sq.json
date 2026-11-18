@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Kopjo lidhjen për mysafirët",
+            "join_before_admitting": "Hyni në thirrje për ta pranuar."
+        },
         "footer": {
             "developed_by": "Zhvilluar nga %(name)s"
         }

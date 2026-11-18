@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import { act, fireEvent, render, screen } from "jest-matrix-react";
+import { act, fireEvent, render, screen, within } from "jest-matrix-react";
 import {
     EventTimeline,
     EventType,
@@ -23,7 +23,9 @@ import ErrorDialog from "../../../../../../../src/components/views/dialogs/Error
 import { PeopleRoomSettingsTab } from "../../../../../../../src/components/views/settings/tabs/room/PeopleRoomSettingsTab";
 import MatrixClientContext from "../../../../../../../src/contexts/MatrixClientContext";
 import Modal from "../../../../../../../src/Modal";
-import { flushPromises, getMockClientWithEventEmitter } from "../../../../../../test-utils";
+import { flushPromises, getMockClientWithEventEmitter, unmockClientPeg } from "../../../../../../test-utils";
+import SdkConfig from "../../../../../../../src/SdkConfig";
+import { COLLEAGUE, GUEST, ROOM_ID, setUpGuestCallRoom } from "../../../../../gua/calls/guestCallRoom";
 
 describe("PeopleRoomSettingsTab", () => {
     const client = getMockClientWithEventEmitter({
@@ -206,5 +208,46 @@ describe("PeopleRoomSettingsTab", () => {
             });
             expect(getParagraph()).toHaveTextContent("No requests");
         });
+    });
+});
+
+describe("PeopleRoomSettingsTab in a room with a guest link", () => {
+    const hint = "Join the call to let them in.";
+    const getRow = (userId: string) => within(screen.getByText(userId).closest(".mx_PeopleRoomSettingsTab_knock")!);
+
+    afterEach(() => {
+        SdkConfig.reset();
+        unmockClientPeg();
+    });
+
+    it("lets a guest in once the host is in the call", () => {
+        const { client, room, hostJoinsCall } = setUpGuestCallRoom();
+        render(<PeopleRoomSettingsTab room={room} />);
+
+        expect(getRow(GUEST).getByRole("button", { name: "Approve" })).toHaveAttribute("disabled");
+        expect(getRow(GUEST).getByRole("button", { name: "Deny" })).not.toHaveAttribute("disabled");
+        expect(getRow(GUEST).getByText(hint)).toBeInTheDocument();
+
+        act(() => hostJoinsCall());
+        expect(getRow(GUEST).queryByText(hint)).not.toBeInTheDocument();
+        fireEvent.click(getRow(GUEST).getByRole("button", { name: "Approve" }));
+        expect(client.invite).toHaveBeenCalledWith(ROOM_ID, GUEST);
+    });
+
+    it("does not hold back someone from the host's own server", () => {
+        const { room } = setUpGuestCallRoom({ knockers: [GUEST, COLLEAGUE] });
+        render(<PeopleRoomSettingsTab room={room} />);
+
+        expect(getRow(GUEST).getByRole("button", { name: "Approve" })).toHaveAttribute("disabled");
+        expect(getRow(COLLEAGUE).getByRole("button", { name: "Approve" })).not.toHaveAttribute("disabled");
+        expect(getRow(COLLEAGUE).queryByText(hint)).not.toBeInTheDocument();
+    });
+
+    it("does not hold back guests in a room without a guest link", () => {
+        const { room } = setUpGuestCallRoom({ creator: COLLEAGUE });
+        render(<PeopleRoomSettingsTab room={room} />);
+
+        expect(getRow(GUEST).getByRole("button", { name: "Approve" })).not.toHaveAttribute("disabled");
+        expect(getRow(GUEST).queryByText(hint)).not.toBeInTheDocument();
     });
 });

@@ -1640,7 +1640,8 @@ describe("<MatrixChat />", () => {
 
         // Flaky test, see https://github.com/element-hq/element-web/issues/30337
         it("waits for other tab to stop during startup", async () => {
-            fetchMock.get("/welcome.html", { body: "<h1>Hello</h1>" });
+            // Welcome fetches welcome.html with a cache-busting query string.
+            fetchMock.get("path:/welcome.html", { body: "<h1>Hello</h1>" });
             jest.spyOn(Lifecycle, "attemptDelegatedAuthLogin");
 
             // simulate an active window

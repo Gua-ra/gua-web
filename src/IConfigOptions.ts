@@ -71,6 +71,13 @@ export interface IConfigOptions {
             policy_threshold?: number;
         };
     };
+    // User IDs that get calls and Ask to join whatever the rest of the config says.
+    // host_url replaces the embedded Element Call for them, and guest_url is the base of their guest links.
+    gua_call?: {
+        hosts: string[];
+        host_url?: string;
+        guest_url?: string;
+    };
 
     brand: string;
     branding?: {

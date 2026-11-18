@@ -49,6 +49,7 @@ import { getIncomingCallToastKey, IncomingCallToast } from "./toasts/IncomingCal
 import ToastStore from "./stores/ToastStore";
 import { stripPlainReply } from "./utils/Reply";
 import { BackgroundAudio } from "./audio/BackgroundAudio";
+import { UIFeature } from "./settings/UIFeature";
 
 /*
  * Dispatches:
@@ -490,7 +491,12 @@ class NotifierClass extends TypedEventEmitter<keyof EmittedEvents, EmittedEvents
             room && MatrixRTCSession.callMembershipsForRoom(room).some((m) => m.sender === cli.getUserId());
 
         // Check maximum age (<= 15 seconds) of a call notify event that will trigger a ringing notification
-        if (EventType.CallNotify === ev.getType() && (ev.getAge() ?? 0) < 15000 && !thisUserHasConnectedDevice) {
+        if (
+            EventType.CallNotify === ev.getType() &&
+            (ev.getAge() ?? 0) < 15000 &&
+            !thisUserHasConnectedDevice &&
+            SettingsStore.getValue(UIFeature.Voip)
+        ) {
             const content = ev.getContent();
             const roomId = ev.getRoomId();
             if (typeof content.call_id !== "string") {

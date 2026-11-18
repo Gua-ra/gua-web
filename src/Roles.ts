@@ -19,6 +19,7 @@ export function levelRoleMap(usersDefault: number): Record<number | "undefined",
 }
 
 export function textualPowerLevel(level: number, usersDefault: number): string {
+    if (level === Infinity) return _t("power_level|creator");
     const LEVEL_ROLE_MAP = levelRoleMap(usersDefault);
     if (LEVEL_ROLE_MAP[level]) {
         return LEVEL_ROLE_MAP[level];

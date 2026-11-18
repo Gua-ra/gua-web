@@ -6,7 +6,7 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React from "react";
-import { render } from "jest-matrix-react";
+import { fireEvent, render, waitFor } from "jest-matrix-react";
 import { EventType, getHttpUriForMxc, MatrixEvent, Room } from "matrix-js-sdk/src/matrix";
 
 import { RoomPermalinkCreator } from "../../../../../src/utils/permalinks/Permalinks";
@@ -22,6 +22,7 @@ import SettingsStore from "../../../../../src/settings/SettingsStore";
 import MFileBody from "../../../../../src/components/views/messages/MFileBody.tsx";
 import { TimelineRenderingType } from "../../../../../src/contexts/RoomContext.ts";
 import { ScopedRoomContextProvider } from "../../../../../src/contexts/ScopedRoomContext.tsx";
+import { FileDownloader } from "../../../../../src/utils/FileDownloader";
 
 jest.mock("matrix-encrypt-attachment", () => ({
     decryptAttachment: jest.fn(),
@@ -84,5 +85,33 @@ describe("<MFileBody/>", () => {
 
         expect(getByRole("link", { name: "Download" })).toBeInTheDocument();
         expect(container).toMatchSnapshot();
+    });
+
+    it("downloads an encrypted file on the first click of its placeholder", async () => {
+        const encryptedEvent = new MatrixEvent({
+            room_id: "!room:server",
+            sender: userId,
+            type: EventType.RoomMessage,
+            content: {
+                body: "notes.txt",
+                msgtype: "m.file",
+                file: { url: "mxc://server/encrypted" },
+            },
+        });
+        const mediaEventHelper = new MediaEventHelper(encryptedEvent);
+        const blob = new Blob(["hello"], { type: "text/plain" });
+        jest.spyOn(mediaEventHelper.sourceBlob, "value", "get").mockResolvedValue(blob);
+        const download = jest.spyOn(FileDownloader.prototype, "download").mockResolvedValue();
+
+        const { getByRole } = render(
+            <ScopedRoomContextProvider {...({ timelineRenderingType: TimelineRenderingType.Room } as any)}>
+                <MFileBody {...props} mxEvent={encryptedEvent} mediaEventHelper={mediaEventHelper} />
+            </ScopedRoomContextProvider>,
+        );
+        fireEvent.click(getByRole("button", { name: "notes.txt" }));
+
+        await waitFor(() => expect(download).toHaveBeenCalledTimes(1));
+        expect(download).toHaveBeenCalledWith(expect.objectContaining({ blob, name: "notes.txt", autoDownload: true }));
+        download.mockRestore();
     });
 });

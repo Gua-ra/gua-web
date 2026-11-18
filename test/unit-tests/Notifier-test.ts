@@ -45,6 +45,7 @@ import dis from "../../src/dispatcher/dispatcher";
 import { type ThreadPayload } from "../../src/dispatcher/payloads/ThreadPayload";
 import { Action } from "../../src/dispatcher/actions";
 import { addReplyToMessageContent } from "../../src/utils/Reply";
+import { UIFeature } from "../../src/settings/UIFeature";
 
 jest.mock("../../src/utils/notifications", () => ({
     // @ts-ignore
@@ -445,6 +446,13 @@ describe("Notifier", () => {
 
         it("should not show toast when calling with non-group call event", () => {
             emitCallNotifyEvent("event_type");
+
+            expect(ToastStore.sharedInstance().addOrReplaceToast).not.toHaveBeenCalled();
+        });
+
+        it("should not show toast while calls are hidden", () => {
+            jest.spyOn(SettingsStore, "getValue").mockImplementation((settingName) => settingName !== UIFeature.Voip);
+            emitCallNotifyEvent();
 
             expect(ToastStore.sharedInstance().addOrReplaceToast).not.toHaveBeenCalled();
         });

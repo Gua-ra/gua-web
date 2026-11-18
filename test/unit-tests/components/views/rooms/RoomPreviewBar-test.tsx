@@ -143,7 +143,8 @@ describe("<RoomPreviewBar />", () => {
         const dispatcherRef = defaultDispatcher.register(dispatcherSpy);
 
         expect(getMessage(component)?.textContent).toEqual("Join the conversation with an account");
-        fireEvent.click(getPrimaryActionButton(component)!);
+        // Gua turns web registration off by default, so Sign in is the only account action offered.
+        fireEvent.click(getSecondaryActionButton(component)!);
 
         await waitFor(() =>
             expect(dispatcherSpy).toHaveBeenCalledWith(
