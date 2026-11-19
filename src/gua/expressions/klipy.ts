@@ -181,8 +181,11 @@ export class KlipyGifProvider implements GifProvider {
 
 let provider: GifProvider | undefined;
 
-/** The key is baked in at build time from the `KLIPY_API_KEY` secret; without it GIFs are unavailable. */
+/**
+ * The web bundle is public, so it never carries a provider key. GIF search stays unavailable on the
+ * web until a Gua gateway holds the key on the server.
+ */
 export function gifProvider(): GifProvider {
-    provider ??= new KlipyGifProvider(process.env.KLIPY_API_KEY ?? "");
+    provider ??= new KlipyGifProvider("");
     return provider;
 }

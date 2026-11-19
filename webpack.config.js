@@ -703,11 +703,6 @@ module.exports = (env, argv) => {
                 extras: { VERSION },
             }),
 
-            // KLIPY's app key for GIF search. Without it the GIF tab says GIFs are unavailable.
-            new webpack.DefinePlugin({
-                "process.env.KLIPY_API_KEY": JSON.stringify(process.env.KLIPY_API_KEY ?? ""),
-            }),
-
             // Due to issues such as https://github.com/vector-im/element-web/issues/25277 we should retry chunk loading
             new RetryChunkLoadPlugin({
                 cacheBust: `() => Date.now()`,

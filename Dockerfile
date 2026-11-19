@@ -14,9 +14,7 @@ COPY --exclude=docker . /src
 ARG SKIP_LINK_REPOS=false
 RUN if [ "$SKIP_LINK_REPOS" != "true" ]; then /src/scripts/docker-link-repos.sh; else echo "Skipping docker-link-repos.sh"; fi
 RUN yarn --network-timeout=200000 install
-# The KLIPY key comes in as a build secret, so it stays out of the image history. A secret does not
-# invalidate the layer cache, so a new key needs a source change or an uncached build to take effect.
-RUN --mount=type=secret,id=klipy_api_key,env=KLIPY_API_KEY /src/scripts/docker-package.sh
+RUN /src/scripts/docker-package.sh
 
 # Copy the config now so that we don't create another layer in the app image
 RUN cp /src/config.sample.json /src/webapp/config.json
