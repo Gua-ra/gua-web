@@ -161,7 +161,7 @@ describe("GuaAuthFlow", () => {
         const lines = await submitPhoneAndReadReport();
         releaseDocuments();
 
-        expect(lines).toEqual([expect.stringContaining("rosterSignature=unverifiable(timeout)")]);
+        expect(lines).toEqual([expect.stringContaining("rosterSignature=unverifiable(interrupted)")]);
     });
 
     it("reports the documents it verified while the phone was typed, whatever issuer discovery finds", async () => {

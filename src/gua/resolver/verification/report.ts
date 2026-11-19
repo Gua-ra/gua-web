@@ -12,6 +12,7 @@ export enum Reason {
     ParseError = "parse_error",
     MixedRosterForm = "mixed_roster_form",
     Timeout = "timeout",
+    Interrupted = "interrupted",
     InternalError = "internal_error",
     RosterUnverified = "roster_unverified",
     UnknownKeyId = "unknown_key_id",

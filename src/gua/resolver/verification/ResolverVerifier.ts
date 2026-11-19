@@ -358,29 +358,30 @@ class AnswerRun {
     }
 
     public async complete(): Promise<ResolverVerificationReport> {
-        const timer = setTimeout(() => this.finish(), this.context.budgetMs);
+        const timer = setTimeout(() => this.finish(Reason.Timeout), this.context.budgetMs);
         await Promise.all([
             this.run().catch(() => this.checks.settleAll(ANSWER_CHECKS, unverifiable(Reason.InternalError))),
             this.artifacts.whenSettled(),
         ]);
         clearTimeout(timer);
-        return this.finish();
+        // Every check has settled by now, so a check without a result can only be a bug.
+        return this.finish(Reason.InternalError);
     }
 
-    public finish(): ResolverVerificationReport {
+    public finish(reason: Reason): ResolverVerificationReport {
         if (!this.report) {
-            this.report = this.snapshot();
+            this.report = this.snapshot(reason);
             logger.info(formatReport(this.report));
         }
         return this.report;
     }
 
-    private snapshot(): ResolverVerificationReport {
-        const signature = this.artifacts.checks.get("rosterSignature") ?? unverifiable(Reason.Timeout);
+    private snapshot(reason: Reason): ResolverVerificationReport {
+        const signature = this.artifacts.checks.get("rosterSignature") ?? unverifiable(reason);
         const gated = signature.outcome === "valid" ? null : unverifiable(reasonAfterRoster(signature));
         const checks = {} as Record<CheckName, CheckResult>;
         for (const name of CHECK_ORDER) {
-            const settled = this.artifacts.checks.get(name) ?? this.checks.get(name) ?? unverifiable(Reason.Timeout);
+            const settled = this.artifacts.checks.get(name) ?? this.checks.get(name) ?? unverifiable(reason);
             checks[name] = name === "rosterSignature" ? signature : (gated ?? settled);
         }
         return {
@@ -473,7 +474,7 @@ export class ResolverVerification {
 
     /** Synchronous so that it never delays navigation. */
     public flush(): void {
-        for (const run of this.pending) run.finish();
+        for (const run of this.pending) run.finish(Reason.Interrupted);
     }
 
     private runForAnswer(): ArtifactsRun {

@@ -273,7 +273,10 @@ async function signedRoster(roster: Json): Promise<Json> {
     };
 }
 
-function refusingSubtle(refuses: (spki: Uint8Array) => boolean): SubtleCrypto {
+function refusingSubtle(
+    refuses: (spki: Uint8Array) => boolean,
+    refusal: () => Promise<never> = () => Promise.reject(new DOMException("not supported", "NotSupportedError")),
+): SubtleCrypto {
     const subtle = webcrypto.subtle as unknown as SubtleCrypto;
     return {
         digest: (algorithm: AlgorithmIdentifier, data: BufferSource) => subtle.digest(algorithm, data),
@@ -286,7 +289,7 @@ function refusingSubtle(refuses: (spki: Uint8Array) => boolean): SubtleCrypto {
             extractable: boolean,
             usages: KeyUsage[],
         ) => {
-            if (refuses(keyData)) throw new DOMException("not supported", "NotSupportedError");
+            if (refuses(keyData)) return refusal();
             return subtle.importKey(format, keyData, algorithm, extractable, usages);
         },
     } as unknown as SubtleCrypto;
@@ -1291,7 +1294,7 @@ describe("ResolverVerification", () => {
             });
         });
 
-        it("logs a pending report at flush with unsettled checks as timeout, and only that one", async () => {
+        it("logs a pending report at flush with unsettled checks as interrupted, and only that one", async () => {
             let releaseRoster = (_roster: unknown): void => {};
             const transport = stubTransport({ fetchRoster: () => new Promise((resolve) => (releaseRoster = resolve)) });
             const verification = verifier({ transport });
@@ -1301,12 +1304,40 @@ describe("ResolverVerification", () => {
             verification.flush();
             expect(logger.info).toHaveBeenCalledTimes(1);
             expect(jest.mocked(logger.info).mock.calls[0][0]).toContain(
-                "rosterSignature=unverifiable(timeout) homeserverMatch=unverifiable(roster_unverified)",
+                "rosterSignature=unverifiable(interrupted) homeserverMatch=unverifiable(roster_unverified)",
             );
 
             releaseRoster(r2.roster);
             const report = await pending;
-            expect(report).toMatchObject(rosterFailure(Reason.Timeout));
+            expect(report).toMatchObject(rosterFailure(Reason.Interrupted));
+            expect(logger.info).toHaveBeenCalledTimes(1);
+        });
+
+        it("keeps the checks settled before a flush and logs the policy and placement still running as interrupted", async () => {
+            const transport = stubTransport({ fetchRoutingPolicy: () => new Promise(() => {}) });
+            const verification = verifier({ transport });
+            void verification.verify(brAnswer, PHONE);
+            await until(() => transport.calls.includes("policy"));
+
+            verification.flush();
+
+            expect(logger.info).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(logger.info).mock.calls[0][0]).toMatch(
+                /rosterSignature=valid .* logConsistency=firstSeen policy=unverifiable\(interrupted\) placement=unverifiable\(interrupted\)/,
+            );
+        });
+
+        it("logs checks still running when the budget runs out as timeout, and nothing more at flush", async () => {
+            const hsBr = r2.roster.entries.find((e: Json) => e.homeserver.id === "hs-br");
+            const stalling = refusingSubtle(isKey(hsBr.homeserver.signingKey), () => new Promise(() => {}));
+            const verification = verifier({ crypto: new VerifierCrypto(stalling), budgetMs: 50 });
+            void verification.verify(brAnswer, PHONE);
+            await until(() => jest.mocked(logger.info).mock.calls.length > 0);
+
+            expect(jest.mocked(logger.info).mock.calls[0][0]).toMatch(
+                /rosterSignature=valid homeserverMatch=ACTIVE_MATCH memberEntry=unverifiable\(timeout\) .* placement=unverifiable\(timeout\)/,
+            );
+            verification.flush();
             expect(logger.info).toHaveBeenCalledTimes(1);
         });
 
