@@ -37,6 +37,7 @@ import {
 } from "../../../../../src/gua/resolver/verification/memberEntry";
 import { MerkleTree, parseLogEvents } from "../../../../../src/gua/resolver/verification/merkle";
 import {
+    fallbackTotalWeight,
     type PlacementContext,
     placementCandidates,
     reproducePlacement,
@@ -162,14 +163,15 @@ interface PlacementVector {
         attributes?: Record<string, string>;
     };
     evaluatedAt: string;
-    expectedHomeserverId: string;
-    expectedRule: string;
-    expectedRuleId: string;
+    expectedHomeserverId: string | null;
+    expectedRule: string | null;
+    expectedRuleId: string | null;
     unsignedRuleAbove: boolean;
     fallback?: {
         routingKeyUtf8: string;
         rosterVersion: number;
         candidates: { id: string; weight: number }[];
+        totalWeight: number;
         stableHash: number;
     };
 }
@@ -185,14 +187,11 @@ interface ResolveAnswerVector {
 interface ClientVectors {
     vectors: string;
     protocol: string;
-    notes: string[];
     keys: Record<string, Omit<KeyVector, "name">>;
     instants: { iso: string; epochMs: string }[];
     rosters: RosterVector[];
     rosterRejections: RosterVector[];
     log: {
-        leafData: string;
-        hashing: string;
         events: LogEventVector[];
         roots: { size: number; rootHex: string }[];
         consistencyProofs: ConsistencyVector[];
@@ -354,7 +353,6 @@ describe("gua-client-verification.v1 vectors", () => {
             [
                 "vectors",
                 "protocol",
-                "notes",
                 "keys",
                 "instants",
                 "rosters",
@@ -370,7 +368,7 @@ describe("gua-client-verification.v1 vectors", () => {
             ].sort(),
         );
         expect(Object.keys(vectors.log).sort()).toEqual(
-            ["leafData", "hashing", "events", "roots", "consistencyProofs", "invalidConsistencyProofs"].sort(),
+            ["events", "roots", "consistencyProofs", "invalidConsistencyProofs"].sort(),
         );
     });
 
@@ -556,7 +554,12 @@ describe("gua-client-verification.v1 vectors", () => {
                 policy,
                 instantToEpochMs(vector.evaluatedAt),
             );
-            expect({ homeserverId: decision?.homeserver.id, rule: decision?.rule, ruleId: decision?.ruleId }).toEqual({
+            expect(decision === null).toBe(vector.expectedHomeserverId === null);
+            expect({
+                homeserverId: decision?.homeserver.id ?? null,
+                rule: decision?.rule ?? null,
+                ruleId: decision?.ruleId ?? null,
+            }).toEqual({
                 homeserverId: vector.expectedHomeserverId,
                 rule: vector.expectedRule,
                 ruleId: vector.expectedRuleId,
@@ -571,7 +574,8 @@ describe("gua-client-verification.v1 vectors", () => {
             expect(routingKey(context)).toBe(fallback.routingKeyUtf8);
             expect(roster.version).toBe(fallback.rosterVersion);
             const candidates = placementCandidates(roster);
-            expect(candidates.map((c) => ({ id: c.id, weight: c.weight }))).toEqual(fallback.candidates);
+            expect(candidates.map((c) => ({ id: c.id, weight: Math.max(0, c.weight) }))).toEqual(fallback.candidates);
+            expect(fallbackTotalWeight(candidates)).toBe(fallback.totalWeight);
             expect(await stableHash(crypto, context, roster.version, candidates)).toBe(fallback.stableHash);
         });
     });

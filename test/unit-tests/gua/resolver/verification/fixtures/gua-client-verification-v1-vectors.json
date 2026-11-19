@@ -1,7 +1,6 @@
 {
   "vectors" : "gua-client-verification.v1",
   "protocol" : "docs/verification/gua-resolver-verification-protocol.md",
-  "notes" : [ "The test keys are the Ed25519 example keys from RFC 8032, section 7.1. They are public, so never use them outside tests.", "The signatures were made with deterministic Ed25519, so they can be reproduced exactly. Some libraries, Apple CryptoKit among them, randomize Ed25519 signatures. With those, verify the signatures here and do not compare their bytes.", "canonicalUtf8 is the exact byte string that gets signed, written as a JSON string, and canonicalHex is the same bytes in hex. gua-roster.v1 separates fields with the control character U+001F.", "Timestamps appear in JSON as ISO-8601 UTC strings with 0 to 9 fractional digits. The signed bytes carry them as epoch milliseconds. Digits past the millisecond are dropped, not rounded.", "Rosters come in two forms. If no entry has searchVisibility, verify the legacy bytes, which leave out the search fields. If every entry has it, verify the v1 bytes. If only some entries have it, refuse the roster.", "The production roster is a copy of https://resolver.gua.global/roster as served on 2026-10-27. It is signed with the production authority key listed under keys.", "Each expected placement is the homeserver the Java reference verifier chooses for a new account from the verified roster and policy. No context carries verified claims, so an affiliation the client states without proof never changes the result.", "Placements are evaluated at their evaluatedAt instant, not at the current time. Weights are summed in 64 bits, so weights whose total passes 2^31 do not wrap.", "A policy bundle or delegation zone is in effect from notBefore, inclusive, until expiresAt, exclusive, compared in whole milliseconds as the signed bytes carry them. A missing bound leaves that side open, and so does a bound in the first millisecond of 1970-01-01T00:00:00Z, because the signed bytes write both as 0. policyValidity checks a bundle at its edges and windows checks the rule itself.", "A resolve answer is located by the strongest match in the roster, whatever the entry order: an ACTIVE entry with the same serverName, baseUrl and masIssuer, then any entry with all three, then any entry with the serverName. Ties go to the entry served first. expectedEntryId names the entry that decided the match.", "In the signed roster bytes a null id, serverName, baseUrl or masIssuer is the text null. The other optional fields are empty.", "expectedOutcome is the outcome a client reports for a rejected roster or policy. A placement's unsignedRuleAbove says whether a matching rule in a zone without a valid delegate signature outranks the rule that decided, which makes the placement check indeterminate(unsigned_rule).", "policyLog cases check a served bundle, or a 404 when servedPolicy is null, against all events in log.events and the checkpoint given in each case.", "Consistency proofs are checked as RFC 9162 section 2.1.4.2 describes, including its rule that a proof fails when hashes remain after the path is complete.", "Vectors refer to rosters and policies by their ref field." ],
   "keys" : {
     "rfc8032-test1" : {
       "usedAsKeyId" : "authority-a",
@@ -41,8 +40,7 @@
     "gua-authority-prod" : {
       "usedAsKeyId" : "gua-authority-prod",
       "publicKeySpkiB64" : "MCowBQYDK2VwAyEAmrJntRXbxGkoPe92j1epyM3RBXcx4nmr2wIzL6eb0a0=",
-      "publicKeyHex" : "9ab267b515dbc469283def768f57a9c8cdd1057731e279abdb02332fa79bd1ad",
-      "note" : "Production authority public key. This file holds no private key for it."
+      "publicKeyHex" : "9ab267b515dbc469283def768f57a9c8cdd1057731e279abdb02332fa79bd1ad"
     }
   },
   "instants" : [ {
@@ -129,7 +127,7 @@
       "authority-a" : "rfc8032-test1"
     }
   }, {
-    "name" : "three homeservers with routing claims, group search visibility and one suspended entry; two of two authority signatures required",
+    "name" : "three homeservers with claims, group search and a suspended entry; two signatures required",
     "ref" : "r2",
     "form" : "v1",
     "roster" : {
@@ -593,6 +591,339 @@
     "validSignatures" : 1,
     "verified" : true,
     "reason" : "A signature that fails does not use up its key, so the valid one still counts."
+  }, {
+    "name" : "weights that add up to the fallback limit, beside heavy entries that take no new accounts",
+    "ref" : "r8",
+    "form" : "v1",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-06T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-limit-a",
+          "serverName" : "limit-a.gua.test",
+          "baseUrl" : "https://matrix.limit-a.gua.test",
+          "masIssuer" : "https://account.limit-a.gua.test",
+          "region" : null,
+          "weight" : 8388608,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      }, {
+        "homeserver" : {
+          "id" : "hs-limit-b",
+          "serverName" : "limit-b.gua.test",
+          "baseUrl" : "https://matrix.limit-b.gua.test",
+          "masIssuer" : "https://account.limit-b.gua.test",
+          "region" : null,
+          "weight" : 8388608,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      }, {
+        "homeserver" : {
+          "id" : "hs-suspended-heavy",
+          "serverName" : "suspended-heavy.gua.test",
+          "baseUrl" : "https://matrix.suspended-heavy.gua.test",
+          "masIssuer" : "https://account.suspended-heavy.gua.test",
+          "region" : null,
+          "weight" : 2147483647,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "SUSPENDED"
+      }, {
+        "homeserver" : {
+          "id" : "hs-closed-heavy",
+          "serverName" : "closed-heavy.gua.test",
+          "baseUrl" : "https://matrix.closed-heavy.gua.test",
+          "masIssuer" : "https://account.closed-heavy.gua.test",
+          "region" : null,
+          "weight" : 2147483647,
+          "acceptsNew" : false,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "wiV8VWKyCgk/WVLhyjVTaJcnkOYUQzTxcZSMtlwNa1ae/rhvOaZkqDLAqPouqMF1556Ahi2UZrj6nsnOeRwOBg=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=7\nissuedAt=1791244800000\nlog=b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad:7\nhs-closed-heavy\u001Fclosed-heavy.gua.test\u001Fhttps://matrix.closed-heavy.gua.test\u001Fhttps://account.closed-heavy.gua.test\u001F\u001F2147483647\u001Ffalse\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\nhs-limit-a\u001Flimit-a.gua.test\u001Fhttps://matrix.limit-a.gua.test\u001Fhttps://account.limit-a.gua.test\u001F\u001F8388608\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\nhs-limit-b\u001Flimit-b.gua.test\u001Fhttps://matrix.limit-b.gua.test\u001Fhttps://account.limit-b.gua.test\u001F\u001F8388608\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\nhs-suspended-heavy\u001Fsuspended-heavy.gua.test\u001Fhttps://matrix.suspended-heavy.gua.test\u001Fhttps://account.suspended-heavy.gua.test\u001F\u001F2147483647\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FSUSPENDED\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d370a69737375656441743d313739313234343830303030300a6c6f673d623237306232373361613433363536623730326631643835316266373763353735366261313134626233393563306231663638666161316139623834646261643a370a68732d636c6f7365642d68656176791f636c6f7365642d68656176792e6775612e746573741f68747470733a2f2f6d61747269782e636c6f7365642d68656176792e6775612e746573741f68747470733a2f2f6163636f756e742e636c6f7365642d68656176792e6775612e746573741f1f323134373438333634371f66616c73651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a68732d6c696d69742d611f6c696d69742d612e6775612e746573741f68747470733a2f2f6d61747269782e6c696d69742d612e6775612e746573741f68747470733a2f2f6163636f756e742e6c696d69742d612e6775612e746573741f1f383338383630381f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a68732d6c696d69742d621f6c696d69742d622e6775612e746573741f68747470733a2f2f6d61747269782e6c696d69742d622e6775612e746573741f68747470733a2f2f6163636f756e742e6c696d69742d622e6775612e746573741f1f383338383630381f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a68732d73757370656e6465642d68656176791f73757370656e6465642d68656176792e6775612e746573741f68747470733a2f2f6d61747269782e73757370656e6465642d68656176792e6775612e746573741f68747470733a2f2f6163636f756e742e73757370656e6465642d68656176792e6775612e746573741f1f323134373438333634371f747275651f1f474c4f42414c1f1f313738343532313131343333321f53555350454e4445441f5b5d0a",
+    "sha256Hex" : "ec6b8d88bddb2f458a6024d2a6475badbe670f64ffc2d53173f2513ee512bd95",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "signatureKeyRefs" : {
+      "authority-a" : "rfc8032-test1"
+    }
+  }, {
+    "name" : "a homeserver with routing claims, and weights one past the fallback limit",
+    "ref" : "r9",
+    "form" : "v1",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-07T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-br",
+          "serverName" : "br.gua.test",
+          "baseUrl" : "https://matrix.br.gua.test",
+          "masIssuer" : "https://account.br.gua.test",
+          "region" : "BR",
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "MCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=",
+          "searchVisibility" : "GROUP",
+          "searchGroups" : [ "b", "a", "Z", "é", "😀", "～" ]
+        },
+        "claims" : [ {
+          "country" : "BR",
+          "mccmnc" : "72411",
+          "carrier" : "Vivo",
+          "phonePrefixes" : [ "+5519", "+5511" ],
+          "affiliation" : null,
+          "attributeMatch" : { },
+          "remoteClaimUrl" : null,
+          "priority" : 10
+        }, {
+          "country" : null,
+          "mccmnc" : null,
+          "carrier" : null,
+          "phonePrefixes" : null,
+          "affiliation" : "usp.br",
+          "attributeMatch" : {
+            "email_domain" : "usp.br",
+            "hd" : "usp.br"
+          },
+          "remoteClaimUrl" : null,
+          "priority" : 5
+        } ],
+        "admittedAt" : "2026-06-17T06:38:38.255492Z",
+        "status" : "ACTIVE"
+      }, {
+        "homeserver" : {
+          "id" : "hs-over",
+          "serverName" : "over.gua.test",
+          "baseUrl" : "https://matrix.over.gua.test",
+          "masIssuer" : "https://account.over.gua.test",
+          "region" : null,
+          "weight" : 16777212,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "pjvePEwBe9IC87axwNI7RUqmCBi01IlvmiNarG3+LedPcc57AaYdj6OJ+6dWgYV9ssUjJD7OZ+nl/xg3OIpgDQ=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=7\nissuedAt=1791331200000\nlog=b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad:7\nhs-br\u001Fbr.gua.test\u001Fhttps://matrix.br.gua.test\u001Fhttps://account.br.gua.test\u001FBR\u001F5\u001Ftrue\u001FMCowBQYDK2VwAyEA7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8=\u001FGROUP\u001FZ|a|b|é|😀|～\u001F1781678318255\u001FACTIVE\u001Fcountry=,mccmnc=,carrier=,prefixes=,affiliation=usp.br,attrs=email_domain=usp.br|hd=usp.br,remote=,priority=5;country=BR,mccmnc=72411,carrier=Vivo,prefixes=+5511|+5519,affiliation=,attrs=,remote=,priority=10\nhs-over\u001Fover.gua.test\u001Fhttps://matrix.over.gua.test\u001Fhttps://account.over.gua.test\u001F\u001F16777212\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d370a69737375656441743d313739313333313230303030300a6c6f673d623237306232373361613433363536623730326631643835316266373763353735366261313134626233393563306231663638666161316139623834646261643a370a68732d62721f62722e6775612e746573741f68747470733a2f2f6d61747269782e62722e6775612e746573741f68747470733a2f2f6163636f756e742e62722e6775612e746573741f42521f351f747275651f4d436f77425159444b32567741794541374263726b363165566a76306b797877345352514e4d4e555a2b38752f55316b362f675a6144526e3472383d1f47524f55501f5a7c617c627cc3a97cf09f98807cefbd9e1f313738313637383331383235351f4143544956451f636f756e7472793d2c6d63636d6e633d2c636172726965723d2c70726566697865733d2c616666696c696174696f6e3d7573702e62722c61747472733d656d61696c5f646f6d61696e3d7573702e62727c68643d7573702e62722c72656d6f74653d2c7072696f726974793d353b636f756e7472793d42522c6d63636d6e633d37323431312c636172726965723d5669766f2c70726566697865733d2b353531317c2b353531392c616666696c696174696f6e3d2c61747472733d2c72656d6f74653d2c7072696f726974793d31300a68732d6f7665721f6f7665722e6775612e746573741f68747470733a2f2f6d61747269782e6f7665722e6775612e746573741f68747470733a2f2f6163636f756e742e6f7665722e6775612e746573741f1f31363737373231321f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a",
+    "sha256Hex" : "a484ae834d62b0b3eb70b6d99fb6e4709d91098d540396a6043411449db9def0",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "signatureKeyRefs" : {
+      "authority-a" : "rfc8032-test1"
+    }
+  }, {
+    "name" : "three homeservers of weight 0",
+    "ref" : "r10",
+    "form" : "v1",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-08T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-zero-a",
+          "serverName" : "zero-a.gua.test",
+          "baseUrl" : "https://matrix.zero-a.gua.test",
+          "masIssuer" : "https://account.zero-a.gua.test",
+          "region" : null,
+          "weight" : 0,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      }, {
+        "homeserver" : {
+          "id" : "hs-zero-b",
+          "serverName" : "zero-b.gua.test",
+          "baseUrl" : "https://matrix.zero-b.gua.test",
+          "masIssuer" : "https://account.zero-b.gua.test",
+          "region" : null,
+          "weight" : 0,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      }, {
+        "homeserver" : {
+          "id" : "hs-zero-c",
+          "serverName" : "zero-c.gua.test",
+          "baseUrl" : "https://matrix.zero-c.gua.test",
+          "masIssuer" : "https://account.zero-c.gua.test",
+          "region" : null,
+          "weight" : 0,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "jav05TZ+yNCrVHZpNRbagbmMc4exkWHk1sCTW9SHkh3w7/vOHmP7wy1xe4nfglE9M6YNtYc0EUkrGJ0fg7XsDA=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=7\nissuedAt=1791417600000\nlog=b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad:7\nhs-zero-a\u001Fzero-a.gua.test\u001Fhttps://matrix.zero-a.gua.test\u001Fhttps://account.zero-a.gua.test\u001F\u001F0\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\nhs-zero-b\u001Fzero-b.gua.test\u001Fhttps://matrix.zero-b.gua.test\u001Fhttps://account.zero-b.gua.test\u001F\u001F0\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\nhs-zero-c\u001Fzero-c.gua.test\u001Fhttps://matrix.zero-c.gua.test\u001Fhttps://account.zero-c.gua.test\u001F\u001F0\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d370a69737375656441743d313739313431373630303030300a6c6f673d623237306232373361613433363536623730326631643835316266373763353735366261313134626233393563306231663638666161316139623834646261643a370a68732d7a65726f2d611f7a65726f2d612e6775612e746573741f68747470733a2f2f6d61747269782e7a65726f2d612e6775612e746573741f68747470733a2f2f6163636f756e742e7a65726f2d612e6775612e746573741f1f301f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a68732d7a65726f2d621f7a65726f2d622e6775612e746573741f68747470733a2f2f6d61747269782e7a65726f2d622e6775612e746573741f68747470733a2f2f6163636f756e742e7a65726f2d622e6775612e746573741f1f301f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a68732d7a65726f2d631f7a65726f2d632e6775612e746573741f68747470733a2f2f6d61747269782e7a65726f2d632e6775612e746573741f68747470733a2f2f6163636f756e742e7a65726f2d632e6775612e746573741f1f301f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a",
+    "sha256Hex" : "a74ce3d55185acd466a4082c6f916d498cb1f76978af273200d45f3f3b30818f",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "signatureKeyRefs" : {
+      "authority-a" : "rfc8032-test1"
+    }
+  }, {
+    "name" : "weights 5, 2 and -3",
+    "ref" : "r11",
+    "form" : "v1",
+    "roster" : {
+      "version" : 7,
+      "issuedAt" : "2026-10-09T00:00:00Z",
+      "entries" : [ {
+        "homeserver" : {
+          "id" : "hs-five",
+          "serverName" : "five.gua.test",
+          "baseUrl" : "https://matrix.five.gua.test",
+          "masIssuer" : "https://account.five.gua.test",
+          "region" : null,
+          "weight" : 5,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      }, {
+        "homeserver" : {
+          "id" : "hs-two",
+          "serverName" : "two.gua.test",
+          "baseUrl" : "https://matrix.two.gua.test",
+          "masIssuer" : "https://account.two.gua.test",
+          "region" : null,
+          "weight" : 2,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      }, {
+        "homeserver" : {
+          "id" : "hs-negative",
+          "serverName" : "negative.gua.test",
+          "baseUrl" : "https://matrix.negative.gua.test",
+          "masIssuer" : "https://account.negative.gua.test",
+          "region" : null,
+          "weight" : -3,
+          "acceptsNew" : true,
+          "signingKey" : "",
+          "searchVisibility" : "GLOBAL",
+          "searchGroups" : [ ]
+        },
+        "claims" : [ ],
+        "admittedAt" : "2026-07-20T04:18:34.332941Z",
+        "status" : "ACTIVE"
+      } ],
+      "logCheckpoint" : {
+        "merkleRoot" : "b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad",
+        "size" : 7
+      },
+      "authoritySignatures" : [ {
+        "authorityKeyId" : "authority-a",
+        "signatureB64" : "aL5jKgJu1ZD5IVvXU/uld0UTB7jhN5yWxupfQ/HZrGLwzUvvh4H0x2oCQ4HD3h7nTupodmXymWiqjriQ0UckCQ=="
+      } ]
+    },
+    "canonicalUtf8" : "gua-roster.v1\nversion=7\nissuedAt=1791504000000\nlog=b270b273aa43656b702f1d851bf77c5756ba114bb395c0b1f68faa1a9b84dbad:7\nhs-five\u001Ffive.gua.test\u001Fhttps://matrix.five.gua.test\u001Fhttps://account.five.gua.test\u001F\u001F5\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\nhs-negative\u001Fnegative.gua.test\u001Fhttps://matrix.negative.gua.test\u001Fhttps://account.negative.gua.test\u001F\u001F-3\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\nhs-two\u001Ftwo.gua.test\u001Fhttps://matrix.two.gua.test\u001Fhttps://account.two.gua.test\u001F\u001F2\u001Ftrue\u001F\u001FGLOBAL\u001F\u001F1784521114332\u001FACTIVE\u001F[]\n",
+    "canonicalHex" : "6775612d726f737465722e76310a76657273696f6e3d370a69737375656441743d313739313530343030303030300a6c6f673d623237306232373361613433363536623730326631643835316266373763353735366261313134626233393563306231663638666161316139623834646261643a370a68732d666976651f666976652e6775612e746573741f68747470733a2f2f6d61747269782e666976652e6775612e746573741f68747470733a2f2f6163636f756e742e666976652e6775612e746573741f1f351f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a68732d6e656761746976651f6e656761746976652e6775612e746573741f68747470733a2f2f6d61747269782e6e656761746976652e6775612e746573741f68747470733a2f2f6163636f756e742e6e656761746976652e6775612e746573741f1f2d331f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a68732d74776f1f74776f2e6775612e746573741f68747470733a2f2f6d61747269782e74776f2e6775612e746573741f68747470733a2f2f6163636f756e742e74776f2e6775612e746573741f1f321f747275651f1f474c4f42414c1f1f313738343532313131343333321f4143544956451f5b5d0a",
+    "sha256Hex" : "648cc4b14e99397ff9f52fdaf80fabde1046e67c345d4ad19400fa4f02f8b9c9",
+    "trustedKeys" : [ {
+      "id" : "authority-a",
+      "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    } ],
+    "threshold" : 1,
+    "validSignatures" : 1,
+    "verified" : true,
+    "signatureKeyRefs" : {
+      "authority-a" : "rfc8032-test1"
+    }
   } ],
   "rosterRejections" : [ {
     "name" : "baseUrl changed after signing",
@@ -704,7 +1035,7 @@
     "threshold" : 1,
     "validSignatures" : 0,
     "verified" : false,
-    "reason" : "Only authority-b signed and the client trusts only authority-a, so no signature counts.",
+    "reason" : "Only authority-b signed, and the client trusts only authority-a.",
     "expectedOutcome" : "invalid(unknown_key_id)"
   }, {
     "name" : "one signature where two are required",
@@ -931,7 +1262,7 @@
     "threshold" : 2,
     "validSignatures" : 1,
     "verified" : false,
-    "reason" : "A key counts once however often it appears, so the second required signature is missing.",
+    "reason" : "A key counts once, however often it appears.",
     "expectedOutcome" : "invalid(threshold_not_met)"
   }, {
     "name" : "a signature without a key id",
@@ -1043,7 +1374,7 @@
     "threshold" : 1,
     "validSignatures" : 0,
     "verified" : false,
-    "reason" : "The signature covers the v1 bytes, so the legacy bytes fail. Check this vector with the form it names, not the form its JSON implies.",
+    "reason" : "The signature covers the v1 bytes, not the legacy bytes.",
     "expectedOutcome" : "invalid(bad_signature)"
   }, {
     "name" : "some entries have searchVisibility and others do not",
@@ -1148,8 +1479,6 @@
     "expectedOutcome" : "unverifiable(mixed_roster_form)"
   } ],
   "log" : {
-    "leafData" : "Each leaf is the UTF-8 string index|type|homeserverId|payloadHash|recordedAt. homeserverId holds the event subject, such as hs-br or br-policy:v3, and is empty when null. recordedAt is in epoch milliseconds.",
-    "hashing" : "RFC 6962 hashing: a leaf is SHA-256(0x00 || data), an inner node is SHA-256(0x01 || left || right), and the root of the empty tree is the SHA-256 of zero bytes.",
     "events" : [ {
       "index" : 0,
       "type" : "ADMIT",
@@ -1399,7 +1728,7 @@
       "newRootHex" : "fd965c7d662a4b6f411d1273a52f449db5ba208964cd84fccb4854b5eb0c27ed",
       "proof" : [ "ebd8acd163694255c76df2c5aa768119695594238681efa6fabff0c25e3aa6db", "e3f203a89cd90e2717b2f83fb184bc04493f6080010ed32f48a06e7fff1e975a", "b291694f971d0f75562e2e3758b7da22f0467c7d96045f6e3cff178e33cec7bf", "f38a131d0ac314933b3c6dbf8673bf0f78c005fc1b075ddfa2e2277a5e3c51c5" ],
       "valid" : false,
-      "reason" : "RFC 9162 fails a proof once the path is complete and hashes remain. Without that rule this one proves a root no 8-leaf log has."
+      "reason" : "Hashes remain after the path is complete, which RFC 9162 refuses."
     } ]
   },
   "policies" : [ {
@@ -1794,7 +2123,7 @@
     "threshold" : 1,
     "verified" : false,
     "delegateVerifiedZones" : [ "edu-zone", "sp-zone" ],
-    "reason" : "Policies are checked against the policy keys only. The roster authority key does not count.",
+    "reason" : "Only policy keys count, not the roster authority key.",
     "expectedOutcome" : "invalid(unknown_key_id)"
   }, {
     "name" : "a rule target changed after signing",
@@ -2428,6 +2757,7 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
+      "totalWeight" : 8,
       "stableHash" : 1185978974
     }
   }, {
@@ -2452,6 +2782,7 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
+      "totalWeight" : 8,
       "stableHash" : -1250360802
     }
   }, {
@@ -2480,6 +2811,7 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
+      "totalWeight" : 8,
       "stableHash" : -109238087
     }
   }, {
@@ -2504,6 +2836,7 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
+      "totalWeight" : 8,
       "stableHash" : -1098823203
     }
   }, {
@@ -2528,6 +2861,7 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
+      "totalWeight" : 8,
       "stableHash" : -1098823203
     }
   }, {
@@ -2549,6 +2883,7 @@
         "id" : "hs-br",
         "weight" : 5
       } ],
+      "totalWeight" : 5,
       "stableHash" : 263278215
     }
   }, {
@@ -2573,6 +2908,7 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
+      "totalWeight" : 8,
       "stableHash" : 1900817077
     }
   }, {
@@ -2597,6 +2933,7 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
+      "totalWeight" : 8,
       "stableHash" : -1843970684
     }
   }, {
@@ -2621,6 +2958,7 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
+      "totalWeight" : 8,
       "stableHash" : 404205618
     }
   }, {
@@ -2645,6 +2983,7 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
+      "totalWeight" : 8,
       "stableHash" : 1626227570
     }
   }, {
@@ -2669,6 +3008,7 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
+      "totalWeight" : 8,
       "stableHash" : 2044564561
     }
   }, {
@@ -2693,6 +3033,7 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
+      "totalWeight" : 8,
       "stableHash" : -599515527
     }
   }, {
@@ -2717,6 +3058,7 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
+      "totalWeight" : 8,
       "stableHash" : -1995431025
     }
   }, {
@@ -2741,19 +3083,20 @@
         "id" : "hs-ca",
         "weight" : 3
       } ],
+      "totalWeight" : 8,
       "stableHash" : 208330305
     }
   }, {
-    "name" : "weights that add up past 2^31, sample 0",
+    "name" : "weights past the fallback limit make no decision, sample 0",
     "rosterRef" : "r6",
     "policyRef" : null,
     "context" : {
       "phone" : "+5521990000000"
     },
     "evaluatedAt" : "2026-10-27T00:00:00Z",
-    "expectedHomeserverId" : "hs-heavy-b",
-    "expectedRule" : "WeightedFallbackRule",
-    "expectedRuleId" : "weighted-fallback",
+    "expectedHomeserverId" : null,
+    "expectedRule" : null,
+    "expectedRuleId" : null,
     "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5521990000000\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
@@ -2765,19 +3108,20 @@
         "id" : "hs-heavy-b",
         "weight" : 2000000000
       } ],
+      "totalWeight" : 4000000000,
       "stableHash" : -507715408
     }
   }, {
-    "name" : "weights that add up past 2^31, sample 1",
+    "name" : "weights past the fallback limit make no decision, sample 1",
     "rosterRef" : "r6",
     "policyRef" : null,
     "context" : {
       "phone" : "+5521990001237"
     },
     "evaluatedAt" : "2026-10-27T00:00:00Z",
-    "expectedHomeserverId" : "hs-heavy-a",
-    "expectedRule" : "WeightedFallbackRule",
-    "expectedRuleId" : "weighted-fallback",
+    "expectedHomeserverId" : null,
+    "expectedRule" : null,
+    "expectedRuleId" : null,
     "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5521990001237\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
@@ -2789,19 +3133,20 @@
         "id" : "hs-heavy-b",
         "weight" : 2000000000
       } ],
+      "totalWeight" : 4000000000,
       "stableHash" : 1062227922
     }
   }, {
-    "name" : "weights that add up past 2^31, sample 2",
+    "name" : "weights past the fallback limit make no decision, sample 2",
     "rosterRef" : "r6",
     "policyRef" : null,
     "context" : {
       "phone" : "+5521990002474"
     },
     "evaluatedAt" : "2026-10-27T00:00:00Z",
-    "expectedHomeserverId" : "hs-heavy-a",
-    "expectedRule" : "WeightedFallbackRule",
-    "expectedRuleId" : "weighted-fallback",
+    "expectedHomeserverId" : null,
+    "expectedRule" : null,
+    "expectedRuleId" : null,
     "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5521990002474\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
@@ -2813,19 +3158,20 @@
         "id" : "hs-heavy-b",
         "weight" : 2000000000
       } ],
+      "totalWeight" : 4000000000,
       "stableHash" : -2136463671
     }
   }, {
-    "name" : "weights that add up past 2^31, sample 3",
+    "name" : "weights past the fallback limit make no decision, sample 3",
     "rosterRef" : "r6",
     "policyRef" : null,
     "context" : {
       "phone" : "+5521990003711"
     },
     "evaluatedAt" : "2026-10-27T00:00:00Z",
-    "expectedHomeserverId" : "hs-heavy-a",
-    "expectedRule" : "WeightedFallbackRule",
-    "expectedRuleId" : "weighted-fallback",
+    "expectedHomeserverId" : null,
+    "expectedRule" : null,
+    "expectedRuleId" : null,
     "unsignedRuleAbove" : false,
     "fallback" : {
       "routingKeyUtf8" : "phone=+5521990003711\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
@@ -2837,7 +3183,409 @@
         "id" : "hs-heavy-b",
         "weight" : 2000000000
       } ],
+      "totalWeight" : 4000000000,
       "stableHash" : 139680792
+    }
+  }, {
+    "name" : "weights at the fallback limit, sample 0",
+    "rosterRef" : "r8",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990000000"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-limit-a",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990000000\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-limit-a",
+        "weight" : 8388608
+      }, {
+        "id" : "hs-limit-b",
+        "weight" : 8388608
+      } ],
+      "totalWeight" : 16777216,
+      "stableHash" : -763860524
+    }
+  }, {
+    "name" : "weights at the fallback limit, sample 3",
+    "rosterRef" : "r8",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990003711"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-limit-a",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990003711\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-limit-a",
+        "weight" : 8388608
+      }, {
+        "id" : "hs-limit-b",
+        "weight" : 8388608
+      } ],
+      "totalWeight" : 16777216,
+      "stableHash" : -652290133
+    }
+  }, {
+    "name" : "weights at the fallback limit, sample 6",
+    "rosterRef" : "r8",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990007422"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-limit-b",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990007422\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-limit-a",
+        "weight" : 8388608
+      }, {
+        "id" : "hs-limit-b",
+        "weight" : 8388608
+      } ],
+      "totalWeight" : 16777216,
+      "stableHash" : 1166454870
+    }
+  }, {
+    "name" : "weights at the fallback limit, sample 8",
+    "rosterRef" : "r8",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990009896"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-limit-b",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990009896\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-limit-a",
+        "weight" : 8388608
+      }, {
+        "id" : "hs-limit-b",
+        "weight" : 8388608
+      } ],
+      "totalWeight" : 16777216,
+      "stableHash" : 1120661480
+    }
+  }, {
+    "name" : "past the fallback limit a roster claim still decides",
+    "rosterRef" : "r9",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5519991112222",
+      "country" : "BR",
+      "mccmnc" : "72411",
+      "carrier" : "Vivo"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-br",
+    "expectedRule" : "ClaimRule",
+    "expectedRuleId" : "roster-claim:hs-br:10",
+    "unsignedRuleAbove" : false
+  }, {
+    "name" : "past the fallback limit a signed policy rule still decides",
+    "rosterRef" : "r9",
+    "policyRef" : "br-policy v3",
+    "context" : {
+      "phone" : "+5511987654321"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-br",
+    "expectedRule" : "PolicyRoutingRule",
+    "expectedRuleId" : "r-sp",
+    "unsignedRuleAbove" : false
+  }, {
+    "name" : "past the fallback limit, without the sp-zone delegate signature, nothing decides",
+    "rosterRef" : "r9",
+    "policyRef" : "br-policy v3 without the sp-zone delegate signature",
+    "context" : {
+      "phone" : "+5511987654321"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : null,
+    "expectedRule" : null,
+    "expectedRuleId" : null,
+    "unsignedRuleAbove" : true,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5511987654321\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-over",
+        "weight" : 16777212
+      } ],
+      "totalWeight" : 16777217,
+      "stableHash" : -1950591333
+    }
+  }, {
+    "name" : "past the fallback limit the fallback makes no decision",
+    "rosterRef" : "r9",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990000000"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : null,
+    "expectedRule" : null,
+    "expectedRuleId" : null,
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990000000\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-br",
+        "weight" : 5
+      }, {
+        "id" : "hs-over",
+        "weight" : 16777212
+      } ],
+      "totalWeight" : 16777217,
+      "stableHash" : 1970582667
+    }
+  }, {
+    "name" : "weights all 0, sample 0",
+    "rosterRef" : "r10",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990000000"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-zero-c",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990000000\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-zero-a",
+        "weight" : 0
+      }, {
+        "id" : "hs-zero-b",
+        "weight" : 0
+      }, {
+        "id" : "hs-zero-c",
+        "weight" : 0
+      } ],
+      "totalWeight" : 0,
+      "stableHash" : 1847802149
+    }
+  }, {
+    "name" : "weights all 0, sample 1",
+    "rosterRef" : "r10",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990001237"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-zero-a",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990001237\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-zero-a",
+        "weight" : 0
+      }, {
+        "id" : "hs-zero-b",
+        "weight" : 0
+      }, {
+        "id" : "hs-zero-c",
+        "weight" : 0
+      } ],
+      "totalWeight" : 0,
+      "stableHash" : 347404341
+    }
+  }, {
+    "name" : "weights all 0, sample 2",
+    "rosterRef" : "r10",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990002474"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-zero-c",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990002474\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-zero-a",
+        "weight" : 0
+      }, {
+        "id" : "hs-zero-b",
+        "weight" : 0
+      }, {
+        "id" : "hs-zero-c",
+        "weight" : 0
+      } ],
+      "totalWeight" : 0,
+      "stableHash" : -935923030
+    }
+  }, {
+    "name" : "weights all 0, sample 3",
+    "rosterRef" : "r10",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990003711"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-zero-a",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990003711\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-zero-a",
+        "weight" : 0
+      }, {
+        "id" : "hs-zero-b",
+        "weight" : 0
+      }, {
+        "id" : "hs-zero-c",
+        "weight" : 0
+      } ],
+      "totalWeight" : 0,
+      "stableHash" : -1955211507
+    }
+  }, {
+    "name" : "weights 5, 2 and -3, sample 0",
+    "rosterRef" : "r11",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990000000"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-two",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990000000\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-five",
+        "weight" : 5
+      }, {
+        "id" : "hs-negative",
+        "weight" : 0
+      }, {
+        "id" : "hs-two",
+        "weight" : 2
+      } ],
+      "totalWeight" : 7,
+      "stableHash" : 1959495984
+    }
+  }, {
+    "name" : "weights 5, 2 and -3, sample 1",
+    "rosterRef" : "r11",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990001237"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-five",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990001237\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-five",
+        "weight" : 5
+      }, {
+        "id" : "hs-negative",
+        "weight" : 0
+      }, {
+        "id" : "hs-two",
+        "weight" : 2
+      } ],
+      "totalWeight" : 7,
+      "stableHash" : -1201270777
+    }
+  }, {
+    "name" : "weights 5, 2 and -3, sample 2",
+    "rosterRef" : "r11",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990002474"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-five",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990002474\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-five",
+        "weight" : 5
+      }, {
+        "id" : "hs-negative",
+        "weight" : 0
+      }, {
+        "id" : "hs-two",
+        "weight" : 2
+      } ],
+      "totalWeight" : 7,
+      "stableHash" : -2138435283
+    }
+  }, {
+    "name" : "weights 5, 2 and -3, sample 3",
+    "rosterRef" : "r11",
+    "policyRef" : null,
+    "context" : {
+      "phone" : "+5521990003711"
+    },
+    "evaluatedAt" : "2026-10-27T00:00:00Z",
+    "expectedHomeserverId" : "hs-two",
+    "expectedRule" : "WeightedFallbackRule",
+    "expectedRuleId" : "weighted-fallback",
+    "unsignedRuleAbove" : false,
+    "fallback" : {
+      "routingKeyUtf8" : "phone=+5521990003711\ncountry=\nmccmnc=\ncarrier=\nregion=\naffiliations=\nattrs=",
+      "rosterVersion" : 7,
+      "candidates" : [ {
+        "id" : "hs-five",
+        "weight" : 5
+      }, {
+        "id" : "hs-negative",
+        "weight" : 0
+      }, {
+        "id" : "hs-two",
+        "weight" : 2
+      } ],
+      "totalWeight" : 7,
+      "stableHash" : -818442781
     }
   } ],
   "resolveAnswers" : [ {

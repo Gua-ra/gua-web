@@ -68,6 +68,11 @@ export function placementCandidates(roster: SignedRoster): RosterHomeserver[] {
         .sort((a, b) => compareUtf16(nz(a.id), nz(b.id)));
 }
 
+export function fallbackTotalWeight(candidates: RosterHomeserver[]): number {
+    // Weights are int32, so this sum is exact in a double, as Java's 64-bit sum is: it never wraps.
+    return candidates.reduce((sum, hs) => sum + Math.max(0, hs.weight), 0);
+}
+
 export async function stableHash(
     crypto: VerifierCrypto,
     ctx: PlacementContext,
@@ -172,6 +177,9 @@ function claimRule(ctx: PlacementContext, roster: SignedRoster): PlacementDecisi
     };
 }
 
+// Above this total the 32-bit hash skews the split, so weighted-fallback.v1 decides nothing.
+const MAX_FALLBACK_TOTAL_WEIGHT = 2 ** 24;
+
 async function weightedFallback(
     crypto: VerifierCrypto,
     ctx: PlacementContext,
@@ -179,9 +187,9 @@ async function weightedFallback(
 ): Promise<PlacementDecision | null> {
     const candidates = placementCandidates(roster);
     if (candidates.length === 0) return null;
+    const totalWeight = fallbackTotalWeight(candidates);
+    if (totalWeight > MAX_FALLBACK_TOTAL_WEIGHT) return null;
     const hash = await stableHash(crypto, ctx, roster.version, candidates);
-    // Weights are int32, so this sum is exact in a double, as Java's 64-bit sum is: it never wraps.
-    const totalWeight = candidates.reduce((sum, hs) => sum + Math.max(0, hs.weight), 0);
     let chosen = candidates[candidates.length - 1];
     if (totalWeight <= 0) {
         chosen = candidates[floorMod(hash, candidates.length)];

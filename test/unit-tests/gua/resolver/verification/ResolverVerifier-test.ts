@@ -128,7 +128,7 @@ const config: ResolverVerificationConfig = {
     policyThreshold: policy.threshold,
 };
 
-/** authority-a signed r1, r2, r5 and every roster these tests sign. */
+/** authority-a signed r1, r2, r5, r9 and every roster these tests sign. */
 const authorityA: ResolverVerificationConfig = {
     ...config,
     authorityKeys: trustedKeys(r1.trustedKeys),
@@ -1017,6 +1017,49 @@ describe("ResolverVerification", () => {
                 expect(placement.decision?.ruleId).toBe("r-sp");
             });
         });
+
+        describe("past the weighted fallback limit", () => {
+            const r9 = byRef(vectors.rosters, "r9");
+            const over: HomeserverResolution = {
+                exists: false,
+                homeserver: {
+                    serverName: "over.gua.test",
+                    baseUrl: "https://matrix.over.gua.test",
+                    masIssuer: "https://account.over.gua.test",
+                },
+            };
+            // No rule or claim matches this phone, and without the limit the fallback would place it on hs-over.
+            const fallbackPhone = "+5521990000000";
+
+            function verifyOnR9(resolution: HomeserverResolution, phone: string, bundle: Json = policy.bundle) {
+                const transport = stubTransport({
+                    fetchRoster: async () => r9.roster,
+                    fetchRoutingPolicy: async () => bundle,
+                });
+                return verifier({ transport, config: authorityA }).verify(resolution, phone);
+            }
+
+            it("reports no decision as mismatch when the answer names the verified roster version", async () => {
+                const report = await verifyOnR9({ ...over, rosterVersion: 7 }, fallbackPhone);
+
+                expect(report.policy).toEqual({ outcome: "valid" });
+                expect(report.placement).toEqual({ outcome: "mismatch" });
+            });
+
+            it("reports no decision as unattributed when the answer names no roster version", async () => {
+                const report = await verifyOnR9(over, fallbackPhone);
+
+                expect(report.placement).toEqual({ outcome: "indeterminate", reason: Reason.Unattributed });
+            });
+
+            it("reports unsigned_rule when nothing decides and a matching rule lost its delegate signature", async () => {
+                const stripped = byRef(vectors.policies, "br-policy v3 without the sp-zone delegate signature").bundle;
+                const report = await verifyOnR9({ ...over, rosterVersion: 7 }, PHONE, stripped);
+
+                expect(report.policy).toEqual({ outcome: "valid" });
+                expect(report.placement).toEqual({ outcome: "indeterminate", reason: Reason.UnsignedRule });
+            });
+        });
     });
 
     describe("report", () => {
@@ -1314,9 +1357,12 @@ describe("ResolverVerification", () => {
         });
 
         it("keeps the checks settled before a flush and logs the policy and placement still running as interrupted", async () => {
-            const transport = stubTransport({ fetchRoutingPolicy: () => new Promise(() => {}) });
+            let servePolicy: (bundle: Json) => void = () => {};
+            const transport = stubTransport({
+                fetchRoutingPolicy: () => new Promise((resolve) => (servePolicy = resolve)),
+            });
             const verification = verifier({ transport });
-            void verification.verify(brAnswer, PHONE);
+            const run = verification.verify(brAnswer, PHONE);
             await until(() => transport.calls.includes("policy"));
 
             verification.flush();
@@ -1325,6 +1371,9 @@ describe("ResolverVerification", () => {
             expect(jest.mocked(logger.info).mock.calls[0][0]).toMatch(
                 /rosterSignature=valid .* logConsistency=firstSeen policy=unverifiable\(interrupted\) placement=unverifiable\(interrupted\)/,
             );
+            servePolicy(policy.bundle);
+            await run;
+            expect(logger.info).toHaveBeenCalledTimes(1);
         });
 
         it("logs checks still running when the budget runs out as timeout, and nothing more at flush", async () => {
