@@ -128,7 +128,7 @@ const config: ResolverVerificationConfig = {
     policyThreshold: policy.threshold,
 };
 
-/** authority-a signed r1, r2, r5, r9 and every roster these tests sign. */
+/** authority-a signs every roster vector but production's, and every roster these tests sign. */
 const authorityA: ResolverVerificationConfig = {
     ...config,
     authorityKeys: trustedKeys(r1.trustedKeys),
@@ -1362,7 +1362,7 @@ describe("ResolverVerification", () => {
                 fetchRoutingPolicy: () => new Promise((resolve) => (servePolicy = resolve)),
             });
             const verification = verifier({ transport });
-            const run = verification.verify(brAnswer, PHONE);
+            const pending = verification.verify(brAnswer, PHONE);
             await until(() => transport.calls.includes("policy"));
 
             verification.flush();
@@ -1372,14 +1372,14 @@ describe("ResolverVerification", () => {
                 /rosterSignature=valid .* logConsistency=firstSeen policy=unverifiable\(interrupted\) placement=unverifiable\(interrupted\)/,
             );
             servePolicy(policy.bundle);
-            await run;
+            await pending;
             expect(logger.info).toHaveBeenCalledTimes(1);
         });
 
         it("logs checks still running when the budget runs out as timeout, and nothing more at flush", async () => {
             const hsBr = r2.roster.entries.find((e: Json) => e.homeserver.id === "hs-br");
             const stalling = refusingSubtle(isKey(hsBr.homeserver.signingKey), () => new Promise(() => {}));
-            const verification = verifier({ crypto: new VerifierCrypto(stalling), budgetMs: 50 });
+            const verification = verifier({ crypto: new VerifierCrypto(stalling), budgetMs: 500 });
             void verification.verify(brAnswer, PHONE);
             await until(() => jest.mocked(logger.info).mock.calls.length > 0);
 

@@ -161,7 +161,7 @@ function claimRule(ctx: PlacementContext, roster: SignedRoster): PlacementDecisi
             const candidate = { homeserver: entry.homeserver, priority: claim.priority };
             if (
                 best === null ||
-                candidate.priority - best.priority < 0 ||
+                candidate.priority < best.priority ||
                 (candidate.priority === best.priority &&
                     compareUtf16(nz(candidate.homeserver.id), nz(best.homeserver.id)) < 0)
             ) {

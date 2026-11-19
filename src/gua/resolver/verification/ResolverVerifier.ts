@@ -97,7 +97,7 @@ function trustedKeys(list?: readonly { id: string; public_key: string }[]): Trus
         .map((k) => ({ id: k.id, publicKey: k.public_key }));
 }
 
-/** A malformed value must never compare as met. */
+/** A missing or malformed threshold counts as 1, so zero valid signatures never meet it. */
 function threshold(value: unknown): number {
     return typeof value === "number" && Number.isInteger(value) && value >= 1 ? value : 1;
 }
@@ -484,8 +484,8 @@ export class ResolverVerification {
         return newest;
     }
 
-    // Only a timeout or a failed fetch is retried; any other outcome is a result. Age is left to prepare(), since a
-    // restart here rarely settles before the redirect.
+    // Only a timeout or a failed fetch before the roster verified is retried; any other outcome is a result. Age is
+    // left to prepare(), since a restart here rarely settles before the redirect.
     private needsNewRun(run: ArtifactsRun): boolean {
         return run.isSettled && run.rosterVersion === null && run.failedTransiently;
     }
