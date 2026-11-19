@@ -88,15 +88,18 @@ describe("MessageComposerButtons", () => {
         );
 
         // The location code is lazy loaded, so the button will take a little while
-        // to appear, so we need to wait.
-        await waitFor(() => {
-            expect(getButtonLabels()).toEqual([
-                "Emoji",
-                "Attachment",
-                "More options",
-                ["Sticker", "Voice Message", "Poll", "Location"],
-            ]);
-        });
+        // to appear, so we need to wait. Loaded CI runners can take over a second.
+        await waitFor(
+            () => {
+                expect(getButtonLabels()).toEqual([
+                    "Emoji",
+                    "Attachment",
+                    "More options",
+                    ["Sticker", "Voice Message", "Poll", "Location"],
+                ]);
+            },
+            { timeout: 5000 },
+        );
     });
 
     it("Renders only some buttons in narrow mode", () => {
