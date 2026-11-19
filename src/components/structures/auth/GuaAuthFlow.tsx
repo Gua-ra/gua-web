@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
 Please see LICENSE files in the repository root for full details.
 */
 
-import React, { type JSX, useMemo, useState } from "react";
+import React, { type JSX, useEffect, useMemo, useState } from "react";
 import { logger } from "matrix-js-sdk/src/logger";
 
 import { _t, getUserLanguage } from "../../../languageHandler";
@@ -16,6 +16,7 @@ import { getOidcClientId } from "../../../utils/oidc/registerClient";
 import { startGuaPhoneOidcLogin } from "../../../gua/oidc/startPhoneOidcLogin";
 import AutoDiscoveryUtils from "../../../utils/AutoDiscoveryUtils";
 import ResolverClient from "../../../gua/resolver/ResolverClient";
+import { ResolverVerification } from "../../../gua/resolver/verification/ResolverVerifier";
 import AuthPage from "../../views/auth/AuthPage";
 import AuthBody from "../../views/auth/AuthBody";
 import AuthHeader from "../../views/auth/AuthHeader";
@@ -34,6 +35,8 @@ interface Props {
     serverConfig: ValidatedServerConfig;
 }
 
+const VERIFICATION_REFRESH_MS = 60_000;
+
 type Step =
     | { kind: "phone" }
     | { kind: "otp"; phone: string }
@@ -46,11 +49,16 @@ type Step =
  * full config. Falls back to the configured default server config when the resolver is unset or the lookup
  * fails, so the app keeps working before the resolver is deployed. Mirrors the iOS `resolveHomeserver`.
  */
-async function resolveServerConfig(e164: string, fallback: ValidatedServerConfig): Promise<ValidatedServerConfig> {
+async function resolveServerConfig(
+    e164: string,
+    fallback: ValidatedServerConfig,
+    verification: ResolverVerification | null,
+): Promise<ValidatedServerConfig> {
     const resolver = ResolverClient.fromConfig();
     if (!resolver) return fallback;
     try {
         const resolution = await resolver.resolve(e164);
+        void verification?.verify(resolution, e164);
         // Use the homeserver base URL the resolver returned directly (it is the source of truth), rather
         // than re-discovering via HTTPS well-known on the server name — that is redundant and fails for
         // http/localhost homeservers. The homeserver's own auth metadata still yields the MAS config.
@@ -71,12 +79,22 @@ async function resolveServerConfig(e164: string, fallback: ValidatedServerConfig
  */
 export default function GuaAuthFlow({ onLoggedIn, serverConfig }: Props): JSX.Element {
     const client = useMemo(() => IdentityServiceClient.fromConfig(), []);
+    const verification = useMemo(() => ResolverVerification.fromConfig(), []);
     const hasDelegatedOidc = !!serverConfig.delegatedAuthentication;
     const [step, setStep] = useState<Step>({ kind: "phone" });
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
     const [resendNonce, setResendNonce] = useState(0);
     const [pinResetNonce, setPinResetNonce] = useState(0);
+
+    // Verify while the phone step is shown, so the redirect after the answer does not cut the checks off.
+    const showsPhoneEntry = (!!client || hasDelegatedOidc) && step.kind === "phone";
+    useEffect(() => {
+        if (!showsPhoneEntry || !verification) return;
+        verification.prepare();
+        const refresh = setInterval(() => verification.prepare(), VERIFICATION_REFRESH_MS);
+        return () => clearInterval(refresh);
+    }, [verification, showsPhoneEntry]);
 
     const applyOutcome = (outcome: IdentityServiceVerifyOutcome, phone: string): void => {
         switch (outcome.kind) {
@@ -100,12 +118,14 @@ export default function GuaAuthFlow({ onLoggedIn, serverConfig }: Props): JSX.El
         setError(undefined);
         try {
             // GUA: route to the homeserver this phone belongs to, instead of always the configured default.
-            const effectiveConfig = await resolveServerConfig(e164, serverConfig);
+            const effectiveConfig = await resolveServerConfig(e164, serverConfig, verification);
             if (effectiveConfig.delegatedAuthentication) {
                 const clientId = await getOidcClientId(
                     effectiveConfig.delegatedAuthentication,
                     SdkConfig.get().oidc_static_clients,
                 );
+                // Leaving the page drops any verification still running, so its report is logged before the redirect.
+                verification?.flush();
                 await startGuaPhoneOidcLogin(
                     effectiveConfig.delegatedAuthentication,
                     clientId,
