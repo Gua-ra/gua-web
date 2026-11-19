@@ -9,6 +9,7 @@ Please see LICENSE files in the repository root for full details.
 import classNames from "classnames";
 import {
     type IEventRelation,
+    type MatrixEvent,
     type Room,
     type MatrixClient,
     THREAD_RELATION_TYPE,
@@ -35,6 +36,7 @@ import { filterBoolean } from "../../../utils/arrays";
 import { useSettingValue } from "../../../hooks/useSettings";
 import AccessibleButton, { type ButtonEvent } from "../elements/AccessibleButton";
 import { useScopedRoomContext } from "../../../contexts/ScopedRoomContext.tsx";
+import { ExpressionButton } from "../../../gua/expressions/ExpressionButton";
 
 interface IProps {
     addEmoji: (emoji: string) => boolean;
@@ -44,6 +46,7 @@ interface IProps {
     menuPosition?: MenuProps;
     onRecordStartEndClick: () => void;
     relation?: IEventRelation;
+    replyToEvent?: MatrixEvent;
     setStickerPickerOpen: (isStickerPickerOpen: boolean) => void;
     showLocationButton: boolean;
     showPollsButton: boolean;
@@ -61,6 +64,7 @@ const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
     const { room, narrow } = useScopedRoomContext("room", "narrow");
 
     const isWysiwygLabEnabled = useSettingValue("feature_wysiwyg_composer");
+    const isExpressionsEnabled = useSettingValue("feature_gua_expressions");
 
     if (!matrixClient || !room || props.haveRecording) {
         return null;
@@ -77,7 +81,7 @@ const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
                     onClick={props.onComposerModeClick}
                 />
             ) : (
-                emojiButton(props)
+                emojiButton(props, room, isExpressionsEnabled)
             ),
         ];
         moreButtons = [
@@ -96,7 +100,7 @@ const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
                     onClick={props.onComposerModeClick}
                 />
             ) : (
-                emojiButton(props)
+                emojiButton(props, room, isExpressionsEnabled)
             ),
             uploadButton(), // props passed via UploadButtonContext
         ];
@@ -143,7 +147,20 @@ const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
     );
 };
 
-function emojiButton(props: IProps): ReactElement {
+function emojiButton(props: IProps, room: Room, isExpressionsEnabled: boolean): ReactElement {
+    if (isExpressionsEnabled) {
+        return (
+            <ExpressionButton
+                key="emoji_button"
+                room={room}
+                relation={props.relation}
+                replyToEvent={props.replyToEvent}
+                addEmoji={props.addEmoji}
+                menuPosition={props.menuPosition}
+                className="mx_MessageComposer_button"
+            />
+        );
+    }
     return (
         <EmojiButton
             key="emoji_button"

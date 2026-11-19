@@ -130,7 +130,7 @@ describe("PowerLevelSelector", () => {
         await userEvent.selectOptions(select, "50");
 
         // modal should appear because only admin in the room
-        expect(screen.findByText("WARNING")).toBeTruthy();
+        expect(await screen.findByRole("heading", { name: "Warning" })).toBeInTheDocument();
 
         await userEvent.click(screen.getByRole("button", { name: "Continue" }));
 
@@ -160,7 +160,7 @@ describe("PowerLevelSelector", () => {
         await userEvent.selectOptions(select, "50");
 
         // modal should appear because only admin in the room
-        expect(screen.findByText("WARNING")).toBeTruthy();
+        expect(await screen.findByRole("heading", { name: "Warning" })).toBeInTheDocument();
 
         await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
         // the power level should be back to initial value

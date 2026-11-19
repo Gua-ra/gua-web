@@ -19,6 +19,8 @@ electron/pub
 /src/modules.ts
 /src/modules.js
 /src/i18n/strings
+# Shared with the apps, kept byte for byte
+/test/unit-tests/gua/expressions/stickers-fixtures.json
 /build_config.yaml
 # Raises an error because it contains a template var breaking the script tag
 src/vector/index.html
