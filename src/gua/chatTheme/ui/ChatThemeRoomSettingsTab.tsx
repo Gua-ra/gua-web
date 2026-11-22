@@ -13,7 +13,7 @@ import SettingsTab from "../../../components/views/settings/tabs/SettingsTab";
 import { SettingsSection } from "../../../components/views/settings/shared/SettingsSection";
 import { ChatThemePanel } from "./ChatThemePanel";
 
-export function ChatThemeRoomSettingsTab({ room }: { room: Room }): JSX.Element {
+export default function ChatThemeRoomSettingsTab({ room }: { room: Room }): JSX.Element {
     return (
         <SettingsTab>
             <SettingsSection heading={_t("gua|chat_theme|title")}>

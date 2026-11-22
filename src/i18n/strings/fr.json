@@ -55,6 +55,7 @@
             "chat_note": "Tous les participants de la conversation voient ce thème.",
             "choose_photo": "Choisir une photo",
             "classic": "Classique",
+            "current": "Actuel",
             "default_note": "S’applique à toutes les conversations qui n’ont pas leur propre thème.",
             "default_tile": "Par défaut",
             "error_generic": "Impossible de modifier l’arrière-plan. Veuillez réessayer.",
@@ -79,6 +80,7 @@
                 "move_up": "Déplacer la photo vers le haut",
                 "note": "Les photos d’arrière-plan ne sont pas chiffrées de bout en bout.",
                 "position_hint": "Faites glisser pour placer la photo",
+                "preview_appearance": "Apparence de l’aperçu",
                 "too_large": "Cette photo est trop volumineuse. Choisissez-en une autre."
             },
             "photo_value": "Photo",
@@ -100,7 +102,7 @@
             },
             "preview_label": "Aperçu de l’arrière-plan",
             "preview_send": "Voir l’effet d’envoi",
-            "progress": "Définition du thème…",
+            "previewing": "Aperçu de %(name)s. Sélectionnez « %(action)s » pour le conserver.",
             "sample": {
                 "incoming": "Qu’en pensez-vous ?",
                 "outgoing": "C’est très réussi !",
@@ -117,6 +119,7 @@
             "set": "Définir",
             "set_default": "Définir par défaut",
             "set_theme": "Définir le thème",
+            "theme_set": "Thème défini",
             "title": "Thème de la conversation",
             "use_bubble_layout": "Utiliser les bulles de message",
             "wallpaper": "Fond d’écran"

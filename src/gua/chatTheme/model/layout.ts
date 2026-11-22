@@ -48,9 +48,17 @@ export interface LiveFrame {
     scale: number;
 }
 
-/** iOS draws at half the display scale; the web never draws less than one render pixel per CSS pixel. */
-export function liveRenderScale(devicePixelRatio: number): number {
-    return Math.max(1, devicePixelRatio / 2);
+/** About a 1080p frame: past this a large display shades more than a laptop GPU can at 30 frames a second. */
+const LIVE_MAX_RENDER_PIXELS = 2_500_000;
+
+/**
+ * iOS draws at half the display scale. The web draws at least one render pixel per CSS pixel, unless the view is
+ * so large that the frame would go over 2.5 million pixels, where it draws fewer and the browser scales them up.
+ */
+export function liveRenderScale(devicePixelRatio: number, viewWidth: number, viewHeight: number): number {
+    const scale = Math.max(1, devicePixelRatio / 2);
+    const area = viewWidth * viewHeight * scale * scale;
+    return area > LIVE_MAX_RENDER_PIXELS ? scale * Math.sqrt(LIVE_MAX_RENDER_PIXELS / area) : scale;
 }
 
 export function liveFrame(

@@ -72,10 +72,12 @@ describe("live wallpaper timing", () => {
         expect(clock.onFrame(9029.2)).toBe(false);
     });
 
-    it("trips when the 90th percentile frame is over 54 ms", () => {
+    it("trips when the 90th percentile frame is over 54 ms in two windows in a row", () => {
         expect(feed(new FrameWatchdog(), 53.999, 40)).toBe(false);
         expect(feed(new FrameWatchdog(), 54, 40)).toBe(false);
         expect(feed(new FrameWatchdog(), 54.001, 40)).toBe(true);
+        expect(feed(new FrameWatchdog(), 54.001, 21)).toBe(false);
+        expect(feed(new FrameWatchdog(), 54.001, 22)).toBe(true);
     });
 
     it("needs ten frames in its window and skips the first two of a run", () => {
@@ -83,14 +85,24 @@ describe("live wallpaper timing", () => {
         expect(watchdog.onFrame(0)).toBe(false);
         expect(watchdog.onFrame(5000)).toBe(false);
         expect(feed(watchdog, 100, 9, 5100)).toBe(false);
-        expect(watchdog.onFrame(6000)).toBe(true);
+        expect(watchdog.onFrame(6000)).toBe(false);
+        expect(feed(watchdog, 100, 9, 6100)).toBe(false);
+        expect(watchdog.onFrame(7000)).toBe(true);
     });
 
-    it("lets a few slow frames among two seconds of smooth ones pass", () => {
+    it("lets a short stall pass, such as a sync or opening a large room", () => {
         const watchdog = new FrameWatchdog();
         feed(watchdog, 33, 62);
-        expect(feed(watchdog, 100, 5, 2113)).toBe(false);
-        expect(watchdog.onFrame(2613)).toBe(true);
+        expect(feed(watchdog, 100, 6, 2113)).toBe(false);
+        expect(feed(watchdog, 33, 200, 2713)).toBe(false);
+    });
+
+    it("forgets a slow window once the next two window lengths pass smoothly", () => {
+        const watchdog = new FrameWatchdog();
+        expect(feed(watchdog, 100, 12)).toBe(false);
+        expect(feed(watchdog, 33, 130, 1200)).toBe(false);
+        expect(feed(watchdog, 100, 11, 5490)).toBe(false);
+        expect(watchdog.onFrame(6600)).toBe(false);
     });
 
     it("prefers the still over a pause", () => {

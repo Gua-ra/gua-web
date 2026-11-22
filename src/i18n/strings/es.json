@@ -55,6 +55,7 @@
             "chat_note": "Todos en el chat ven este tema.",
             "choose_photo": "Elegir una foto",
             "classic": "Clásico",
+            "current": "Actual",
             "default_note": "Se aplica a todos los chats que no tienen su propio tema.",
             "default_tile": "Predeterminado",
             "error_generic": "No se pudo cambiar el fondo. Inténtalo de nuevo.",
@@ -79,6 +80,7 @@
                 "move_up": "Mover la foto hacia arriba",
                 "note": "Las fotos de fondo no tienen cifrado de extremo a extremo.",
                 "position_hint": "Arrastra para colocar la foto",
+                "preview_appearance": "Apariencia de la vista previa",
                 "too_large": "Esta foto es demasiado grande. Elige otra."
             },
             "photo_value": "Foto",
@@ -100,7 +102,7 @@
             },
             "preview_label": "Vista previa del fondo",
             "preview_send": "Ver el efecto de envío",
-            "progress": "Estableciendo tema…",
+            "previewing": "Vista previa de %(name)s. Selecciona «%(action)s» para conservarlo.",
             "sample": {
                 "incoming": "¿Qué tal se ve?",
                 "outgoing": "¡Se ve genial!",
@@ -117,6 +119,7 @@
             "set": "Establecer",
             "set_default": "Establecer como predeterminado",
             "set_theme": "Establecer tema",
+            "theme_set": "Tema establecido",
             "title": "Tema del chat",
             "use_bubble_layout": "Usar burbujas de mensaje",
             "wallpaper": "Fondo de pantalla"

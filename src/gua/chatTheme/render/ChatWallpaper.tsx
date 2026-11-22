@@ -10,12 +10,11 @@ import { type Room } from "matrix-js-sdk/src/matrix";
 
 import { useMatrixClientContext } from "../../../contexts/MatrixClientContext";
 import { BUBBLE_COLOURS } from "../model/bubbles";
-import { type VisibleChat } from "../model/layout";
 import { SendPulse } from "../live/timing";
 import { useSendPulse } from "../live/useSendPulse";
 import { useAppearance } from "../state/useAppearance";
-import { useChatThemesFeature, useEffectiveChatTheme, useIsBubbleLayout } from "../state/useEffectiveChatTheme";
-import { WallpaperLayer } from "./WallpaperLayer";
+import { useEffectiveChatTheme } from "../state/useEffectiveChatTheme";
+import { type LiveOptions, WallpaperLayer } from "./WallpaperLayer";
 
 interface Props {
     room: Room;
@@ -28,12 +27,20 @@ const BUBBLE_ATTRIBUTE = "data-gua-bubble";
 const BUBBLE_LIGHT = "--gua-bubble-light";
 const BUBBLE_DARK = "--gua-bubble-dark";
 
-function ThemedChat({ room, bodyRef }: Props): JSX.Element | null {
+function clearStyle(element: HTMLElement, ...properties: string[]): void {
+    for (const property of properties) element.style.removeProperty(property);
+    if (!element.getAttribute("style")) element.removeAttribute("style");
+}
+
+/**
+ * A chat's theme: the wallpaper fills the timeline column it is mounted in, the body says the timeline has one, and
+ * the bubble colour goes on the whole room view, so the threads in its right panel get it too.
+ */
+export default function ThemedChat({ room, bodyRef }: Props): JSX.Element | null {
     const client = useMatrixClientContext();
     const effective = useEffectiveChatTheme(client, room);
     const appearance = useAppearance();
     const [pulse] = useState(() => new SendPulse());
-    const [pulseCount, setPulseCount] = useState(0);
 
     const hasWallpaper = effective.wallpaper.kind !== "none";
     const light = effective.bubble === "standard" ? undefined : BUBBLE_COLOURS[effective.bubble].light;
@@ -49,44 +56,24 @@ function ThemedChat({ room, bodyRef }: Props): JSX.Element | null {
     useLayoutEffect(() => {
         const body = bodyRef.current;
         if (!body) return;
+        const roomView = body.closest<HTMLElement>(".mx_RoomView") ?? body;
         if (hasWallpaper) body.setAttribute(WALLPAPER_ATTRIBUTE, "");
         if (light && dark) {
-            body.setAttribute(BUBBLE_ATTRIBUTE, "");
-            body.style.setProperty(BUBBLE_LIGHT, light);
-            body.style.setProperty(BUBBLE_DARK, dark);
+            roomView.setAttribute(BUBBLE_ATTRIBUTE, "");
+            roomView.style.setProperty(BUBBLE_LIGHT, light);
+            roomView.style.setProperty(BUBBLE_DARK, dark);
         }
         return () => {
             body.removeAttribute(WALLPAPER_ATTRIBUTE);
-            body.removeAttribute(BUBBLE_ATTRIBUTE);
-            body.style.removeProperty(BUBBLE_LIGHT);
-            body.style.removeProperty(BUBBLE_DARK);
-            if (!body.getAttribute("style")) body.removeAttribute("style");
+            roomView.removeAttribute(BUBBLE_ATTRIBUTE);
+            clearStyle(roomView, BUBBLE_LIGHT, BUBBLE_DARK);
         };
     }, [bodyRef, bodyMounted, hasWallpaper, light, dark]);
 
-    const onSend = useCallback(() => {
-        pulse.send(performance.now());
-        setPulseCount((count) => count + 1);
-    }, [pulse]);
+    const onSend = useCallback(() => pulse.send(performance.now()), [pulse]);
     useSendPulse(client, room, onSend);
 
-    /** The timeline column, between the room header and the composer. */
-    const visibleChat = useCallback((): VisibleChat => {
-        const body = bodyRef.current;
-        const timeline = body?.querySelector(".mx_RoomView_timeline");
-        const bodyRect = body?.getBoundingClientRect();
-        if (!bodyRect || !timeline)
-            return { left: 0, right: bodyRect?.width ?? 0, top: 0, bottom: bodyRect?.height ?? 0 };
-        const rect = timeline.getBoundingClientRect();
-        return {
-            left: rect.left - bodyRect.left,
-            right: rect.right - bodyRect.left,
-            top: rect.top - bodyRect.top,
-            bottom: rect.bottom - bodyRect.top,
-        };
-    }, [bodyRef]);
-
-    const live = useMemo(() => ({ inDialog: false, pulse, pulseCount, visibleChat }), [pulse, pulseCount, visibleChat]);
+    const live = useMemo<LiveOptions>(() => ({ inDialog: false, pulse }), [pulse]);
 
     if (!hasWallpaper) return null;
     return (
@@ -97,15 +84,4 @@ function ThemedChat({ room, bodyRef }: Props): JSX.Element | null {
             className="mx_GuaChatWallpaper"
         />
     );
-}
-
-/**
- * The chat theme behind the timeline. With themes off, outside the bubble layout, or for a chat with no theme it
- * renders nothing and leaves the room's markup as it was.
- */
-export function ChatWallpaper(props: Props): JSX.Element | null {
-    const enabled = useChatThemesFeature();
-    const bubbleLayout = useIsBubbleLayout();
-    if (!enabled || !bubbleLayout) return null;
-    return <ThemedChat {...props} />;
 }

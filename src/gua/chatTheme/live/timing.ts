@@ -91,13 +91,16 @@ const WATCHDOG_LIMIT_MS = (1.5 * 1000) / LIVE_WALLPAPER_FPS + FRAME_TOLERANCE_MS
 
 /**
  * Trips once the 90th percentile of the intervals between drawn frames, over a rolling 2 s window that holds at
- * least ten of them, is over 54 ms. Each run gets a new instance, so a pause restarts the window. The first two
- * frames of a run are skipped: the browser compiles the shader around them.
+ * least ten of them, is over 54 ms in two windows in a row: the first one starts a new window, and the second must
+ * come within two window lengths of it. Main-thread work such as a sync or opening a large room rarely lasts that
+ * long, a GPU that is too slow does. Each run gets a new instance, so a pause starts again. The first two frames of a
+ * run are skipped: the browser finishes the shader around them.
  */
 export class FrameWatchdog {
-    private readonly frames: { endMs: number; durationMs: number }[] = [];
+    private frames: { endMs: number; durationMs: number }[] = [];
     private lastFrameMs?: number;
     private framesBeforeWindow = 2;
+    private firstSlowWindowMs?: number;
     private tripped = false;
 
     public get hasTripped(): boolean {
@@ -114,7 +117,14 @@ export class FrameWatchdog {
         }
         this.frames.push({ endMs: frameMs, durationMs: frameMs - previous! });
         while (this.frames[0].endMs <= frameMs - WATCHDOG_WINDOW_MS) this.frames.shift();
-        this.tripped = this.frames.length >= WATCHDOG_MINIMUM_FRAMES && this.percentile90() > WATCHDOG_LIMIT_MS;
+        if (this.frames.length < WATCHDOG_MINIMUM_FRAMES || this.percentile90() <= WATCHDOG_LIMIT_MS) return false;
+        const first = this.firstSlowWindowMs;
+        if (first !== undefined && frameMs - first <= 2 * WATCHDOG_WINDOW_MS) {
+            this.tripped = true;
+        } else {
+            this.firstSlowWindowMs = frameMs;
+            this.frames = [];
+        }
         return this.tripped;
     }
 

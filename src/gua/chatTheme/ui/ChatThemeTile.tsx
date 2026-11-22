@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
 Please see LICENSE files in the repository root for full details.
 */
 
-import React, { type JSX, type KeyboardEvent, type ReactNode } from "react";
+import React, { type JSX, type ReactNode } from "react";
 import classNames from "classnames";
 import CheckCircleSolidIcon from "@vector-im/compound-design-tokens/assets/web/icons/check-circle-solid";
 
@@ -14,44 +14,58 @@ import { getArtwork, isLive } from "../model/artworks";
 import { bubbleColour } from "../model/bubbles";
 import { themeName, wallpaperName } from "../model/names";
 import { type ChatTheme, shownBubble, type Wallpaper } from "../model/types";
-import { WallpaperLayer } from "../render/WallpaperLayer";
+import { WallpaperThumbnail } from "../render/WallpaperLayer";
 import { type Appearance } from "../state/useAppearance";
+
+/** The tile's CSS size, which its thumbnail is drawn for. */
+export const TILE_WIDTH = 84;
+export const TILE_HEIGHT = 182;
 
 function isLiveWallpaper(wallpaper: Wallpaper): boolean {
     return wallpaper.kind === "art" && isLive(getArtwork(wallpaper.art));
 }
 
-/** Arrow keys move between the tiles of one group; only the selected tile, or else the first, takes a Tab stop. */
-function onRadioKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
-    const keys: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
-    const radios = Array.from(event.currentTarget.querySelectorAll<HTMLElement>("[role='radio']"));
-    const index = radios.indexOf(document.activeElement as HTMLElement);
-    if (index < 0) return;
-    let next: number | undefined;
-    if (event.key in keys) next = (index + keys[event.key] + radios.length) % radios.length;
-    else if (event.key === "Home") next = 0;
-    else if (event.key === "End") next = radios.length - 1;
-    if (next === undefined) return;
-    event.preventDefault();
-    radios[next].focus();
-}
-
-export function TileGroup({ label, children }: { label: string; children: ReactNode }): JSX.Element {
+/**
+ * One section of a choice made with native radio buttons. All the sections of one choice share a radio name, so the
+ * arrow keys move through every option, skip disabled ones, and pick as they go, which only previews here.
+ */
+export function TileGroup({
+    labelledBy,
+    label,
+    className,
+    children,
+}: {
+    labelledBy?: string;
+    label?: string;
+    className?: string;
+    children: ReactNode;
+}): JSX.Element {
     return (
-        <div className="mx_GuaThemeTiles" role="radiogroup" aria-label={label} onKeyDown={onRadioKeyDown}>
+        <div
+            className={classNames("mx_GuaThemeTiles", className)}
+            role="radiogroup"
+            aria-labelledby={labelledBy}
+            aria-label={labelledBy ? undefined : label}
+        >
             {children}
         </div>
     );
 }
 
 interface TileProps {
+    /** The radio name shared by every tile of one choice. */
+    group: string;
     wallpaper: Wallpaper;
     /** The tile's bubbles; a wallpaper picker tile shows the bubbles it would keep. */
     bubbles: ChatTheme;
     /** Only the Default and Classic tiles carry a visible name. */
     name?: string;
+    /** The option being previewed, or the saved one when nothing is. */
     selected: boolean;
-    focusable: boolean;
+    /** The native radio's state: a selected option shown twice is checked only once. Defaults to `selected`. */
+    checked?: boolean;
+    /** The saved option, marked while another one is previewed. */
+    current?: boolean;
     disabled?: boolean;
     appearance: Appearance;
     onSelect: () => void;
@@ -67,7 +81,7 @@ export function ThemeSample({
     const outgoing = bubbleColour(shownBubble(bubbles, appearance.dark), appearance.dark);
     return (
         <>
-            <WallpaperLayer wallpaper={wallpaper} appearance={appearance} lazy />
+            <WallpaperThumbnail wallpaper={wallpaper} appearance={appearance} width={TILE_WIDTH} height={TILE_HEIGHT} />
             <span className="mx_GuaThemeTile_bubbles" aria-hidden={true}>
                 <span className="mx_GuaThemeTile_incoming" />
                 <span
@@ -95,20 +109,31 @@ export function tileLabel(wallpaper: Wallpaper, bubbles: ChatTheme, dark: boolea
 }
 
 export function ChatThemeTile(props: TileProps): JSX.Element {
-    const { wallpaper, bubbles, name, selected, focusable, disabled, appearance, onSelect } = props;
+    const { group, wallpaper, bubbles, name, selected, checked, current, disabled, appearance, onSelect } = props;
+    const label = tileLabel(wallpaper, bubbles, appearance.dark, name);
     return (
-        <button
-            type="button"
-            role="radio"
-            aria-checked={selected}
-            aria-label={tileLabel(wallpaper, bubbles, appearance.dark, name)}
-            tabIndex={focusable ? 0 : -1}
-            disabled={disabled}
-            className={classNames("mx_Dialog_nonDialogButton mx_GuaThemeTile", { mx_GuaThemeTile_selected: selected })}
-            onClick={onSelect}
+        <label
+            className={classNames("mx_GuaThemeTile", {
+                mx_GuaThemeTile_selected: selected,
+                mx_GuaThemeTile_disabled: disabled,
+            })}
         >
+            <input
+                type="radio"
+                className="mx_GuaThemeTile_input"
+                name={group}
+                checked={checked ?? selected}
+                disabled={disabled}
+                aria-label={current ? `${label}, ${_t("gua|chat_theme|current")}` : label}
+                onChange={onSelect}
+            />
             <ThemeSample wallpaper={wallpaper} bubbles={bubbles} name={name} appearance={appearance} />
+            {current && (
+                <span className="mx_GuaThemeTile_current" aria-hidden={true}>
+                    {_t("gua|chat_theme|current")}
+                </span>
+            )}
             {selected && <CheckCircleSolidIcon className="mx_GuaThemeTile_check" aria-hidden={true} />}
-        </button>
+        </label>
     );
 }

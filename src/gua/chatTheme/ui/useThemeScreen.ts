@@ -6,16 +6,16 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import { useCallback, useMemo } from "react";
-import { type Room, type RoomState } from "matrix-js-sdk/src/matrix";
+import { type Room } from "matrix-js-sdk/src/matrix";
 
 import { useMatrixClientContext } from "../../../contexts/MatrixClientContext";
 import { useRoomState } from "../../../hooks/useRoomState";
-import { useSettingValue } from "../../../hooks/useSettings";
-import { isPrivateJoinRule } from "../model/precedence";
+import { isMediaShown } from "../model/precedence";
 import { type ThemeScreenMode, type ThemeScreenState } from "../model/screenModel";
 import { type ChatTheme } from "../model/types";
 import { DefaultChatThemeStore, useDefaultChatTheme } from "../state/defaultChatTheme";
 import { sendChatTheme, useCanChangeChatTheme, useRoomChatTheme } from "../state/roomChatTheme";
+import { isPrivateRoom, useMediaPreviews } from "../state/useEffectiveChatTheme";
 
 export interface ThemeScreen {
     state: ThemeScreenState;
@@ -23,16 +23,14 @@ export interface ThemeScreen {
     save: (theme: ChatTheme) => Promise<void>;
 }
 
-const isPrivate = (state: RoomState): boolean => isPrivateJoinRule(state.getJoinRule());
-
 export function useThemeScreen(mode: ThemeScreenMode, room?: Room): ThemeScreen {
     const client = useMatrixClientContext();
     const chatRoom = mode === "chat" ? room : undefined;
     const chatTheme = useRoomChatTheme(chatRoom);
     const defaultTheme = useDefaultChatTheme(client);
     const canChangeChat = useCanChangeChatTheme(chatRoom, client);
-    const roomIsPrivate = useRoomState(chatRoom, isPrivate) ?? false;
-    const mediaPreviews = useSettingValue("mediaPreviewConfig", chatRoom?.roomId ?? null).media_previews;
+    const roomIsPrivate = useRoomState(chatRoom, isPrivateRoom) ?? false;
+    const mediaPreviews = useMediaPreviews();
 
     const state = useMemo<ThemeScreenState>(
         () =>
@@ -42,7 +40,7 @@ export function useThemeScreen(mode: ThemeScreenMode, room?: Room): ThemeScreen 
                       current: chatTheme,
                       defaultTheme,
                       canChange: canChangeChat,
-                      isPhotoHidden: mediaPreviews !== "on" && !roomIsPrivate,
+                      isPhotoHidden: !roomIsPrivate && !isMediaShown(mediaPreviews, roomIsPrivate),
                   }
                 : { mode, current: defaultTheme, defaultTheme, canChange: true, isPhotoHidden: false },
         [mode, chatTheme, defaultTheme, canChangeChat, mediaPreviews, roomIsPrivate],

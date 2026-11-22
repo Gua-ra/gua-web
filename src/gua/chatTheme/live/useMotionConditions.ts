@@ -12,15 +12,23 @@ import Modal, { ModalManagerEvent } from "../../../Modal";
 
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
-let framesTooSlow = false;
-const slowFrameListeners = new Set<() => void>();
+/** How long every live wallpaper stays still after frames were too slow, before they try again. */
+const SLOW_FRAMES_COOL_DOWN_MS = 10 * 60 * 1000;
 
-/** Once frames are too slow, every live wallpaper stays still until the page reloads. */
+let framesTooSlow = false;
+const slowFrameListeners = new Set<(slow: boolean) => void>();
+
+function setFramesTooSlow(slow: boolean): void {
+    framesTooSlow = slow;
+    for (const listener of slowFrameListeners) listener(slow);
+}
+
+/** Once frames are too slow, every live wallpaper shows its still for ten minutes. */
 export function reportSlowFrames(): void {
     if (framesTooSlow) return;
-    framesTooSlow = true;
-    logger.warn("Live wallpapers stay still for this session: frames are too slow.");
-    for (const listener of slowFrameListeners) listener();
+    logger.warn("Live wallpapers stay still for ten minutes: frames are too slow.");
+    setFramesTooSlow(true);
+    window.setTimeout(() => setFramesTooSlow(false), SLOW_FRAMES_COOL_DOWN_MS);
 }
 
 export interface ViewConditions {
@@ -37,8 +45,8 @@ function prefersReducedMotion(): boolean {
 }
 
 /**
- * What the page says about a live wallpaper's view. In the timeline any dialog covers it; inside a dialog only the
- * dialogs opened above it do.
+ * What the page says about a live wallpaper's view. In the timeline any dialog covers it. Inside a dialog nothing
+ * does: Modal renders only the top dialog, so one opened above unmounts this one.
  */
 export function useMotionConditions(ref: RefObject<HTMLElement | null>, inDialog: boolean): ViewConditions {
     const [reducedMotion, setReducedMotion] = useState(prefersReducedMotion);
@@ -51,12 +59,13 @@ export function useMotionConditions(ref: RefObject<HTMLElement | null>, inDialog
     useEffect(() => {
         const query = window.matchMedia?.(REDUCED_MOTION);
         const onMotion = (): void => setReducedMotion(prefersReducedMotion());
-        const onSlow = (): void => setSlowFrames(true);
+        const onSlow = (slow: boolean): void => setSlowFrames(slow);
         const onVisibility = (): void => setHidden(document.visibilityState === "hidden");
         const onFocus = (): void => setUnfocused(false);
         const onBlur = (): void => setUnfocused(true);
         query?.addEventListener?.("change", onMotion);
         slowFrameListeners.add(onSlow);
+        setSlowFrames(framesTooSlow);
         document.addEventListener("visibilitychange", onVisibility);
         window.addEventListener("focus", onFocus);
         window.addEventListener("blur", onBlur);
@@ -78,20 +87,17 @@ export function useMotionConditions(ref: RefObject<HTMLElement | null>, inDialog
     }, [ref]);
 
     useEffect(() => {
-        let openedAbove = 0;
-        const onOpened = (): void => {
-            openedAbove++;
-            setCovered(inDialog ? openedAbove > 0 : Modal.hasDialogs());
-        };
-        const onClosed = (): void => {
-            openedAbove = Math.max(0, openedAbove - 1);
-            setCovered(inDialog ? openedAbove > 0 : Modal.hasDialogs());
-        };
-        Modal.on(ModalManagerEvent.Opened, onOpened);
-        Modal.on(ModalManagerEvent.Closed, onClosed);
+        if (inDialog) {
+            setCovered(false);
+            return;
+        }
+        const update = (): void => setCovered(Modal.hasDialogs());
+        update();
+        Modal.on(ModalManagerEvent.Opened, update);
+        Modal.on(ModalManagerEvent.Closed, update);
         return () => {
-            Modal.off(ModalManagerEvent.Opened, onOpened);
-            Modal.off(ModalManagerEvent.Closed, onClosed);
+            Modal.off(ModalManagerEvent.Opened, update);
+            Modal.off(ModalManagerEvent.Closed, update);
         };
     }, [inDialog]);
 

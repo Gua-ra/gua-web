@@ -19,13 +19,46 @@ function fakeBitmap(width: number, height: number): ImageBitmap {
     return { width, height, close: jest.fn() } as unknown as ImageBitmap;
 }
 
+/** The size an image reports from its header, or null for a file that is not an image. */
+let imageSize: { width: number; height: number } | null;
+const RealImage = window.Image;
+
+class FakeImage {
+    public naturalWidth = 0;
+    public naturalHeight = 0;
+    public onload: (() => void) | null = null;
+    public onerror: (() => void) | null = null;
+    public set src(_url: string) {
+        queueMicrotask(() => {
+            if (imageSize) {
+                this.naturalWidth = imageSize.width;
+                this.naturalHeight = imageSize.height;
+                this.onload?.();
+            } else {
+                this.onerror?.();
+            }
+        });
+    }
+}
+
 describe("photo wallpapers", () => {
     let source: ImageBitmap;
+
+    beforeAll(() => {
+        window.Image = FakeImage as unknown as typeof Image;
+        URL.createObjectURL = jest.fn(() => "blob:photo");
+        URL.revokeObjectURL = jest.fn();
+    });
+
+    afterAll(() => {
+        window.Image = RealImage;
+    });
 
     beforeEach(() => {
         encodedSizes = [1_000_000];
         toBlobCalls = [];
         source = fakeBitmap(4000, 3000);
+        imageSize = { width: 4000, height: 3000 };
         window.createImageBitmap = jest.fn(async (image: ImageBitmapSource) =>
             image instanceof Blob
                 ? source
@@ -48,7 +81,11 @@ describe("photo wallpapers", () => {
 
     it("encodes at most 2048 px as JPEG 0.8, oriented, with a 3 by 3 blurhash", async () => {
         const photo = await preparePhoto(new Blob(["x"]), 50_000_000);
-        expect(window.createImageBitmap).toHaveBeenCalledWith(expect.any(Blob), { imageOrientation: "from-image" });
+        expect(window.createImageBitmap).toHaveBeenCalledWith(expect.any(Blob), {
+            imageOrientation: "from-image",
+            resizeQuality: "high",
+            resizeWidth: 2048,
+        });
         expect(toBlobCalls).toEqual([{ width: 2048, height: 1536, type: "image/jpeg", quality: 0.8 }]);
         expect([photo.width, photo.height, photo.blob.size]).toEqual([2048, 1536, 1_000_000]);
         expect(photo.blurhash).toHaveLength(22);
@@ -67,8 +104,21 @@ describe("photo wallpapers", () => {
 
     it("never scales a small photo up", async () => {
         source = fakeBitmap(800, 600);
+        imageSize = { width: 800, height: 600 };
         const photo = await preparePhoto(new Blob(["x"]), undefined);
+        expect(window.createImageBitmap).toHaveBeenCalledWith(expect.any(Blob), { imageOrientation: "from-image" });
         expect([photo.width, photo.height]).toEqual([800, 600]);
+    });
+
+    it("decodes a tall camera photo at 2048 px on its long edge", async () => {
+        source = fakeBitmap(3000, 4000);
+        imageSize = { width: 3000, height: 4000 };
+        await preparePhoto(new Blob(["x"]), undefined);
+        expect(window.createImageBitmap).toHaveBeenCalledWith(expect.any(Blob), {
+            imageOrientation: "from-image",
+            resizeQuality: "high",
+            resizeHeight: 2048,
+        });
     });
 
     it("refuses a photo over the server's upload limit", async () => {
@@ -94,12 +144,33 @@ describe("photo wallpapers", () => {
     });
 
     it("decodes a large photo at 2048 px on its long edge", async () => {
+        imageSize = { width: 3000, height: 6000 };
         await decodePhoto(new Blob(["x"]), 3000, 6000);
         expect(window.createImageBitmap).toHaveBeenCalledWith(expect.any(Blob), {
             resizeWidth: 1024,
             resizeHeight: 2048,
             resizeQuality: "high",
         });
+    });
+
+    it("decodes by the image's own size, whatever the event declares", async () => {
+        imageSize = { width: 6000, height: 6000 };
+        await decodePhoto(new Blob(["x"]), 100, 100);
+        expect(window.createImageBitmap).toHaveBeenCalledWith(expect.any(Blob), {
+            resizeWidth: 2048,
+            resizeHeight: 2048,
+            resizeQuality: "high",
+        });
+    });
+
+    it("refuses an image larger than the apps accept, or of another shape than declared", async () => {
+        imageSize = { width: 30000, height: 30000 };
+        await expect(decodePhoto(new Blob(["x"]), 100, 100)).rejects.toThrow("30000 by 30000");
+        imageSize = { width: 4000, height: 1000 };
+        await expect(decodePhoto(new Blob(["x"]), 100, 100)).rejects.toThrow("not 100 by 100");
+        imageSize = null;
+        await expect(decodePhoto(new Blob(["x"]), 100, 100)).rejects.toThrow("Not an image");
+        expect(window.createImageBitmap).not.toHaveBeenCalled();
     });
 
     describe("download", () => {

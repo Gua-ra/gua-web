@@ -10,13 +10,15 @@ import { decode } from "blurhash";
 import { logger } from "matrix-js-sdk/src/logger";
 
 import { mediaFromMxc } from "../../../customisations/Media";
-import { PHOTO_MAX_SIZE } from "../model/constants";
+import { PHOTO_MAX_DIMENSION, PHOTO_MAX_SIZE } from "../model/constants";
 import { aspectFill } from "../model/layout";
 import { type PhotoWallpaper } from "../model/types";
 import { type Size } from "./hooks";
 
-/** The longest edge a photo wallpaper is decoded at, whatever it declares. */
+/** The longest edge a photo wallpaper is decoded at. */
 const MAX_DECODED_EDGE = 2048;
+/** How far the image's own shape may be from the declared one, for rounding. */
+const ASPECT_TOLERANCE = 0.02;
 /** Fixed, so a crafted width and height cannot make the placeholder expensive. */
 const BLURHASH_SIZE = 32;
 
@@ -49,11 +51,42 @@ export async function fetchCapped(url: string, maxBytes: number, signal?: AbortS
     return new Blob(chunks as BlobPart[], { type });
 }
 
-/** Decodes at most 2048 pixels on the long edge, scaled to the photo's declared shape. */
-export async function decodePhoto(blob: Blob, width: number, height: number): Promise<ImageBitmap> {
-    const longest = Math.max(width, height);
-    if (longest <= MAX_DECODED_EDGE) return createImageBitmap(blob);
-    const scale = MAX_DECODED_EDGE / longest;
+class PhotoRefusedError extends Error {}
+
+/** The image's own size. An image that is never shown is not decoded, so only its header is read. */
+export function readImageSize(blob: Blob): Promise<{ width: number; height: number }> {
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(blob);
+        const image = new Image();
+        image.onload = (): void => {
+            URL.revokeObjectURL(url);
+            resolve({ width: image.naturalWidth, height: image.naturalHeight });
+        };
+        image.onerror = (): void => {
+            URL.revokeObjectURL(url);
+            reject(new PhotoRefusedError("Not an image"));
+        };
+        image.src = url;
+    });
+}
+
+/**
+ * Decodes at most 2048 pixels on the long edge. The size comes from the image itself, not from what the event
+ * declares, so a small declared size cannot hide a huge image: one larger than the apps accept, or of another shape
+ * than declared, is refused.
+ */
+export async function decodePhoto(blob: Blob, declaredWidth: number, declaredHeight: number): Promise<ImageBitmap> {
+    const { width, height } = await readImageSize(blob);
+    if (!width || !height || width > PHOTO_MAX_DIMENSION || height > PHOTO_MAX_DIMENSION) {
+        throw new PhotoRefusedError(`Photo wallpaper is ${width} by ${height} pixels`);
+    }
+    const shape = width / height / (declaredWidth / declaredHeight);
+    if (!(Math.abs(Math.log(shape)) <= Math.log(1 + ASPECT_TOLERANCE))) {
+        throw new PhotoRefusedError(
+            `Photo wallpaper is ${width} by ${height}, not ${declaredWidth} by ${declaredHeight}`,
+        );
+    }
+    const scale = Math.min(1, MAX_DECODED_EDGE / Math.max(width, height));
     return createImageBitmap(blob, {
         resizeWidth: Math.max(1, Math.round(width * scale)),
         resizeHeight: Math.max(1, Math.round(height * scale)),

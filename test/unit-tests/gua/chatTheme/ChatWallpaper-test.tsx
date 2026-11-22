@@ -6,10 +6,12 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React, { createRef } from "react";
-import { render } from "jest-matrix-react";
+import { render, waitFor } from "jest-matrix-react";
 import { type MatrixClient, MatrixEvent, Room } from "matrix-js-sdk/src/matrix";
 
-import { ChatWallpaper } from "../../../../src/gua/chatTheme/render/ChatWallpaper";
+import ThemedChat from "../../../../src/gua/chatTheme/render/ChatWallpaper";
+import { ChatThemeWallpaper } from "../../../../src/gua/chatTheme/lazy";
+import SettingsStore from "../../../../src/settings/SettingsStore";
 import { Layout } from "../../../../src/settings/enums/Layout";
 import { MediaPreviewValue } from "../../../../src/@types/media_preview";
 import { stubClient, withClientContextRenderOptions } from "../../../test-utils";
@@ -32,15 +34,21 @@ describe("ChatWallpaper", () => {
         ]);
     }
 
-    function renderWallpaper() {
+    /** As RoomView mounts it: in the timeline column, inside the body, inside the room view. */
+    function renderWallpaper(Component: typeof ThemedChat = ThemedChat) {
         const bodyRef = createRef<HTMLDivElement>();
         const result = render(
-            <div ref={bodyRef} className="mx_RoomView_body">
-                <ChatWallpaper room={room} bodyRef={bodyRef} />
+            <div className="mx_RoomView">
+                <div ref={bodyRef} className="mx_RoomView_body">
+                    <main className="mx_RoomView_timeline">
+                        <Component room={room} bodyRef={bodyRef} />
+                    </main>
+                </div>
             </div>,
             withClientContextRenderOptions(client),
         );
-        return { ...result, body: () => bodyRef.current! };
+        const roomView = (): HTMLElement => result.container.querySelector(".mx_RoomView")!;
+        return { ...result, body: () => bodyRef.current!, roomView };
     }
 
     beforeEach(() => {
@@ -62,27 +70,28 @@ describe("ChatWallpaper", () => {
     afterEach(() => jest.restoreAllMocks());
 
     it("leaves a chat without a theme untouched", () => {
-        const { container, body } = renderWallpaper();
+        const { container, body, roomView } = renderWallpaper();
         expect(container.querySelector(".mx_GuaWallpaper")).toBeNull();
         expect(body().getAttributeNames()).toEqual(["class"]);
+        expect(roomView().getAttributeNames()).toEqual(["class"]);
     });
 
-    it("draws a preset and colours the outgoing bubble", () => {
+    it("draws a preset in the timeline column and colours the outgoing bubble across the room", () => {
         setState("global.gua.room.background", { v: 1, kind: "preset", preset: "mint", bubble: "green" });
-        const { container, body } = renderWallpaper();
-        expect(container.querySelector(".mx_GuaChatWallpaper")).not.toBeNull();
+        const { container, body, roomView } = renderWallpaper();
+        expect(container.querySelector(".mx_RoomView_timeline > .mx_GuaChatWallpaper")).not.toBeNull();
         expect(body().hasAttribute("data-gua-wallpaper")).toBe(true);
-        expect(body().hasAttribute("data-gua-bubble")).toBe(true);
-        expect(body().style.getPropertyValue("--gua-bubble-light")).toBe("#D9F4DD");
-        expect(body().style.getPropertyValue("--gua-bubble-dark")).toBe("#173826");
+        expect(roomView().hasAttribute("data-gua-bubble")).toBe(true);
+        expect(roomView().style.getPropertyValue("--gua-bubble-light")).toBe("#D9F4DD");
+        expect(roomView().style.getPropertyValue("--gua-bubble-dark")).toBe("#173826");
     });
 
     it("colours the bubble of a theme without a wallpaper, drawing nothing", () => {
         setState("global.gua.room.background", { v: 1, kind: "none", bubble: "blue", bubble_dark: "purple" });
-        const { container, body } = renderWallpaper();
+        const { container, body, roomView } = renderWallpaper();
         expect(container.querySelector(".mx_GuaWallpaper")).toBeNull();
         expect(body().hasAttribute("data-gua-wallpaper")).toBe(false);
-        expect(body().style.getPropertyValue("--gua-bubble-dark")).toBe("#30264D");
+        expect(roomView().style.getPropertyValue("--gua-bubble-dark")).toBe("#30264D");
     });
 
     it("shows an artwork's still on its anchor over its fallback", () => {
@@ -100,8 +109,8 @@ describe("ChatWallpaper", () => {
 
     it("follows the default when the chat has no theme", () => {
         defaultTheme = { v: 1, kind: "preset", preset: "dusk", bubble: "purple" };
-        const { body } = renderWallpaper();
-        expect(body().style.getPropertyValue("--gua-bubble-light")).toBe("#E8E0F8");
+        const { roomView } = renderWallpaper();
+        expect(roomView().style.getPropertyValue("--gua-bubble-light")).toBe("#E8E0F8");
     });
 
     it("shows the default instead of a chat photo that a public room hides", () => {
@@ -114,23 +123,65 @@ describe("ChatWallpaper", () => {
             photo: { url: "mxc://gua.global/a", mimetype: "image/jpeg", w: 10, h: 10, size: 100 },
         });
         setState("m.room.join_rules", { join_rule: "public" });
-        const { body } = renderWallpaper();
-        expect(body().style.getPropertyValue("--gua-bubble-light")).toBe("#D3F1EC");
+        const { roomView } = renderWallpaper();
+        expect(roomView().style.getPropertyValue("--gua-bubble-light")).toBe("#D3F1EC");
+    });
+
+    it("counts a room without a join rules event as not private, like the apps", () => {
+        mediaPreviews = MediaPreviewValue.Private;
+        defaultTheme = { v: 1, kind: "preset", preset: "sky", bubble: "teal" };
+        setState("global.gua.room.background", {
+            v: 1,
+            kind: "photo",
+            bubble: "orange",
+            photo: { url: "mxc://gua.global/a", mimetype: "image/jpeg", w: 10, h: 10, size: 100 },
+        });
+        const { roomView } = renderWallpaper();
+        expect(roomView().style.getPropertyValue("--gua-bubble-light")).toBe("#D3F1EC");
+    });
+
+    it("reads the account-wide media setting, never a per-room one", () => {
+        const getValue = SettingsStore.getValue.bind(SettingsStore) as (...args: unknown[]) => unknown;
+        jest.spyOn(SettingsStore, "getValue").mockImplementation(((name: string, roomId?: string | null) => {
+            if (name === "mediaPreviewConfig") {
+                return { media_previews: roomId ? MediaPreviewValue.On : MediaPreviewValue.Off, invite_avatars: "on" };
+            }
+            if (name === "feature_gua_chat_themes") return true;
+            if (name === "layout") return Layout.Bubble;
+            return getValue(name, roomId);
+        }) as typeof SettingsStore.getValue);
+        defaultTheme = { v: 1, kind: "preset", preset: "sky", bubble: "teal" };
+        setState("global.gua.room.background", {
+            v: 1,
+            kind: "photo",
+            bubble: "orange",
+            photo: { url: "mxc://gua.global/a", mimetype: "image/jpeg", w: 10, h: 10, size: 100 },
+        });
+        setState("m.room.join_rules", { join_rule: "public" });
+        const { roomView } = renderWallpaper();
+        expect(roomView().style.getPropertyValue("--gua-bubble-light")).toBe("#D3F1EC");
     });
 
     it("removes what it set when the theme goes", () => {
         setState("global.gua.room.background", { v: 1, kind: "preset", preset: "mint", bubble: "green" });
-        const { unmount, body } = renderWallpaper();
-        const element = body();
+        const { unmount, body, roomView } = renderWallpaper();
+        const bodyElement = body();
+        const roomElement = roomView();
         unmount();
-        expect(element.getAttributeNames()).toEqual(["class"]);
-        expect(element.getAttribute("style") ?? "").toBe("");
+        expect(bodyElement.getAttributeNames()).toEqual(["class"]);
+        expect(roomElement.getAttributeNames()).toEqual(["class"]);
+    });
+
+    it("loads the theme only with chat themes on and the bubble layout", async () => {
+        setState("global.gua.room.background", { v: 1, kind: "preset", preset: "mint", bubble: "green" });
+        const { container } = renderWallpaper(ChatThemeWallpaper);
+        await waitFor(() => expect(container.querySelector(".mx_GuaChatWallpaper")).not.toBeNull());
     });
 
     it("draws nothing outside the bubble layout", () => {
         layout = Layout.Group;
         setState("global.gua.room.background", { v: 1, kind: "preset", preset: "mint", bubble: "green" });
-        const { container, body } = renderWallpaper();
+        const { container, body } = renderWallpaper(ChatThemeWallpaper);
         expect(container.querySelector(".mx_GuaWallpaper")).toBeNull();
         expect(body().getAttributeNames()).toEqual(["class"]);
     });

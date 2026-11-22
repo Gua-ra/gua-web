@@ -10,6 +10,7 @@ import { type MatrixClient } from "matrix-js-sdk/src/matrix";
 
 import { PHOTO_DEFAULT_ALIGN, PHOTO_DEFAULT_DIM } from "../../model/constants";
 import { type PhotoWallpaper } from "../../model/types";
+import { readImageSize } from "../../render/PhotoLayer";
 
 export const PHOTO_MIMETYPE = "image/jpeg";
 const FIRST_PASS = { maxEdge: 2048, quality: 0.8 };
@@ -65,11 +66,24 @@ function blurhashOf(source: ImageBitmap): string {
 }
 
 /**
+ * A camera photo is decoded at most 2048 px on its long edge rather than at full size, which for 48 megapixels would
+ * take about 190 MB. Only the long edge is given, so the shape stays right even where the size read from the file
+ * does not follow its orientation.
+ */
+async function decodeChosen(file: Blob): Promise<ImageBitmap> {
+    const { width, height } = await readImageSize(file);
+    const longEdge = Math.max(width, height);
+    if (longEdge <= FIRST_PASS.maxEdge) return createImageBitmap(file, { imageOrientation: "from-image" });
+    const resize = width >= height ? { resizeWidth: FIRST_PASS.maxEdge } : { resizeHeight: FIRST_PASS.maxEdge };
+    return createImageBitmap(file, { imageOrientation: "from-image", resizeQuality: "high", ...resize });
+}
+
+/**
  * Turns a chosen file into the photo the apps upload: oriented, at most 2048 px on the long edge as JPEG 0.8, or
  * 1600 px at 0.75 when that is over 1.5 MB. Refuses a result over the server's upload limit.
  */
 export async function preparePhoto(file: Blob, maxUploadSize: number | undefined): Promise<PreparedPhoto> {
-    const source = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const source = await decodeChosen(file);
     try {
         let encoded = await encodeJpeg(source, FIRST_PASS);
         if (encoded.blob.size > SECOND_PASS_ABOVE_BYTES) encoded = await encodeJpeg(source, SECOND_PASS);

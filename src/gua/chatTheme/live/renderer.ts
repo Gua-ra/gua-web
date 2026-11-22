@@ -36,6 +36,18 @@ export function hasShaderFailed(artwork: ArtworkId): boolean {
     return failedArtworks.has(artwork);
 }
 
+/** Null without usable WebGL. */
+export function openContext(canvas: HTMLCanvasElement): WebGLRenderingContext | null {
+    return canvas.getContext("webgl", CONTEXT_ATTRIBUTES);
+}
+
+/** Frees the context now rather than at garbage collection: past about 16 live contexts browsers drop the oldest. */
+export function releaseContext(gl: WebGLRenderingContext): void {
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+}
+
+const nextAnimationFrame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()));
+
 export interface LiveUniforms {
     resolution: [number, number];
     offset: [number, number];
@@ -57,13 +69,29 @@ export class LiveWallpaperRenderer {
         private readonly uniforms: UniformLocations,
     ) {}
 
-    /** Null when the browser has no usable WebGL or the shader does not build. */
-    public static create(canvas: HTMLCanvasElement, artwork: ArtworkId, frag: string): LiveWallpaperRenderer | null {
+    /**
+     * Null when the shader does not build or the context is lost first. With KHR_parallel_shader_compile the driver
+     * builds it off the main thread and it is checked once a frame, so a large shader does not stall the page.
+     */
+    public static async create(
+        gl: WebGLRenderingContext,
+        artwork: ArtworkId,
+        frag: string,
+        nextFrame: () => Promise<void> = nextAnimationFrame,
+    ): Promise<LiveWallpaperRenderer | null> {
         if (failedArtworks.has(artwork)) return null;
-        const gl = canvas.getContext("webgl", CONTEXT_ATTRIBUTES);
-        if (!gl) return null;
+        const build = startProgram(gl, withFrameOffset(frag));
+        if (!build) return null;
 
-        const program = buildProgram(gl, withFrameOffset(frag));
+        const parallel = gl.getExtension("KHR_parallel_shader_compile");
+        if (parallel) {
+            while (!gl.isContextLost() && !gl.getProgramParameter(build.program, parallel.COMPLETION_STATUS_KHR)) {
+                await nextFrame();
+            }
+        }
+        if (gl.isContextLost()) return null;
+
+        const program = finishProgram(gl, build);
         if (typeof program === "string") {
             if (!gl.isContextLost()) {
                 failedArtworks.add(artwork);
@@ -98,34 +126,51 @@ export class LiveWallpaperRenderer {
         gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
 
-    /** Keeps the context: React's development double mount creates a renderer again on the same canvas. */
+    /** Frees the program and buffer. The context belongs to the canvas's owner, which releases it. */
     public dispose(): void {
         this.gl.deleteBuffer(this.buffer);
         this.gl.deleteProgram(this.program);
     }
 }
 
-/** The program, or why it failed. */
-function buildProgram(gl: WebGLRenderingContext, frag: string): WebGLProgram | string {
+interface ProgramBuild {
+    program: WebGLProgram;
+    vertex: WebGLShader;
+    fragment: WebGLShader;
+}
+
+/** Compiles and links without reading any status, which would wait for the driver. Null once the context is lost. */
+function startProgram(gl: WebGLRenderingContext, frag: string): ProgramBuild | null {
     const program = gl.createProgram();
-    const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
-    const fragment = compile(gl, gl.FRAGMENT_SHADER, frag);
-    if (!program || typeof vertex === "string" || typeof fragment === "string") {
-        return typeof vertex === "string" ? vertex : typeof fragment === "string" ? fragment : "no program";
-    }
+    const vertex = gl.createShader(gl.VERTEX_SHADER);
+    const fragment = gl.createShader(gl.FRAGMENT_SHADER);
+    if (!program || !vertex || !fragment) return null;
+    gl.shaderSource(vertex, VERTEX_SHADER);
+    gl.shaderSource(fragment, frag);
+    gl.compileShader(vertex);
+    gl.compileShader(fragment);
     gl.attachShader(program, vertex);
     gl.attachShader(program, fragment);
     gl.bindAttribLocation(program, 0, "p");
     gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return gl.getProgramInfoLog(program) ?? "link failed";
-    return program;
+    return { program, vertex, fragment };
 }
 
-function compile(gl: WebGLRenderingContext, type: number, source: string): WebGLShader | string {
-    const shader = gl.createShader(type);
-    if (!shader) return "no shader";
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return gl.getShaderInfoLog(shader) ?? "compile failed";
-    return shader;
+/** The linked program, or why it failed. The shaders are freed either way: a linked program no longer needs them. */
+function finishProgram(gl: WebGLRenderingContext, { program, vertex, fragment }: ProgramBuild): WebGLProgram | string {
+    const linked = !!gl.getProgramParameter(program, gl.LINK_STATUS);
+    const reason = linked
+        ? ""
+        : [fragment, vertex]
+              .filter((shader) => !gl.getShaderParameter(shader, gl.COMPILE_STATUS))
+              .map((shader) => gl.getShaderInfoLog(shader) || "compile failed")[0] ||
+          gl.getProgramInfoLog(program) ||
+          "link failed";
+    for (const shader of [vertex, fragment]) {
+        gl.detachShader(program, shader);
+        gl.deleteShader(shader);
+    }
+    if (linked) return program;
+    gl.deleteProgram(program);
+    return reason;
 }

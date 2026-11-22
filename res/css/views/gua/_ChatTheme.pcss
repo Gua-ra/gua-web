@@ -130,12 +130,37 @@ Please see LICENSE files in the repository root for full details.
     gap: var(--cpd-space-2x);
 }
 
-.mx_GuaThemePanel_progress {
+.mx_GuaThemePanel_error {
+    margin: 0;
+    text-align: end;
+    font: var(--cpd-font-body-sm-regular);
+    color: var(--cpd-color-text-critical-primary);
+}
+
+/* Read by screen readers only. */
+.mx_GuaThemePanel_status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.mx_GuaThemeSubView_header {
     display: flex;
     align-items: center;
     gap: var(--cpd-space-2x);
-    font: var(--cpd-font-body-md-regular);
-    color: var(--cpd-color-text-secondary);
+
+    h3 {
+        margin: 0;
+        font: var(--cpd-font-body-lg-semibold);
+        color: var(--cpd-color-text-primary);
+    }
+}
+
+.mx_GuaThemeSubView_photo {
+    align-self: flex-start;
 }
 
 .mx_GuaThemePanel_note {
@@ -154,19 +179,19 @@ Please see LICENSE files in the repository root for full details.
     color: var(--cpd-color-text-primary);
 }
 
+/* Wraps, so every option shows on a desktop without a sideways scroll. */
 .mx_GuaThemeTiles {
-    display: flex;
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 84px);
     gap: var(--cpd-space-3x);
     padding: var(--cpd-space-1x);
-    overflow-x: auto;
 }
 
 /* Phone-shaped, 19.5 by 9 like the stills. */
 .mx_GuaThemeTile {
     position: relative;
     isolation: isolate;
-    flex: none;
+    box-sizing: border-box;
     width: 84px;
     height: 182px;
     padding: 0;
@@ -180,14 +205,41 @@ Please see LICENSE files in the repository root for full details.
         z-index: -1;
     }
 
-    &:disabled {
-        cursor: default;
-    }
-
-    &:focus-visible {
+    &:has(> .mx_GuaThemeTile_input:focus-visible) {
         outline: 2px solid var(--cpd-color-border-focused);
         outline-offset: 2px;
     }
+}
+
+.mx_GuaThemeTile_disabled {
+    cursor: default;
+}
+
+/* The native radio fills its tile or swatch unseen, so a click anywhere on it picks it. */
+.mx_GuaThemeTile_input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    appearance: none;
+    cursor: inherit;
+}
+
+.mx_GuaThemeTile_current {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    max-width: calc(100% - 36px);
+    padding: 1px 6px;
+    border-radius: 12px;
+    background-color: color-mix(in srgb, var(--cpd-color-bg-canvas-default) 88%, transparent);
+    font: var(--cpd-font-body-xs-semibold);
+    color: var(--cpd-color-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .mx_GuaThemeTile_selected {
@@ -258,8 +310,10 @@ Please see LICENSE files in the repository root for full details.
 }
 
 .mx_GuaThemeSwatch {
+    position: relative;
     display: flex;
     flex: none;
+    box-sizing: border-box;
     align-items: center;
     justify-content: center;
     width: 40px;
@@ -275,35 +329,26 @@ Please see LICENSE files in the repository root for full details.
         color: var(--cpd-color-icon-primary);
     }
 
-    &:focus-visible {
+    &:has(> .mx_GuaThemeTile_input:focus-visible) {
         outline: 2px solid var(--cpd-color-border-focused);
         outline-offset: 2px;
     }
+}
+
+/* Swatches are smaller than tiles. */
+.mx_GuaThemeTiles:has(> .mx_GuaThemeSwatch) {
+    grid-template-columns: repeat(auto-fill, 40px);
 }
 
 .mx_GuaThemeSwatch_standard {
     background-color: $eventbubble-self-bg;
 }
 
-.mx_GuaThemePickerDialog {
-    display: flex;
-    flex-direction: column;
-    gap: var(--cpd-space-4x);
-    width: min(560px, 90vw);
-}
-
-.mx_GuaThemePickerDialog_gallery {
-    display: flex;
-    flex-direction: column;
-    gap: var(--cpd-space-4x);
-    max-height: 45vh;
-    overflow-y: auto;
-}
-
 .mx_GuaThemeDefault {
     display: flex;
     align-items: center;
     gap: var(--cpd-space-4x);
+    margin-bottom: var(--cpd-space-4x);
 
     .mx_GuaThemeTile {
         cursor: default;
@@ -316,7 +361,7 @@ Please see LICENSE files in the repository root for full details.
     color: var(--cpd-color-text-primary);
 }
 
-.mx_GuaThemePickerDialog_file {
+.mx_GuaThemeSubView_file {
     display: none;
 }
 

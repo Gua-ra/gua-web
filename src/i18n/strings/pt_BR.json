@@ -55,6 +55,7 @@
             "chat_note": "Todos na conversa veem este tema.",
             "choose_photo": "Escolher uma foto",
             "classic": "Clássico",
+            "current": "Atual",
             "default_note": "Vale para todas as conversas que não têm um tema próprio.",
             "default_tile": "Padrão",
             "error_generic": "Não foi possível alterar o fundo. Tente novamente.",
@@ -79,6 +80,7 @@
                 "move_up": "Mover a foto para cima",
                 "note": "As fotos de fundo não são criptografadas de ponta a ponta.",
                 "position_hint": "Arraste para posicionar a foto",
+                "preview_appearance": "Aparência da prévia",
                 "too_large": "Esta foto é grande demais. Escolha outra."
             },
             "photo_value": "Foto",
@@ -100,7 +102,7 @@
             },
             "preview_label": "Prévia do fundo",
             "preview_send": "Ver o efeito de envio",
-            "progress": "Definindo tema…",
+            "previewing": "Prévia de %(name)s. Selecione “%(action)s” para manter.",
             "sample": {
                 "incoming": "Como ficou?",
                 "outgoing": "Ficou ótimo!",
@@ -117,6 +119,7 @@
             "set": "Definir",
             "set_default": "Definir como padrão",
             "set_theme": "Definir tema",
+            "theme_set": "Tema definido",
             "title": "Tema da conversa",
             "use_bubble_layout": "Usar balões de mensagem",
             "wallpaper": "Papel de parede"

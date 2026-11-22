@@ -5,8 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
 Please see LICENSE files in the repository root for full details.
 */
 
-import React, { type JSX, type PointerEvent, useId, useRef, useState } from "react";
-import { type Room } from "matrix-js-sdk/src/matrix";
+import React, { type JSX, type PointerEvent, useEffect, useId, useRef, useState } from "react";
 import { IconButton, InlineField, Label, RadioControl, Root } from "@vector-im/compound-web";
 import ArrowLeftIcon from "@vector-im/compound-design-tokens/assets/web/icons/arrow-left";
 import ArrowRightIcon from "@vector-im/compound-design-tokens/assets/web/icons/arrow-right";
@@ -14,24 +13,23 @@ import ArrowUpIcon from "@vector-im/compound-design-tokens/assets/web/icons/arro
 import ArrowDownIcon from "@vector-im/compound-design-tokens/assets/web/icons/arrow-down";
 
 import { _t } from "../../../languageHandler";
-import BaseDialog from "../../../components/views/dialogs/BaseDialog";
-import DialogButtons from "../../../components/views/elements/DialogButtons";
 import { useMatrixClientContext } from "../../../contexts/MatrixClientContext";
 import { PHOTO_DEFAULT_ALIGN, PHOTO_DEFAULT_DIM, PHOTO_MAX_ALIGN, PHOTO_MAX_DIM } from "../model/constants";
 import { aspectFill } from "../model/layout";
-import { baseTheme, type ThemeScreenMode } from "../model/screenModel";
+import { baseTheme } from "../model/screenModel";
 import { type PhotoWallpaper, withBubbles } from "../model/types";
 import { useAppearance } from "../state/useAppearance";
 import { ChatThemePreview } from "./ChatThemePreview";
+import { ChatThemeActions, ChatThemeSubView } from "./ChatThemeSubView";
 import { type PreparedPhoto, PHOTO_MIMETYPE, uploadPhoto } from "./photo/preparePhoto";
-import { useSaveAndClose } from "./usePickerSave";
-import { useThemeScreen } from "./useThemeScreen";
+import { useThemeSave } from "./usePickerSave";
+import { type ThemeScreen } from "./useThemeScreen";
 
 interface Props {
-    mode: ThemeScreenMode;
-    room?: Room;
+    screen: ThemeScreen;
     photo: PreparedPhoto;
-    onFinished: () => void;
+    onBack: () => void;
+    onSaved: () => void;
 }
 
 const NUDGE = 100;
@@ -39,17 +37,35 @@ const DIM_STEP = 5;
 
 const clampAlign = (value: number): number => Math.round(Math.min(Math.max(value, 0), PHOTO_MAX_ALIGN));
 
-function ChatPhotoEditorDialogContent({ mode, room, photo, onFinished }: Props): JSX.Element {
+/**
+ * Closes the photo once the editor is really gone. A development double mount runs the cleanup and mounts again
+ * within the same task, so the close waits a task to see whether it did.
+ */
+function useCloseOnUnmount(bitmap: ImageBitmap): void {
+    const mounted = useRef(false);
+    useEffect(() => {
+        mounted.current = true;
+        return () => {
+            mounted.current = false;
+            window.setTimeout(() => {
+                if (!mounted.current) bitmap.close();
+            });
+        };
+    }, [bitmap]);
+}
+
+export function ChatPhotoEditor({ screen, photo, onBack, onSaved }: Props): JSX.Element {
+    const { state, save } = screen;
     const client = useMatrixClientContext();
-    const { state, save } = useThemeScreen(mode, room);
     const appearance = useAppearance();
     const [dim, setDim] = useState(PHOTO_DEFAULT_DIM);
     const [align, setAlign] = useState({ x: PHOTO_DEFAULT_ALIGN, y: PHOTO_DEFAULT_ALIGN });
     const [previewDark, setPreviewDark] = useState(appearance.dark);
-    const { saving, saveAndClose } = useSaveAndClose(save, onFinished);
+    const { saving, error, run } = useThemeSave(save);
     const frameRef = useRef<HTMLDivElement>(null);
     const drag = useRef<{ x: number; y: number; align: { x: number; y: number } } | null>(null);
     const dimId = useId();
+    useCloseOnUnmount(photo.bitmap);
 
     const wallpaper: PhotoWallpaper = {
         url: "",
@@ -83,13 +99,13 @@ function ChatPhotoEditorDialogContent({ mode, room, photo, onFinished }: Props):
     };
 
     const onSet = (): Promise<void> =>
-        saveAndClose(async () => {
+        run(async () => {
             const uploaded = await uploadPhoto(client, photo, { dim, alignX: align.x, alignY: align.y });
             return withBubbles({ kind: "photo", photo: uploaded }, base);
-        });
+        }, onSaved);
 
     return (
-        <>
+        <ChatThemeSubView title={_t("gua|chat_theme|wallpaper")} onBack={onBack}>
             <div
                 ref={frameRef}
                 className="mx_GuaPhotoEditor_frame"
@@ -140,7 +156,11 @@ function ChatPhotoEditorDialogContent({ mode, room, photo, onFinished }: Props):
                 </IconButton>
             </div>
             <Root className="mx_GuaPhotoEditor_controls" onSubmit={(event) => event.preventDefault()}>
-                <div className="mx_GuaPhotoEditor_appearance" role="radiogroup">
+                <div
+                    className="mx_GuaPhotoEditor_appearance"
+                    role="radiogroup"
+                    aria-label={_t("gua|chat_theme|photo|preview_appearance")}
+                >
                     <InlineField
                         name="gua-photo-preview"
                         control={<RadioControl checked={!previewDark} onChange={() => setPreviewDark(false)} />}
@@ -163,6 +183,7 @@ function ChatPhotoEditorDialogContent({ mode, room, photo, onFinished }: Props):
                         max={PHOTO_MAX_DIM}
                         step={DIM_STEP}
                         value={dim}
+                        aria-valuetext={`${dim}%`}
                         onChange={(event) => {
                             setDim(Number(event.target.value));
                             setPreviewDark(true);
@@ -171,26 +192,14 @@ function ChatPhotoEditorDialogContent({ mode, room, photo, onFinished }: Props):
                 </label>
             </Root>
             <p className="mx_GuaThemePanel_note">{_t("gua|chat_theme|photo|note")}</p>
-            <DialogButtons
-                primaryButton={saving ? _t("gua|chat_theme|progress") : _t("gua|chat_theme|set")}
-                primaryDisabled={saving || !state.canChange}
-                onPrimaryButtonClick={onSet}
-                onCancel={onFinished}
+            <ChatThemeActions
+                setLabel={_t("gua|chat_theme|set")}
+                saving={saving}
+                disabled={!state.canChange}
+                error={error}
+                onCancel={onBack}
+                onSet={onSet}
             />
-        </>
-    );
-}
-
-/** The content sits inside BaseDialog, which provides the client context to modals. */
-export function ChatPhotoEditorDialog(props: Props): JSX.Element {
-    return (
-        <BaseDialog
-            className="mx_GuaThemePickerDialog mx_GuaPhotoEditor"
-            title={_t("gua|chat_theme|wallpaper")}
-            onFinished={props.onFinished}
-            fixedWidth={false}
-        >
-            <ChatPhotoEditorDialogContent {...props} />
-        </BaseDialog>
+        </ChatThemeSubView>
     );
 }

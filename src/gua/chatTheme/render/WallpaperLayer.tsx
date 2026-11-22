@@ -5,17 +5,16 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
 Please see LICENSE files in the repository root for full details.
 */
 
-import React, { type JSX, useRef } from "react";
+import React, { type JSX, useMemo, useRef } from "react";
 import classNames from "classnames";
 
 import { getArtwork, isLive } from "../model/artworks";
-import { stillUrl } from "../model/artworkAssets";
+import { stillUrl, thumbnailUrl } from "../model/artworkAssets";
 import { presetBackground } from "../model/presetFill";
 import { isGradient, presetFill } from "../model/presets";
 import { type Wallpaper } from "../model/types";
 import { LiveWallpaperCanvas } from "../live/LiveWallpaperCanvas";
-import { type VisibleChat } from "../model/layout";
-import { type SendPulse } from "../live/timing";
+import { type SendPulse, type WallpaperMotion } from "../live/timing";
 import { type Appearance } from "../state/useAppearance";
 import { type Size, useCrossfade, useDevicePixelRatio, useElementSize } from "./hooks";
 import { PhotoLayer } from "./PhotoLayer";
@@ -27,20 +26,19 @@ const GRAIN_TILE = 128;
 export interface LiveOptions {
     inDialog: boolean;
     pulse?: SendPulse;
-    pulseCount?: number;
-    visibleChat?: () => VisibleChat;
+    onMotion?: (motion: WallpaperMotion) => void;
 }
 
-interface Props {
+interface FillProps {
     wallpaper: Wallpaper;
     appearance: Appearance;
+    size: Size;
     /** Only the timeline and the theme preview animate a live artwork; elsewhere it shows its still. */
-    live?: LiveOptions;
-    /** Lets the browser skip stills that are scrolled out of view, as in a gallery. */
-    lazy?: boolean;
+    live?: LiveOptions & { frozen?: boolean };
+    /** A small sample: the artwork's thumbnail, no grain, and lazy loading for galleries. */
+    thumbnail?: boolean;
     /** A photo being edited, shown before it is uploaded. */
     localPhoto?: ImageBitmap;
-    className?: string;
 }
 
 function wallpaperKey(wallpaper: Wallpaper): string {
@@ -68,14 +66,7 @@ function LightScrim({ appearance }: { appearance: Appearance }): JSX.Element | n
     ) : null;
 }
 
-function WallpaperFill({
-    wallpaper,
-    size,
-    appearance,
-    live,
-    lazy,
-    localPhoto,
-}: Omit<Props, "className"> & { size: Size }): JSX.Element {
+function WallpaperFill({ wallpaper, size, appearance, live, thumbnail, localPhoto }: FillProps): JSX.Element {
     const { dark } = appearance;
     switch (wallpaper.kind) {
         case "none":
@@ -88,7 +79,7 @@ function WallpaperFill({
                         className="mx_GuaWallpaper_fill"
                         style={{ background: presetBackground(fill, size.width, size.height) }}
                     />
-                    {isGradient(fill) && <Grain />}
+                    {isGradient(fill) && !thumbnail && <Grain />}
                     <LightScrim appearance={appearance} />
                 </>
             );
@@ -105,9 +96,9 @@ function WallpaperFill({
                     />
                     <img
                         className="mx_GuaWallpaper_still"
-                        src={stillUrl(artwork.id, dark)}
+                        src={thumbnail ? thumbnailUrl(artwork.id, dark) : stillUrl(artwork.id, dark)}
                         alt=""
-                        loading={lazy ? "lazy" : "eager"}
+                        loading={thumbnail ? "lazy" : "eager"}
                         decoding="async"
                         draggable={false}
                         style={{ objectPosition: `${artwork.anchor.x * 100}% ${artwork.anchor.y * 100}%` }}
@@ -122,7 +113,7 @@ function WallpaperFill({
                             {...live}
                         />
                     )}
-                    <Grain />
+                    {!thumbnail && <Grain />}
                     <LightScrim appearance={appearance} />
                 </>
             );
@@ -143,11 +134,20 @@ function WallpaperFill({
     }
 }
 
+interface Props {
+    wallpaper: Wallpaper;
+    appearance: Appearance;
+    live?: LiveOptions;
+    localPhoto?: ImageBitmap;
+    className?: string;
+}
+
 /** One theme's wallpaper filling its box, crossfading when it changes. Never mirrored for right-to-left layouts. */
-export function WallpaperLayer({ wallpaper, appearance, live, lazy, localPhoto, className }: Props): JSX.Element {
+export function WallpaperLayer({ wallpaper, appearance, live, localPhoto, className }: Props): JSX.Element {
     const ref = useRef<HTMLDivElement>(null);
     const size = useElementSize(ref);
     const layers = useCrossfade(wallpaperKey(wallpaper), wallpaper, CROSSFADE_MS);
+    const frozen = useMemo(() => live && { ...live, frozen: true, onMotion: undefined }, [live]);
     return (
         <div ref={ref} className={classNames("mx_GuaWallpaper", className)} aria-hidden={true}>
             {layers.map((layer, index) => {
@@ -163,13 +163,39 @@ export function WallpaperLayer({ wallpaper, appearance, live, lazy, localPhoto, 
                             wallpaper={layer.value}
                             size={size}
                             appearance={appearance}
-                            live={isTop ? live : undefined}
-                            lazy={lazy}
+                            live={isTop ? live : frozen}
                             localPhoto={isTop ? localPhoto : undefined}
                         />
                     </div>
                 );
             })}
+        </div>
+    );
+}
+
+/**
+ * A wallpaper in a small box of a fixed size, such as a gallery tile: no crossfade, grain or live canvas, and the
+ * artwork's thumbnail rather than its full still.
+ */
+export function WallpaperThumbnail({
+    wallpaper,
+    appearance,
+    width,
+    height,
+    className,
+}: {
+    wallpaper: Wallpaper;
+    appearance: Appearance;
+    width: number;
+    height: number;
+    className?: string;
+}): JSX.Element {
+    const size = useMemo(() => ({ width, height }), [width, height]);
+    return (
+        <div className={classNames("mx_GuaWallpaper", className)} aria-hidden={true}>
+            <div className="mx_GuaWallpaper_layer">
+                <WallpaperFill wallpaper={wallpaper} size={size} appearance={appearance} thumbnail />
+            </div>
         </div>
     );
 }

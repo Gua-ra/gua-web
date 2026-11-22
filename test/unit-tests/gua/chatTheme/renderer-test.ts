@@ -11,15 +11,20 @@ import {
     CONTEXT_ATTRIBUTES,
     hasShaderFailed,
     LiveWallpaperRenderer,
+    openContext,
+    releaseContext,
 } from "../../../../src/gua/chatTheme/live/renderer";
 
 const FRAG =
     "precision highp float;\nuniform vec2 u_res;\nvoid main(){gl_FragColor=vec4(gl_FragCoord.xy/u_res,0.0,1.0);}";
 
 /** Records the calls a renderer makes, with uniform locations named after their uniforms. */
-function fakeGl(options: { compiles?: boolean; uniforms?: string[] } = {}) {
+function fakeGl(options: { compiles?: boolean; uniforms?: string[]; parallelAfterPolls?: number } = {}) {
     const calls: unknown[][] = [];
     const sources: string[] = [];
+    let polls = 0;
+    const loseContext = jest.fn();
+    const parallel = { COMPLETION_STATUS_KHR: 9 };
     const record =
         (name: string, result?: unknown) =>
         (...args: unknown[]) => {
@@ -39,6 +44,12 @@ function fakeGl(options: { compiles?: boolean; uniforms?: string[] } = {}) {
         drawingBufferHeight: 600,
         createProgram: record("createProgram", {}),
         createShader: (type: number) => ({ type }),
+        getExtension: (name: string) =>
+            name === "KHR_parallel_shader_compile" && options.parallelAfterPolls !== undefined
+                ? parallel
+                : name === "WEBGL_lose_context"
+                  ? { loseContext }
+                  : null,
         shaderSource: (_shader: unknown, source: string) => {
             sources.push(source);
         },
@@ -46,9 +57,15 @@ function fakeGl(options: { compiles?: boolean; uniforms?: string[] } = {}) {
         getShaderParameter: () => options.compiles ?? true,
         getShaderInfoLog: () => "ERROR: 0:1: bad shader",
         attachShader: record("attachShader"),
+        detachShader: record("detachShader"),
+        deleteShader: record("deleteShader"),
         bindAttribLocation: record("bindAttribLocation"),
         linkProgram: record("linkProgram"),
-        getProgramParameter: () => true,
+        getProgramParameter: (_program: unknown, parameter: number) => {
+            if (parameter !== parallel.COMPLETION_STATUS_KHR) return options.compiles ?? true;
+            calls.push(["poll"]);
+            return polls++ >= (options.parallelAfterPolls ?? 0);
+        },
         getProgramInfoLog: () => "",
         useProgram: record("useProgram"),
         createBuffer: record("createBuffer", {}),
@@ -70,7 +87,7 @@ function fakeGl(options: { compiles?: boolean; uniforms?: string[] } = {}) {
         deleteProgram: record("deleteProgram"),
         deleteBuffer: record("deleteBuffer"),
     };
-    return { gl, calls, sources };
+    return { gl: gl as unknown as WebGLRenderingContext, calls, sources, loseContext };
 }
 
 function canvasWith(gl: unknown): HTMLCanvasElement {
@@ -79,11 +96,14 @@ function canvasWith(gl: unknown): HTMLCanvasElement {
     return canvas;
 }
 
+const create = (gl: WebGLRenderingContext, artwork: "silk" | "ipe" | "boreal" | "lagoon" = "silk") =>
+    LiveWallpaperRenderer.create(gl, artwork, FRAG, async () => {});
+
 describe("LiveWallpaperRenderer", () => {
     it("asks for the Lab's context and refuses a software fallback", () => {
         const { gl } = fakeGl();
         const canvas = canvasWith(gl);
-        LiveWallpaperRenderer.create(canvas, "silk", FRAG);
+        expect(openContext(canvas)).toBe(gl);
         expect(canvas.getContext).toHaveBeenCalledWith("webgl", CONTEXT_ATTRIBUTES);
         expect(CONTEXT_ATTRIBUTES).toEqual(
             expect.objectContaining({ alpha: false, antialias: false, premultipliedAlpha: false }),
@@ -91,9 +111,9 @@ describe("LiveWallpaperRenderer", () => {
         expect(CONTEXT_ATTRIBUTES.failIfMajorPerformanceCaveat).toBe(true);
     });
 
-    it("draws one full-screen triangle with the uniforms of the frame", () => {
+    it("draws one full-screen triangle with the uniforms of the frame", async () => {
         const { gl, calls } = fakeGl();
-        const renderer = LiveWallpaperRenderer.create(canvasWith(gl), "silk", FRAG)!;
+        const renderer = (await create(gl))!;
         expect(calls).toContainEqual(["bindAttribLocation", {}, 0, "p"]);
         const triangle = calls.find((call) => call[0] === "bufferData")![2] as Float32Array;
         expect(Array.from(triangle)).toEqual([-1, -1, 3, -1, -1, 3]);
@@ -120,9 +140,9 @@ describe("LiveWallpaperRenderer", () => {
         ]);
     });
 
-    it("skips uniforms a shader does not use", () => {
+    it("skips uniforms a shader does not use", async () => {
         const { gl, calls } = fakeGl({ uniforms: ["u_res", "u_offset"] });
-        const renderer = LiveWallpaperRenderer.create(canvasWith(gl), "silk", FRAG)!;
+        const renderer = (await create(gl))!;
         calls.length = 0;
         renderer.draw({ resolution: [1, 2], offset: [3, 4], time: 0, dark: false, pulse: 0, origin: [0, 0] });
         expect(calls.filter((call) => String(call[0]).startsWith("uniform"))).toEqual([
@@ -131,31 +151,56 @@ describe("LiveWallpaperRenderer", () => {
         ]);
     });
 
-    it("gives no renderer without WebGL", () => {
-        expect(LiveWallpaperRenderer.create(canvasWith(null), "ipe", FRAG)).toBeNull();
+    it("gives no context without WebGL", () => {
+        expect(openContext(canvasWith(null))).toBeNull();
         expect(hasShaderFailed("ipe")).toBe(false);
     });
 
-    it("keeps an artwork whose shader fails still for the session, logged once", () => {
+    it("keeps an artwork whose shader fails still for the session, logged once", async () => {
         const warn = jest.spyOn(logger, "warn").mockImplementation(() => {});
-        expect(LiveWallpaperRenderer.create(canvasWith(fakeGl({ compiles: false }).gl), "boreal", FRAG)).toBeNull();
+        expect(await create(fakeGl({ compiles: false }).gl, "boreal")).toBeNull();
         expect(hasShaderFailed("boreal")).toBe(true);
-        expect(LiveWallpaperRenderer.create(canvasWith(fakeGl().gl), "boreal", FRAG)).toBeNull();
+        expect(await create(fakeGl().gl, "boreal")).toBeNull();
         expect(warn).toHaveBeenCalledTimes(1);
+        expect(warn.mock.calls[0][0]).toContain("ERROR: 0:1: bad shader");
         expect(hasShaderFailed("lagoon")).toBe(false);
     });
 
-    it("compiles the shader with its frame offset", () => {
+    it("compiles the shader with its frame offset", async () => {
         const { gl, sources } = fakeGl();
-        LiveWallpaperRenderer.create(canvasWith(gl), "lagoon", FRAG);
+        await create(gl, "lagoon");
         expect(sources[1]).toContain("uniform vec2 u_offset;");
         expect(sources[1]).toContain("(gl_FragCoord+vec4(u_offset,0.0,0.0)).xy");
     });
 
-    it("frees its program but keeps the context when disposed", () => {
-        const { gl, calls } = fakeGl();
-        LiveWallpaperRenderer.create(canvasWith(gl), "silk", FRAG)!.dispose();
+    it("waits for a parallel compile a frame at a time before reading the result", async () => {
+        const { gl, calls } = fakeGl({ parallelAfterPolls: 2 });
+        const nextFrame = jest.fn(async () => {});
+        expect(await LiveWallpaperRenderer.create(gl, "silk", FRAG, nextFrame)).not.toBeNull();
+        expect(nextFrame).toHaveBeenCalledTimes(2);
+        expect(calls.filter((call) => call[0] === "poll")).toHaveLength(3);
+    });
+
+    it("gives up a parallel compile when the context is lost meanwhile", async () => {
+        const { gl } = fakeGl({ parallelAfterPolls: 5 });
+        let lost = false;
+        gl.isContextLost = () => lost;
+        const renderer = LiveWallpaperRenderer.create(gl, "ipe", FRAG, async () => {
+            lost = true;
+        });
+        expect(await renderer).toBeNull();
+        expect(hasShaderFailed("ipe")).toBe(false);
+    });
+
+    it("frees its shaders once linked, its program when disposed, and the context when released", async () => {
+        const { gl, calls, loseContext } = fakeGl();
+        const renderer = (await create(gl))!;
+        expect(calls.filter((call) => call[0] === "deleteShader")).toHaveLength(2);
+        expect(calls.filter((call) => call[0] === "detachShader")).toHaveLength(2);
+        renderer.dispose();
         expect(calls.map((call) => call[0])).toEqual(expect.arrayContaining(["deleteProgram", "deleteBuffer"]));
-        expect(LiveWallpaperRenderer.create(canvasWith(gl), "silk", FRAG)).not.toBeNull();
+        expect(loseContext).not.toHaveBeenCalled();
+        releaseContext(gl);
+        expect(loseContext).toHaveBeenCalled();
     });
 });

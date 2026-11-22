@@ -883,8 +883,8 @@ describe("RoomView", () => {
             await waitFor(() => expect(container.querySelector(".mx_GuaChatWallpaper")).not.toBeNull());
             const body = container.querySelector(".mx_RoomView_body")!;
             expect(body).toHaveAttribute("data-gua-wallpaper");
-            expect(body).toHaveAttribute("data-gua-bubble");
-            expect(body.querySelector(":scope > .mx_GuaChatWallpaper")).not.toBeNull();
+            expect(container.querySelector(".mx_RoomView")).toHaveAttribute("data-gua-bubble");
+            expect(body.querySelector(":scope > .mx_RoomView_timeline > .mx_GuaChatWallpaper")).not.toBeNull();
         } finally {
             if (earlierMock) jest.mocked(SettingsStore.getValue).mockImplementation(earlierMock);
             await SettingsStore.setValue("feature_gua_chat_themes", null, SettingLevel.DEVICE, false);

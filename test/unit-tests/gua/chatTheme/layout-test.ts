@@ -25,10 +25,17 @@ describe("wallpaper layout", () => {
         expectRect(aspectFill(200, 100, 100, 200, 0.5, 0.72), { x: 0, y: -216, width: 200, height: 400 });
     });
 
-    it("never renders below one pixel per CSS pixel", () => {
-        expect(liveRenderScale(1)).toBe(1);
-        expect(liveRenderScale(2)).toBe(1);
-        expect(liveRenderScale(3)).toBe(1.5);
+    it("renders at half the display scale, never below one pixel per CSS pixel on a normal view", () => {
+        expect(liveRenderScale(1, 1200, 800)).toBe(1);
+        expect(liveRenderScale(2, 1200, 800)).toBe(1);
+        expect(liveRenderScale(3, 800, 600)).toBe(1.5);
+    });
+
+    it("keeps a large view's frame at 2.5 million pixels", () => {
+        const scale = liveRenderScale(1.5, 2560, 1300);
+        expect(scale).toBeLessThan(1);
+        expect(2560 * 1300 * scale * scale).toBeCloseTo(2_500_000, 3);
+        expect(liveRenderScale(4, 1800, 1200)).toBeCloseTo(Math.sqrt(2_500_000 / (1800 * 1200)), 9);
     });
 
     it("maps a wide view onto the still's frame in whole pixels", () => {

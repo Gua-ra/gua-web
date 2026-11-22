@@ -134,7 +134,7 @@ import { ScopedRoomContextProvider, useScopedRoomContext } from "../../contexts/
 import { DeclineAndBlockInviteDialog } from "../views/dialogs/DeclineAndBlockInviteDialog";
 import { type FocusMessageSearchPayload } from "../../dispatcher/payloads/FocusMessageSearchPayload.ts";
 import { getRoomUpgradeRecommendation } from "../../utils/RoomUpgrade";
-import { ChatWallpaper } from "../../gua/chatTheme/render/ChatWallpaper";
+import { ChatThemeWallpaper } from "../../gua/chatTheme/lazy";
 
 const DEBUG = false;
 const PREVENT_MULTIPLE_JITSI_WITHIN = 30_000;
@@ -2562,11 +2562,11 @@ export class RoomView extends React.Component<IRoomProps, IRoomState> {
                 mainSplitContentClassName = "mx_MainSplit_timeline";
                 mainSplitBody = (
                     <>
-                        <ChatWallpaper room={this.state.room} bodyRef={this.roomViewBody} />
                         <Measured sensor={this.roomViewBody} onMeasurement={this.onMeasurement} />
                         {auxPanel}
                         {pinnedMessageBanner}
                         <main className={timelineClasses}>
+                            <ChatThemeWallpaper room={this.state.room} bodyRef={this.roomViewBody} />
                             <FileDropTarget
                                 parent={this.roomView.current}
                                 onFileDrop={this.onFileDrop}

@@ -41,6 +41,7 @@ Please see LICENSE files in the repository root for full details.
 
 .mx_GuaWallpaper_fill,
 .mx_GuaWallpaper_still,
+.mx_GuaWallpaper_liveFrame,
 .mx_GuaWallpaper_live,
 .mx_GuaWallpaper_grain,
 .mx_GuaWallpaper_scrim {
@@ -59,7 +60,7 @@ Please see LICENSE files in the repository root for full details.
     user-select: none;
 }
 
-/* The canvas shows only once it has drawn, and the still stays under it. */
+/* The canvas shows only once it has drawn, and the still stays under it. It sets its own opacity. */
 .mx_GuaWallpaper_live {
     display: block;
 }
@@ -80,28 +81,32 @@ Please see LICENSE files in the repository root for full details.
     position: absolute;
 }
 
-/* The timeline's wallpaper sits below every tile, including the bubbles' own hover backgrounds at z-index -1. */
-.mx_RoomView_body[data-gua-wallpaper],
-.mx_RoomView_body[data-gua-bubble] {
-    position: relative;
+/* The wallpaper fills the timeline column, below every tile including the bubbles' own hover backgrounds at
+   z-index -1. The header, banners, status bar and composer keep their own backgrounds outside it. */
+.mx_RoomView_body[data-gua-wallpaper] > .mx_RoomView_timeline {
     isolation: isolate;
 }
 
+/* The column's right margin is part of the timeline's area. */
 .mx_GuaChatWallpaper {
     z-index: -1;
+    right: calc(var(--container-gap-width) / -2);
 }
 
-.mx_RoomView_body[data-gua-bubble] {
+/* On the room, so the threads in its right panel get the colour too. */
+.mx_RoomView[data-gua-bubble] {
     --gua-bubble: var(--gua-bubble-light, $eventbubble-self-bg);
 }
 
-.cpd-theme-dark .mx_RoomView_body[data-gua-bubble],
-.cpd-theme-dark-hc .mx_RoomView_body[data-gua-bubble] {
+.cpd-theme-dark .mx_RoomView[data-gua-bubble],
+.cpd-theme-dark-hc .mx_RoomView[data-gua-bubble] {
     --gua-bubble: var(--gua-bubble-dark, $eventbubble-self-bg);
 }
 
-/* Only real bubbles: info tiles, stickers and other bubble-less tiles stay transparent. */
-.mx_RoomView_body[data-gua-bubble]
+/* Only real bubbles: info tiles, stickers and other bubble-less tiles stay transparent. The palette colours sit
+   further from the text than the stock bubble, so secondary text and links take the next step of their ramp to keep
+   4.5:1. The timestamp's colour is resolved on the root, so it is set here again. */
+.mx_RoomView[data-gua-bubble]
     .mx_EventTile[data-layout="bubble"][data-self="true"]:not(
         .mx_EventTile_info,
         .mx_EventTile_noBubble,
@@ -109,24 +114,30 @@ Please see LICENSE files in the repository root for full details.
         .mx_EventTile_leftAlignedBubble
     ) {
     --backgroundColor: var(--gua-bubble);
+    --cpd-color-text-secondary: var(--cpd-color-gray-1100);
+    --MessageTimestamp-color: var(--cpd-color-gray-1100);
+    --cpd-color-text-link-external: var(--cpd-color-blue-1000);
 
     .mx_MediaBody {
         background: var(--gua-bubble);
     }
 }
 
+.cpd-theme-dark,
+.cpd-theme-dark-hc {
+    .mx_RoomView[data-gua-bubble]
+        .mx_EventTile[data-layout="bubble"][data-self="true"]:not(
+            .mx_EventTile_info,
+            .mx_EventTile_noBubble,
+            .mx_EventTile_bubbleContainer,
+            .mx_EventTile_leftAlignedBubble
+        ) {
+        --cpd-color-text-link-external: var(--cpd-color-blue-1100);
+    }
+}
+
 .mx_RoomView_body[data-gua-wallpaper] {
     --gua-legibility-background: color-mix(in srgb, var(--cpd-color-bg-canvas-default) 88%, transparent);
-
-    /* The bars around the timeline stay opaque, across the whole width. */
-    > .mx_MessageComposer,
-    > .mx_RoomView_statusArea,
-    > .mx_AuxPanel,
-    > .mx_RoomPreviewBar {
-        background-color: var(--cpd-color-bg-canvas-default);
-        box-shadow: 0 0 0 100vmax var(--cpd-color-bg-canvas-default);
-        clip-path: inset(0 -100vmax);
-    }
 
     /* Rings cut out of the page colour would show as halos on a wallpaper. */
     .mx_EventTile[data-layout="bubble"] .mx_EventTile_avatar {
@@ -141,6 +152,16 @@ Please see LICENSE files in the repository root for full details.
         visibility: hidden;
     }
 
+    /* Emotes, polls and locations have no bubble of their own, so they get one of the page colour. */
+    .mx_EventTile.mx_EventTile_noBubble[data-layout="bubble"] .mx_EventTile_line {
+        border-radius: var(--cornerRadius);
+        background-color: var(--gua-legibility-background);
+
+        &.mx_EventTile_emote {
+            padding-inline-start: 8px;
+        }
+    }
+
     /* Small chrome that sits on the wallpaper reads on a capsule of the page colour. */
     .mx_TimelineSeparator > div,
     .mx_EventTile[data-layout="bubble"] .mx_TextualEvent,
@@ -148,12 +169,32 @@ Please see LICENSE files in the repository root for full details.
     .mx_GenericEventListSummary[data-layout="bubble"] .mx_GenericEventListSummary_toggle,
     .mx_EventTile[data-layout="bubble"][data-self="false"] > .mx_DisambiguatedProfile,
     .mx_EventTile.mx_EventTile_noBubble[data-layout="bubble"] .mx_MessageTimestamp,
+    .mx_ReactionsRow_showAll,
+    .mx_ReadReceiptGroup_remainder,
+    .mx_RoomView_topMarker,
     .mx_WhoIsTypingTile_label {
         width: fit-content;
         padding: 3px 8px;
         border-radius: 12px;
         background-color: var(--gua-legibility-background);
         color: var(--cpd-color-text-primary);
+    }
+
+    /* The capsule's padding hangs outside, so the name stays lined up with its bubble and avatar. */
+    .mx_EventTile[data-layout="bubble"][data-self="false"] > .mx_DisambiguatedProfile {
+        margin-inline-start: -8px;
+        margin-block: -3px;
+    }
+
+    .mx_EventTile_receiptSent,
+    .mx_EventTile_receiptSending,
+    .mx_ReactionsRow_addReactionButton {
+        border-radius: 50%;
+        background-color: var(--gua-legibility-background);
+
+        &::before {
+            background-color: var(--cpd-color-icon-secondary);
+        }
     }
 
     .mx_NewRoomIntro {

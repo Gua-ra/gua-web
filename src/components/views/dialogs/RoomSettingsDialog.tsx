@@ -32,7 +32,7 @@ import { type NonEmptyArray } from "../../../@types/common";
 import { PollHistoryTab } from "../settings/tabs/room/PollHistoryTab";
 import ErrorBoundary from "../elements/ErrorBoundary";
 import { PeopleRoomSettingsTab } from "../settings/tabs/room/PeopleRoomSettingsTab";
-import { ChatThemeRoomSettingsTab } from "../../../gua/chatTheme/ui/ChatThemeRoomSettingsTab";
+import { ChatThemeRoomSettingsTab } from "../../../gua/chatTheme/lazy";
 
 export const enum RoomSettingsTab {
     General = "ROOM_GENERAL_TAB",

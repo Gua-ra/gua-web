@@ -25,7 +25,7 @@ import ImageSizePanel from "../../ImageSizePanel";
 import SettingsTab from "../SettingsTab";
 import { SettingsSection } from "../../shared/SettingsSection";
 import { SettingsSubsection } from "../../shared/SettingsSubsection";
-import { ChatThemeDefaultSettings } from "../../../../../gua/chatTheme/ui/ChatThemeDefaultSettings";
+import { ChatThemeDefaultSettings } from "../../../../../gua/chatTheme/lazy";
 
 interface IState {
     useBundledEmojiFont: boolean;

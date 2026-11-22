@@ -1318,6 +1318,7 @@
             "chat_note": "Everyone in the chat sees this theme.",
             "choose_photo": "Choose a photo",
             "classic": "Classic",
+            "current": "Current",
             "default_note": "Applies to every chat that doesn’t have its own theme.",
             "default_tile": "Default",
             "error_generic": "Couldn’t change the background. Try again.",
@@ -1342,6 +1343,7 @@
                 "move_up": "Move the photo up",
                 "note": "Background photos are not end-to-end encrypted.",
                 "position_hint": "Drag to position the photo",
+                "preview_appearance": "Preview appearance",
                 "too_large": "This photo is too large. Choose another one."
             },
             "photo_value": "Photo",
@@ -1363,7 +1365,7 @@
             },
             "preview_label": "Background preview",
             "preview_send": "Preview the send effect",
-            "progress": "Setting theme…",
+            "previewing": "Previewing %(name)s. Select “%(action)s” to keep it.",
             "sample": {
                 "incoming": "How does it look?",
                 "outgoing": "Looks great!",
@@ -1380,6 +1382,7 @@
             "set": "Set",
             "set_default": "Set default",
             "set_theme": "Set theme",
+            "theme_set": "Theme set",
             "title": "Chat theme",
             "use_bubble_layout": "Use message bubbles",
             "wallpaper": "Wallpaper"

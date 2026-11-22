@@ -11,7 +11,6 @@ import { type MatrixClient, MatrixEvent, Room } from "matrix-js-sdk/src/matrix";
 
 import { ChatThemePanel } from "../../../../src/gua/chatTheme/ui/ChatThemePanel";
 import Modal from "../../../../src/Modal";
-import ErrorDialog from "../../../../src/components/views/dialogs/ErrorDialog";
 import SettingsStore from "../../../../src/settings/SettingsStore";
 import { Layout } from "../../../../src/settings/enums/Layout";
 import { stubClient, withClientContextRenderOptions } from "../../../test-utils";
@@ -65,15 +64,19 @@ describe("ChatThemePanel", () => {
     it("starts the gallery with the Default tile, selected for a chat without a theme", () => {
         renderPanel();
         const featured = screen.getByRole("radiogroup", { name: "Featured" });
-        const [first] = Array.from(featured.querySelectorAll("[role='radio']"));
+        const [first] = Array.from(featured.querySelectorAll("input[type='radio']"));
         expect(first).toHaveAccessibleName("Default");
-        expect(first).toHaveAttribute("aria-checked", "true");
+        expect(first).toBeChecked();
         expect(screen.getByText("Everyone in the chat sees this theme.")).toBeInTheDocument();
     });
 
-    it("previews a tile and sends the apps' bytes when it is set", async () => {
+    it("previews a tile, sends the apps' bytes when it is set, and says so", async () => {
         renderPanel();
         fireEvent.click(screen.getAllByRole("radio", { name: "Silk, Live" })[0]);
+        expect(screen.getAllByRole("radio", { name: "Silk, Live" })[0]).toBeChecked();
+        expect(screen.getByRole("radio", { name: "Default, Current" })).not.toBeChecked();
+        expect(screen.getByRole("status")).toHaveTextContent("Previewing Silk, Live. Select “Set theme” to keep it.");
+
         fireEvent.click(screen.getByRole("button", { name: "Set theme" }));
         await waitFor(() =>
             expect(client.sendStateEvent).toHaveBeenCalledWith(
@@ -86,18 +89,52 @@ describe("ChatThemePanel", () => {
         expect(JSON.stringify(jest.mocked(client.sendStateEvent).mock.calls[0][2])).toBe(
             '{"art":"silk","bubble":"teal","fallback_preset":"mint","kind":"art","v":1}',
         );
+        await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Theme set"));
+        expect(screen.getAllByRole("radio", { name: "Silk, Live" })[0]).toHaveFocus();
+    });
+
+    it("checks a theme shown in two sections only once", () => {
+        renderPanel();
+        fireEvent.click(screen.getAllByRole("radio", { name: "Silk, Live" })[1]);
+        const [featured, live] = screen.getAllByRole("radio", { name: "Silk, Live" });
+        expect(featured).toBeChecked();
+        expect(live).not.toBeChecked();
+        expect(live.closest("label")).toHaveClass("mx_GuaThemeTile_selected");
     });
 
     it("cannot set the current theme again", () => {
         setRoomTheme({ v: 1, kind: "art", art: "guara", bubble: "green", fallback_preset: "mint" });
         renderPanel();
-        const guara = screen.getByRole("radio", { name: "Guará" });
-        expect(guara).toHaveAttribute("aria-checked", "true");
-        fireEvent.click(guara);
+        expect(screen.getByRole("radio", { name: "Guará" })).toBeChecked();
+        fireEvent.click(screen.getAllByRole("radio", { name: "Azulejo" })[0]);
+        fireEvent.click(screen.getByRole("radio", { name: "Guará, Current" }));
         const setTheme = screen.getByRole("button", { name: "Set theme" });
         expect(setTheme).toHaveAttribute("aria-disabled", "true");
         fireEvent.click(setTheme);
         expect(client.sendStateEvent).not.toHaveBeenCalled();
+    });
+
+    it("opens the pickers in place, never as a dialog, and comes back to the button that opened them", () => {
+        renderPanel();
+        fireEvent.click(screen.getByRole("button", { name: /^Chat bubble/ }));
+        expect(screen.getByRole("radio", { name: "Green bubble" })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Back" }));
+        expect(screen.getByRole("button", { name: /^Chat bubble/ })).toHaveFocus();
+
+        fireEvent.click(screen.getByRole("button", { name: /^Wallpaper/ }));
+        expect(screen.getByRole("radio", { name: "No wallpaper" })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+        expect(screen.getByRole("button", { name: /^Wallpaper/ })).toHaveFocus();
+        expect(Modal.createDialog).not.toHaveBeenCalled();
+    });
+
+    it("announces a bubble saved from its picker", async () => {
+        renderPanel();
+        fireEvent.click(screen.getByRole("button", { name: /^Chat bubble/ }));
+        fireEvent.click(screen.getByRole("radio", { name: "Teal bubble" }));
+        fireEvent.click(screen.getByRole("button", { name: "Set" }));
+        await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Theme set"));
+        expect(screen.getByRole("button", { name: "Chat bubble: Teal" })).toHaveFocus();
     });
 
     it("removes the chat theme with the Default tile", async () => {
@@ -117,17 +154,14 @@ describe("ChatThemePanel", () => {
         expect(screen.getByRole("button", { name: /^Wallpaper/ })).toBeDisabled();
     });
 
-    it("reports a refused send", async () => {
+    it("reports a refused send under the buttons, keeping the preview", async () => {
         jest.spyOn(client, "sendStateEvent").mockRejectedValue(new Error("forbidden"));
         renderPanel();
         fireEvent.click(screen.getAllByRole("radio", { name: "Azulejo" })[0]);
         fireEvent.click(screen.getByRole("button", { name: "Set theme" }));
-        await waitFor(() =>
-            expect(Modal.createDialog).toHaveBeenCalledWith(ErrorDialog, {
-                title: "Chat theme",
-                description: "Couldn’t change the background. Try again.",
-            }),
-        );
+        expect(await screen.findByRole("alert")).toHaveTextContent("Couldn’t change the background. Try again.");
+        expect(screen.getByRole("button", { name: "Set theme" })).toBeInTheDocument();
+        expect(Modal.createDialog).not.toHaveBeenCalled();
     });
 
     it("offers the message bubbles layout outside it", () => {
@@ -141,7 +175,7 @@ describe("ChatThemePanel", () => {
     it("sets the personal default from the Classic tile's screen", async () => {
         jest.spyOn(client, "setAccountData").mockResolvedValue({});
         renderPanel("default");
-        expect(screen.getByRole("radio", { name: "Classic" })).toHaveAttribute("aria-checked", "true");
+        expect(screen.getByRole("radio", { name: "Classic" })).toBeChecked();
         expect(screen.getByText("Applies to every chat that doesn’t have its own theme.")).toBeInTheDocument();
         fireEvent.click(screen.getAllByRole("radio", { name: "Paper" })[0]);
         fireEvent.click(screen.getByRole("button", { name: "Set default" }));

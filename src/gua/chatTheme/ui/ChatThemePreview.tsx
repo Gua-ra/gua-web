@@ -14,7 +14,7 @@ import { getArtwork, isLive } from "../model/artworks";
 import { bubbleColour } from "../model/bubbles";
 import { themeName } from "../model/names";
 import { type ChatTheme, shownBubble } from "../model/types";
-import { SendPulse } from "../live/timing";
+import { SendPulse, type WallpaperMotion } from "../live/timing";
 import { WallpaperLayer } from "../render/WallpaperLayer";
 import { type Appearance } from "../state/useAppearance";
 
@@ -26,12 +26,15 @@ interface Props {
     localPhoto?: ImageBitmap;
 }
 
-/** A sample conversation on the theme, drawn the same whatever the device's message layout. */
+/**
+ * A sample conversation on the theme, drawn the same whatever the device's message layout. The send effect is
+ * offered only while the artwork moves, not while reduced motion, a failed shader or slow frames keep it still.
+ */
 export function ChatThemePreview({ theme, appearance, live, localPhoto }: Props): JSX.Element {
     const [pulse] = useState(() => new SendPulse());
-    const [pulseCount, setPulseCount] = useState(0);
+    const [motion, setMotion] = useState<WallpaperMotion>("still");
     const animates = live && theme.wallpaper.kind === "art" && isLive(getArtwork(theme.wallpaper.art));
-    const liveOptions = useMemo(() => ({ inDialog: true, pulse, pulseCount }), [pulse, pulseCount]);
+    const liveOptions = useMemo(() => ({ inDialog: true, pulse, onMotion: setMotion }), [pulse]);
     const outgoing = bubbleColour(shownBubble(theme, appearance.dark), appearance.dark);
 
     return (
@@ -58,16 +61,13 @@ export function ChatThemePreview({ theme, appearance, live, localPhoto }: Props)
                     {_t("gua|chat_theme|sample|outgoing")}
                 </span>
             </div>
-            {animates && (
+            {animates && motion !== "still" && (
                 <IconButton
                     className="mx_Dialog_nonDialogButton mx_GuaThemePreview_send"
                     size="32px"
                     kind="primary"
                     tooltip={_t("gua|chat_theme|preview_send")}
-                    onClick={() => {
-                        pulse.send(performance.now());
-                        setPulseCount((count) => count + 1);
-                    }}
+                    onClick={() => pulse.send(performance.now())}
                 >
                     <SendSolidIcon />
                 </IconButton>
