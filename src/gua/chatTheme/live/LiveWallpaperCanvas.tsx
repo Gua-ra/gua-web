@@ -12,7 +12,14 @@ import { type Artwork } from "../model/artworks";
 import { liveFrame, liveRenderScale, pulseOrigin } from "../model/layout";
 import { hasShaderFailed, LiveWallpaperRenderer, openContext, releaseContext } from "./renderer";
 import { LIVE_SHADERS } from "./liveShaders";
-import { FrameWatchdog, LiveWallpaperClock, type SendPulse, type WallpaperMotion, wallpaperMotion } from "./timing";
+import {
+    FrameWatchdog,
+    LIVE_WALLPAPER_SLEEP_MS,
+    LiveWallpaperClock,
+    type SendPulse,
+    type WallpaperMotion,
+    wallpaperMotion,
+} from "./timing";
 import { reportSlowFrames, useMotionConditions } from "./useMotionConditions";
 
 interface Props {
@@ -142,6 +149,7 @@ export function LiveWallpaperCanvas(props: Props): JSX.Element {
         const clock = clockRef.current;
         clock.resume();
         const watchdog = new FrameWatchdog();
+        let timer: number | undefined;
         let frame = requestAnimationFrame(function tick(now: number): void {
             if (clock.onFrame(now)) {
                 drawRef.current(now, true);
@@ -149,10 +157,19 @@ export function LiveWallpaperCanvas(props: Props): JSX.Element {
                     reportSlowFrames();
                     return;
                 }
+                // A timer, so a 120 Hz display does not wake the page for the frames the clock skips.
+                timer = window.setTimeout(
+                    () => (frame = requestAnimationFrame(tick)),
+                    now + LIVE_WALLPAPER_SLEEP_MS - performance.now(),
+                );
+                return;
             }
             frame = requestAnimationFrame(tick);
         });
-        return () => cancelAnimationFrame(frame);
+        return () => {
+            window.clearTimeout(timer);
+            cancelAnimationFrame(frame);
+        };
     }, [motion, artwork.stillTime]);
 
     // Resizing clears the canvas, so it is redrawn before the browser paints.

@@ -117,6 +117,26 @@ describe("LiveWallpaperCanvas", () => {
         expect(canvas(container)!.style.opacity).toBe("1");
     });
 
+    it("sleeps between drawn frames instead of waking every display frame", async () => {
+        jest.useFakeTimers({ doNotFake: ["requestAnimationFrame", "cancelAnimationFrame"] });
+        try {
+            const { draws } = fakeGl();
+            const { unmount } = await mount();
+            const start = performance.now();
+            runFrame(start);
+            expect(frames.size).toBe(0);
+            act(() => jest.advanceTimersByTime(33));
+            expect(frames.size).toBe(1);
+            runFrame(start + 33.4);
+            expect(draws).toHaveLength(2);
+            unmount();
+            act(() => jest.advanceTimersByTime(33));
+            expect(frames.size).toBe(0);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
     it("keeps the still under reduced motion", async () => {
         reducedMotion = true;
         const { draws } = fakeGl();
@@ -146,26 +166,45 @@ describe("LiveWallpaperCanvas", () => {
     });
 
     it("holds its frame while frozen", async () => {
-        const { draws } = fakeGl();
-        const { rerender } = await mount();
-        runFrame(1000);
-        rerender(<LiveWallpaperCanvas artwork={silk} dark={false} width={400} height={300} inDialog={true} frozen />);
-        const drawn = draws.length;
-        runFrame(1100);
-        expect(draws).toHaveLength(drawn);
-        expect(frames.size).toBe(0);
+        jest.useFakeTimers({ doNotFake: ["requestAnimationFrame", "cancelAnimationFrame"] });
+        try {
+            const { draws } = fakeGl();
+            const { rerender } = await mount();
+            const start = performance.now();
+            runFrame(start);
+            act(() => jest.advanceTimersByTime(33));
+            expect(frames.size).toBe(1);
+            rerender(
+                <LiveWallpaperCanvas artwork={silk} dark={false} width={400} height={300} inDialog={true} frozen />,
+            );
+            const drawn = draws.length;
+            runFrame(start + 100);
+            expect(draws).toHaveLength(drawn);
+            expect(frames.size).toBe(0);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     it("falls back to the still for good when the context is lost", async () => {
-        const { draws } = fakeGl();
-        const { container } = await mount();
-        runFrame(1000);
-        act(() => {
-            canvas(container)!.dispatchEvent(new Event("webglcontextlost"));
-        });
-        expect(canvas(container)!.style.opacity).toBe("0");
-        runFrame(1100);
-        expect(draws).toHaveLength(1);
+        jest.useFakeTimers({ doNotFake: ["requestAnimationFrame", "cancelAnimationFrame"] });
+        try {
+            const { draws } = fakeGl();
+            const { container } = await mount();
+            const start = performance.now();
+            runFrame(start);
+            act(() => jest.advanceTimersByTime(33));
+            expect(frames.size).toBe(1);
+            act(() => {
+                canvas(container)!.dispatchEvent(new Event("webglcontextlost"));
+            });
+            expect(canvas(container)!.style.opacity).toBe("0");
+            expect(frames.size).toBe(0);
+            runFrame(start + 100);
+            expect(draws).toHaveLength(1);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     it("releases its context and removes its canvas when it goes", async () => {

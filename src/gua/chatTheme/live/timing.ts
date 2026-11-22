@@ -9,6 +9,8 @@ export const LIVE_WALLPAPER_FPS = 30;
 const FRAME_MS = 1000 / LIVE_WALLPAPER_FPS;
 /** Allows for timer jitter, so 60, 90 and 120 Hz displays all draw every 33 ms and a 50 ms frame is not slow. */
 const FRAME_TOLERANCE_MS = 4;
+/** The frame loop's sleep after a drawn frame, ending one tolerance before the next frame is due. */
+export const LIVE_WALLPAPER_SLEEP_MS = FRAME_MS - 2 * FRAME_TOLERANCE_MS;
 
 /** Wraps the time before it loses float precision. */
 const TIME_PERIOD_SECONDS = 1800;
