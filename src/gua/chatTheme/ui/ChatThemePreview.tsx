@@ -10,13 +10,13 @@ import { IconButton } from "@vector-im/compound-web";
 import SendSolidIcon from "@vector-im/compound-design-tokens/assets/web/icons/send-solid";
 
 import { _t } from "../../../languageHandler";
-import { getArtwork, isLive } from "../model/artworks";
 import { bubbleColour } from "../model/bubbles";
 import { themeName } from "../model/names";
 import { type ChatTheme, shownBubble } from "../model/types";
 import { SendPulse, type WallpaperMotion } from "../live/timing";
 import { WallpaperLayer } from "../render/WallpaperLayer";
 import { type Appearance } from "../state/useAppearance";
+import { isLiveWallpaper } from "./ChatThemeTile";
 
 interface Props {
     theme: ChatTheme;
@@ -32,7 +32,7 @@ interface Props {
 export function ChatThemePreview({ theme, appearance, live, localPhoto }: Props): JSX.Element {
     const [pulse] = useState(() => new SendPulse());
     const [motion, setMotion] = useState<WallpaperMotion>("still");
-    const animates = live && theme.wallpaper.kind === "art" && isLive(getArtwork(theme.wallpaper.art));
+    const animates = live && isLiveWallpaper(theme.wallpaper);
     const liveOptions = useMemo(() => ({ inDialog: true, pulse, onMotion: setMotion }), [pulse]);
     const outgoing = bubbleColour(shownBubble(theme, appearance.dark), appearance.dark);
 

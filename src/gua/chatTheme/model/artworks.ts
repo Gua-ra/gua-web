@@ -8,9 +8,7 @@ Please see LICENSE files in the repository root for full details.
 import { type BubbleId } from "./bubbles";
 import { type PresetId } from "./presets";
 
-export const ARTWORK_SECTIONS = ["live", "nature", "patterns", "minimal"] as const;
-
-export type ArtworkSection = (typeof ARTWORK_SECTIONS)[number];
+export type ArtworkSection = "live" | "nature" | "patterns" | "minimal";
 
 interface ArtworkDefinition {
     readonly id: string;

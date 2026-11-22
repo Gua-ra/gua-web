@@ -141,14 +141,12 @@ describe("ChatWallpaper", () => {
     });
 
     it("reads the account-wide media setting, never a per-room one", () => {
-        const getValue = SettingsStore.getValue.bind(SettingsStore) as (...args: unknown[]) => unknown;
-        jest.spyOn(SettingsStore, "getValue").mockImplementation(((name: string, roomId?: string | null) => {
+        const earlier = jest.mocked(SettingsStore.getValue).getMockImplementation() as (...args: unknown[]) => unknown;
+        jest.mocked(SettingsStore.getValue).mockImplementation(((name: string, roomId?: string | null) => {
             if (name === "mediaPreviewConfig") {
                 return { media_previews: roomId ? MediaPreviewValue.On : MediaPreviewValue.Off, invite_avatars: "on" };
             }
-            if (name === "feature_gua_chat_themes") return true;
-            if (name === "layout") return Layout.Bubble;
-            return getValue(name, roomId);
+            return earlier(name, roomId);
         }) as typeof SettingsStore.getValue);
         defaultTheme = { v: 1, kind: "preset", preset: "sky", bubble: "teal" };
         setState("global.gua.room.background", {

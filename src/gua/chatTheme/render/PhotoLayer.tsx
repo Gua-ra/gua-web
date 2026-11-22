@@ -50,8 +50,6 @@ export async function fetchCapped(url: string, maxBytes: number, signal?: AbortS
     return new Blob(chunks as BlobPart[], { type });
 }
 
-class PhotoRefusedError extends Error {}
-
 /** Reads only the header: an image that is never shown is not decoded. */
 export function readImageSize(blob: Blob): Promise<{ width: number; height: number }> {
     return new Promise((resolve, reject) => {
@@ -63,7 +61,7 @@ export function readImageSize(blob: Blob): Promise<{ width: number; height: numb
         };
         image.onerror = (): void => {
             URL.revokeObjectURL(url);
-            reject(new PhotoRefusedError("Not an image"));
+            reject(new Error("Not an image"));
         };
         image.src = url;
     });
@@ -76,13 +74,11 @@ export function readImageSize(blob: Blob): Promise<{ width: number; height: numb
 export async function decodePhoto(blob: Blob, declaredWidth: number, declaredHeight: number): Promise<ImageBitmap> {
     const { width, height } = await readImageSize(blob);
     if (!width || !height || width > PHOTO_MAX_DIMENSION || height > PHOTO_MAX_DIMENSION) {
-        throw new PhotoRefusedError(`Photo wallpaper is ${width} by ${height} pixels`);
+        throw new Error(`Photo wallpaper is ${width} by ${height} pixels`);
     }
     const shape = width / height / (declaredWidth / declaredHeight);
     if (!(Math.abs(Math.log(shape)) <= Math.log(1 + ASPECT_TOLERANCE))) {
-        throw new PhotoRefusedError(
-            `Photo wallpaper is ${width} by ${height}, not ${declaredWidth} by ${declaredHeight}`,
-        );
+        throw new Error(`Photo wallpaper is ${width} by ${height}, not ${declaredWidth} by ${declaredHeight}`);
     }
     const scale = Math.min(1, MAX_DECODED_EDGE / Math.max(width, height));
     return createImageBitmap(blob, {

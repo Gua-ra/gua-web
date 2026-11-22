@@ -20,7 +20,7 @@ import { ChatThemePreview } from "./ChatThemePreview";
 import { ChatThemeActions, ChatThemeSubView } from "./ChatThemeSubView";
 import { ChatThemeTile, TileGroup } from "./ChatThemeTile";
 import { maxUploadSize, PhotoTooLargeError, type PreparedPhoto, preparePhoto } from "./photo/preparePhoto";
-import { useThemeSave } from "./usePickerSave";
+import { useThemeSave } from "./useThemeSave";
 import { type ThemeScreen } from "./useThemeScreen";
 
 interface Props {

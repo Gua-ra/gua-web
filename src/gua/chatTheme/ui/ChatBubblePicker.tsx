@@ -18,7 +18,7 @@ import { useAppearance } from "../state/useAppearance";
 import { ChatThemePreview } from "./ChatThemePreview";
 import { ChatThemeActions, ChatThemeSubView } from "./ChatThemeSubView";
 import { TileGroup } from "./ChatThemeTile";
-import { useThemeSave } from "./usePickerSave";
+import { useThemeSave } from "./useThemeSave";
 import { type ThemeScreen } from "./useThemeScreen";
 
 interface Props {

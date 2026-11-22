@@ -17,12 +17,12 @@ import { useMatrixClientContext } from "../../../contexts/MatrixClientContext";
 import { PHOTO_DEFAULT_ALIGN, PHOTO_DEFAULT_DIM, PHOTO_MAX_ALIGN, PHOTO_MAX_DIM } from "../model/constants";
 import { aspectFill } from "../model/layout";
 import { baseTheme } from "../model/screenModel";
-import { type PhotoWallpaper, withBubbles } from "../model/types";
+import { withBubbles } from "../model/types";
 import { useAppearance } from "../state/useAppearance";
 import { ChatThemePreview } from "./ChatThemePreview";
 import { ChatThemeActions, ChatThemeSubView } from "./ChatThemeSubView";
-import { type PreparedPhoto, PHOTO_MIMETYPE, uploadPhoto } from "./photo/preparePhoto";
-import { useThemeSave } from "./usePickerSave";
+import { photoWallpaper, type PreparedPhoto, uploadPhoto } from "./photo/preparePhoto";
+import { useThemeSave } from "./useThemeSave";
 import { type ThemeScreen } from "./useThemeScreen";
 
 interface Props {
@@ -64,19 +64,9 @@ export function ChatPhotoEditor({ screen, photo, onBack, onSaved }: Props): JSX.
     const dimId = useId();
     useCloseOnUnmount(photo.bitmap);
 
-    const wallpaper: PhotoWallpaper = {
-        url: "",
-        mimetype: PHOTO_MIMETYPE,
-        w: photo.width,
-        h: photo.height,
-        size: photo.blob.size,
-        blurhash: photo.blurhash,
-        dim,
-        alignX: align.x,
-        alignY: align.y,
-    };
+    const placement = { dim, alignX: align.x, alignY: align.y };
     const base = baseTheme(state);
-    const preview = withBubbles({ kind: "photo", photo: wallpaper }, base);
+    const preview = withBubbles({ kind: "photo", photo: photoWallpaper(photo, "", placement) }, base);
 
     const move = (x: number, y: number): void => setAlign({ x: clampAlign(x), y: clampAlign(y) });
 
@@ -97,7 +87,7 @@ export function ChatPhotoEditor({ screen, photo, onBack, onSaved }: Props): JSX.
 
     const onSet = (): Promise<void> =>
         run(async () => {
-            const uploaded = await uploadPhoto(client, photo, { dim, alignX: align.x, alignY: align.y });
+            const uploaded = await uploadPhoto(client, photo, placement);
             return withBubbles({ kind: "photo", photo: uploaded }, base);
         }, onSaved);
 

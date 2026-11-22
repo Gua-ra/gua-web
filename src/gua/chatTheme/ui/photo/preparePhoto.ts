@@ -8,11 +8,10 @@ Please see LICENSE files in the repository root for full details.
 import { encode } from "blurhash";
 import { type MatrixClient } from "matrix-js-sdk/src/matrix";
 
-import { PHOTO_DEFAULT_ALIGN, PHOTO_DEFAULT_DIM } from "../../model/constants";
 import { type PhotoWallpaper } from "../../model/types";
 import { readImageSize } from "../../render/PhotoLayer";
 
-export const PHOTO_MIMETYPE = "image/jpeg";
+const PHOTO_MIMETYPE = "image/jpeg";
 // The apps encode with the same passes.
 const FIRST_PASS = { maxEdge: 2048, quality: 0.8 };
 const SECOND_PASS = { maxEdge: 1600, quality: 0.75 };
@@ -103,20 +102,9 @@ export async function maxUploadSize(client: MatrixClient): Promise<number | unde
     }
 }
 
-/** Unencrypted, so every member of the chat and every device of the user can show it. */
-export async function uploadPhoto(
-    client: MatrixClient,
-    photo: PreparedPhoto,
-    placement: { dim: number; alignX: number; alignY: number } = {
-        dim: PHOTO_DEFAULT_DIM,
-        alignX: PHOTO_DEFAULT_ALIGN,
-        alignY: PHOTO_DEFAULT_ALIGN,
-    },
-): Promise<PhotoWallpaper> {
-    const { content_uri: url } = await client.uploadContent(photo.blob, {
-        type: PHOTO_MIMETYPE,
-        includeFilename: false,
-    });
+type PhotoPlacement = Pick<PhotoWallpaper, "dim" | "alignX" | "alignY">;
+
+export function photoWallpaper(photo: PreparedPhoto, url: string, placement: PhotoPlacement): PhotoWallpaper {
     return {
         url,
         mimetype: PHOTO_MIMETYPE,
@@ -126,4 +114,17 @@ export async function uploadPhoto(
         blurhash: photo.blurhash,
         ...placement,
     };
+}
+
+/** Unencrypted, so every member of the chat and every device of the user can show it. */
+export async function uploadPhoto(
+    client: MatrixClient,
+    photo: PreparedPhoto,
+    placement: PhotoPlacement,
+): Promise<PhotoWallpaper> {
+    const { content_uri: url } = await client.uploadContent(photo.blob, {
+        type: PHOTO_MIMETYPE,
+        includeFilename: false,
+    });
+    return photoWallpaper(photo, url, placement);
 }

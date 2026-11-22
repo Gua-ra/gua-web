@@ -18,10 +18,10 @@ import { WallpaperThumbnail } from "../render/WallpaperLayer";
 import { type Appearance } from "../state/useAppearance";
 
 /** The tile's size in _ChatTheme.pcss, which the thumbnail is drawn at. */
-export const TILE_WIDTH = 84;
-export const TILE_HEIGHT = 182;
+const TILE_WIDTH = 84;
+const TILE_HEIGHT = 182;
 
-function isLiveWallpaper(wallpaper: Wallpaper): boolean {
+export function isLiveWallpaper(wallpaper: Wallpaper): boolean {
     return wallpaper.kind === "art" && isLive(getArtwork(wallpaper.art));
 }
 
@@ -32,17 +32,15 @@ function isLiveWallpaper(wallpaper: Wallpaper): boolean {
 export function TileGroup({
     labelledBy,
     label,
-    className,
     children,
 }: {
     labelledBy?: string;
     label?: string;
-    className?: string;
     children: ReactNode;
 }): JSX.Element {
     return (
         <div
-            className={classNames("mx_GuaThemeTiles", className)}
+            className="mx_GuaThemeTiles"
             role="radiogroup"
             aria-labelledby={labelledBy}
             aria-label={labelledBy ? undefined : label}

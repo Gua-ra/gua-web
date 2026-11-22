@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
 Please see LICENSE files in the repository root for full details.
 */
 
-import { type ArtworkId, artworksIn } from "./artworks";
+import { type ArtworkId, type ArtworkSection, artworksIn } from "./artworks";
 import { type BubbleId } from "./bubbles";
 import { GRADIENTS, type PresetId, SOLIDS } from "./presets";
 import { artworkTheme, type ChatTheme, presetTheme, type Wallpaper } from "./types";
@@ -53,7 +53,7 @@ const GRADIENT_BUBBLES: [PresetId, BubbleId][] = [
     ["citrus", "green"],
 ];
 
-const artworkThemes = (section: "live" | "nature" | "patterns" | "minimal"): ChatTheme[] =>
+const artworkThemes = (section: ArtworkSection): ChatTheme[] =>
     artworksIn(section).map((artwork) => artworkTheme(artwork.id));
 
 /** The screen puts its first tile, not listed here, at the start of Featured. */
@@ -69,7 +69,7 @@ export const THEME_GALLERY: ThemeGallerySection[] = [
     { id: "gradients", themes: GRADIENT_BUBBLES.map(([preset, bubble]) => presetTheme(preset, bubble)) },
 ];
 
-const artworkWallpapers = (section: "live" | "nature" | "patterns" | "minimal"): Wallpaper[] =>
+const artworkWallpapers = (section: ArtworkSection): Wallpaper[] =>
     artworksIn(section).map((artwork) => ({ kind: "art", art: artwork.id }));
 
 const presetWallpapers = (presets: readonly PresetId[]): Wallpaper[] =>

@@ -38,7 +38,7 @@ import { ChatThemePreview } from "./ChatThemePreview";
 import { ChatThemeTile, TileGroup, tileLabel } from "./ChatThemeTile";
 import { ChatWallpaperPicker } from "./ChatWallpaperPicker";
 import { type PreparedPhoto } from "./photo/preparePhoto";
-import { useThemeSave } from "./usePickerSave";
+import { useThemeSave } from "./useThemeSave";
 import { type ThemeScreen, useThemeScreen } from "./useThemeScreen";
 
 interface Props {

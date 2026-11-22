@@ -102,7 +102,6 @@ function thumbnail(cwebp, still) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gua-thumbnail-"));
     try {
         const out = path.join(dir, "thumbnail.webp");
-        const size = [String(THUMBNAIL.width), String(THUMBNAIL.height)];
         execFileSync(cwebp, [
             "-quiet",
             "-q",
@@ -110,7 +109,8 @@ function thumbnail(cwebp, still) {
             "-m",
             "6",
             "-resize",
-            ...size,
+            String(THUMBNAIL.width),
+            String(THUMBNAIL.height),
             still,
             "-o",
             out,
@@ -213,8 +213,9 @@ async function main() {
     const generate = await import(pathToFileURL(path.join(android, "tools/wallpapers/shaders/generate.mjs")).href);
     const shaders = generate.loadLabShaders(path.join(android, "tools/wallpapers/lab"));
     for (const [id, frag] of shaders) wanted.set(path.join(SHADERS, `${id}.frag`), Buffer.from(frag, "utf8"));
-    const liveIds = new Set(manifest.artworks.filter((a) => a.live).map((a) => a.id));
-    for (const id of liveIds) if (!shaders.has(id)) problems.push(`The Lab has no shader for the live artwork ${id}`);
+    for (const { id, live } of manifest.artworks) {
+        if (live && !shaders.has(id)) problems.push(`The Lab has no shader for the live artwork ${id}`);
+    }
 
     for (const [name, dir] of Object.entries(ANDROID_FIXTURES)) {
         const bytes = fs.readFileSync(path.join(android, dir, name));

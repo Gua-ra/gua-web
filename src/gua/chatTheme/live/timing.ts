@@ -93,10 +93,6 @@ export class FrameWatchdog {
     private firstSlowWindowMs?: number;
     private tripped = false;
 
-    public get hasTripped(): boolean {
-        return this.tripped;
-    }
-
     public onFrame(frameMs: number): boolean {
         if (this.tripped) return true;
         const previous = this.lastFrameMs;

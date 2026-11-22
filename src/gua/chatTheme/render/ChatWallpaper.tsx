@@ -27,11 +27,6 @@ const BUBBLE_ATTRIBUTE = "data-gua-bubble";
 const BUBBLE_LIGHT = "--gua-bubble-light";
 const BUBBLE_DARK = "--gua-bubble-dark";
 
-function clearStyle(element: HTMLElement, ...properties: string[]): void {
-    for (const property of properties) element.style.removeProperty(property);
-    if (!element.getAttribute("style")) element.removeAttribute("style");
-}
-
 export default function ThemedChat({ room, bodyRef }: Props): JSX.Element | null {
     const client = useMatrixClientContext();
     const effective = useEffectiveChatTheme(client, room);
@@ -63,7 +58,9 @@ export default function ThemedChat({ room, bodyRef }: Props): JSX.Element | null
         return () => {
             body.removeAttribute(WALLPAPER_ATTRIBUTE);
             roomView.removeAttribute(BUBBLE_ATTRIBUTE);
-            clearStyle(roomView, BUBBLE_LIGHT, BUBBLE_DARK);
+            roomView.style.removeProperty(BUBBLE_LIGHT);
+            roomView.style.removeProperty(BUBBLE_DARK);
+            if (!roomView.getAttribute("style")) roomView.removeAttribute("style");
         };
     }, [bodyRef, bodyMounted, hasWallpaper, light, dark]);
 

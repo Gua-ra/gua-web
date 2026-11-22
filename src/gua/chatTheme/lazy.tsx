@@ -9,7 +9,8 @@ import React, { type JSX, lazy, type RefObject, Suspense } from "react";
 import { type Room } from "matrix-js-sdk/src/matrix";
 
 import Spinner from "../../components/views/elements/Spinner";
-import { useChatThemesFeature, useIsBubbleLayout } from "./state/flags";
+import { useFeatureEnabled } from "../../hooks/useSettings";
+import { useIsBubbleLayout } from "./state/flags";
 
 // Upstream code imports only these wrappers, notice.ts and model/constants.ts, so the rest stays in one lazy chunk.
 
@@ -21,7 +22,7 @@ export function ChatThemeWallpaper(props: {
     room: Room;
     bodyRef: RefObject<HTMLDivElement | null>;
 }): JSX.Element | null {
-    const enabled = useChatThemesFeature();
+    const enabled = useFeatureEnabled("feature_gua_chat_themes");
     const bubbleLayout = useIsBubbleLayout();
     if (!enabled || !bubbleLayout) return null;
     return (
@@ -40,7 +41,7 @@ export function ChatThemeRoomSettingsTab(props: { room: Room }): JSX.Element {
 }
 
 export function ChatThemeDefaultSettings(): JSX.Element | null {
-    if (!useChatThemesFeature()) return null;
+    if (!useFeatureEnabled("feature_gua_chat_themes")) return null;
     return (
         <Suspense fallback={<Spinner />}>
             <DefaultSettings />

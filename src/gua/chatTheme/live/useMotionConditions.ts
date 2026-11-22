@@ -9,6 +9,7 @@ import { type RefObject, useEffect, useState } from "react";
 import { logger } from "matrix-js-sdk/src/logger";
 
 import Modal, { ModalManagerEvent } from "../../../Modal";
+import { type MotionConditions } from "./timing";
 
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
@@ -29,14 +30,7 @@ export function reportSlowFrames(): void {
     window.setTimeout(() => setFramesTooSlow(false), SLOW_FRAMES_COOL_DOWN_MS);
 }
 
-export interface ViewConditions {
-    reducedMotion: boolean;
-    slowFrames: boolean;
-    hidden: boolean;
-    unfocused: boolean;
-    offScreen: boolean;
-    covered: boolean;
-}
+export type ViewConditions = Omit<MotionConditions, "rendererUnavailable">;
 
 function prefersReducedMotion(): boolean {
     return window.matchMedia?.(REDUCED_MOTION).matches ?? false;
@@ -57,19 +51,18 @@ export function useMotionConditions(ref: RefObject<HTMLElement | null>, inDialog
     useEffect(() => {
         const query = window.matchMedia?.(REDUCED_MOTION);
         const onMotion = (): void => setReducedMotion(prefersReducedMotion());
-        const onSlow = (slow: boolean): void => setSlowFrames(slow);
         const onVisibility = (): void => setHidden(document.visibilityState === "hidden");
         const onFocus = (): void => setUnfocused(false);
         const onBlur = (): void => setUnfocused(true);
         query?.addEventListener?.("change", onMotion);
-        slowFrameListeners.add(onSlow);
+        slowFrameListeners.add(setSlowFrames);
         setSlowFrames(framesTooSlow);
         document.addEventListener("visibilitychange", onVisibility);
         window.addEventListener("focus", onFocus);
         window.addEventListener("blur", onBlur);
         return () => {
             query?.removeEventListener?.("change", onMotion);
-            slowFrameListeners.delete(onSlow);
+            slowFrameListeners.delete(setSlowFrames);
             document.removeEventListener("visibilitychange", onVisibility);
             window.removeEventListener("focus", onFocus);
             window.removeEventListener("blur", onBlur);

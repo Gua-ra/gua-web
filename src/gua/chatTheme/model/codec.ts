@@ -62,18 +62,12 @@ function decodePhoto(value: unknown): PhotoWallpaper | undefined {
         if (typeof blurhash !== "string" || blurhash.length > PHOTO_MAX_BLURHASH_LENGTH) return undefined;
     }
 
+    const align = value.align ?? {};
+    if (!isObject(align)) return undefined;
     const dim = optionalWholeNumber(value, "dim");
-    if (dim === INVALID) return undefined;
-    let alignX: number | undefined;
-    let alignY: number | undefined;
-    if (value.align !== undefined && value.align !== null) {
-        if (!isObject(value.align)) return undefined;
-        const x = optionalWholeNumber(value.align, "x");
-        const y = optionalWholeNumber(value.align, "y");
-        if (x === INVALID || y === INVALID) return undefined;
-        alignX = x;
-        alignY = y;
-    }
+    const alignX = optionalWholeNumber(align, "x");
+    const alignY = optionalWholeNumber(align, "y");
+    if (dim === INVALID || alignX === INVALID || alignY === INVALID) return undefined;
 
     return {
         url,
@@ -82,16 +76,15 @@ function decodePhoto(value: unknown): PhotoWallpaper | undefined {
         h,
         size,
         blurhash: typeof blurhash === "string" ? blurhash : null,
-        dim: dim === undefined ? PHOTO_DEFAULT_DIM : clamp(dim, PHOTO_MAX_DIM),
-        alignX: alignX === undefined ? PHOTO_DEFAULT_ALIGN : clamp(alignX, PHOTO_MAX_ALIGN),
-        alignY: alignY === undefined ? PHOTO_DEFAULT_ALIGN : clamp(alignY, PHOTO_MAX_ALIGN),
+        dim: clamp(dim ?? PHOTO_DEFAULT_DIM, PHOTO_MAX_DIM),
+        alignX: clamp(alignX ?? PHOTO_DEFAULT_ALIGN, PHOTO_MAX_ALIGN),
+        alignY: clamp(alignY ?? PHOTO_DEFAULT_ALIGN, PHOTO_MAX_ALIGN),
     };
 }
 
 function decodeWallpaper(content: JsonObject, isVersion1: boolean): Wallpaper {
-    const kind = typeof content.kind === "string" ? content.kind : undefined;
     if (!isVersion1) return presetWallpaper(content.fallback_preset);
-    switch (kind) {
+    switch (content.kind) {
         case "none":
             return NO_WALLPAPER;
         case "preset":
