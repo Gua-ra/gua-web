@@ -1,0 +1,758 @@
+{
+  "generator": {
+    "script": "gua-android tools/wallpapers/bake.mjs",
+    "version": 1,
+    "chromium": "139.0.7258.5",
+    "cwebp": "1.6.0"
+  },
+  "noise": {
+    "file": "noise.webp",
+    "sha256": "c42dce707c8f2eaaac8b02883f0ffdbb0b749e6123b8524bc3ee4d96e64e15ab",
+    "width": 128,
+    "height": 128
+  },
+  "artworks": [
+    {
+      "id": "glass-drops",
+      "section": "live",
+      "live": true,
+      "files": {
+        "light": "glass-drops-light.webp",
+        "dark": "glass-drops-dark.webp",
+        "msl": "glass-drops.msl",
+        "agsl": "glass-drops.agsl"
+      },
+      "sha256": {
+        "glass-drops-light.webp": "175cc0c105abc573848784fb33bc09f0b9a94d950c2d394a6799722de3069fe9",
+        "glass-drops-dark.webp": "2b2dc750d41ceb717c78f1f160f483934e7b00f8db0536166fe26c06f9fe96e7",
+        "glass-drops.msl": "86b75cce4b0ee1025b0ec438ac8e884cb0bc7c4f0102e880b3357d0c5f2d3272",
+        "glass-drops.agsl": "c1b2bf7305605d9bf40ece0f8da9a7b6d8779c2bc23c188ae9a2bb1ac6a412df"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.08
+      },
+      "fallback_preset": "blush",
+      "bubble": {
+        "light": "purple",
+        "dark": "pink"
+      },
+      "still_time": 0
+    },
+    {
+      "id": "glass-drops-blue",
+      "section": "live",
+      "live": true,
+      "files": {
+        "light": "glass-drops-blue-light.webp",
+        "dark": "glass-drops-blue-dark.webp",
+        "msl": "glass-drops-blue.msl",
+        "agsl": "glass-drops-blue.agsl"
+      },
+      "sha256": {
+        "glass-drops-blue-light.webp": "3466730b5bad73b8cfc54bb75177fffc887c2591a626fa90c07a5f17e49e6f84",
+        "glass-drops-blue-dark.webp": "67d11e538343a2b9757b709caee89f1267c767cb1764ded7a42897d4da63f145",
+        "glass-drops-blue.msl": "779ae56eebed475c9e7152456ea611f29b891ce4cf4a4f0bd07835264b042496",
+        "glass-drops-blue.agsl": "2726f08d816b67c5f95ec055846eba917f0076166b0d0735b06f7d7c02e7f750"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.35
+      },
+      "fallback_preset": "sky",
+      "bubble": {
+        "light": "teal",
+        "dark": "teal"
+      },
+      "still_time": 14
+    },
+    {
+      "id": "molten-pearl",
+      "section": "live",
+      "live": true,
+      "files": {
+        "light": "molten-pearl-light.webp",
+        "dark": "molten-pearl-dark.webp",
+        "msl": "molten-pearl.msl",
+        "agsl": "molten-pearl.agsl"
+      },
+      "sha256": {
+        "molten-pearl-light.webp": "a27c2644c6ea892142b3e218a68d4810f19c295970c7c9f885813b7a85fb2be6",
+        "molten-pearl-dark.webp": "ecc7e7c84f7fe69066dc5c743f55e2455ab00aaa65092923b5ce508886e1d2be",
+        "molten-pearl.msl": "143a32c1bf1ee30656607b15ed483d2385bc13e0760fdd4103157ab15448b039",
+        "molten-pearl.agsl": "ad566f01af38e0f8ffa7ddbd2e63b27079d630ff9c09aff8f92b62e13c0f6381"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "fallback_preset": "sky",
+      "bubble": {
+        "light": "purple",
+        "dark": "blue"
+      },
+      "still_time": 24
+    },
+    {
+      "id": "silk",
+      "section": "live",
+      "live": true,
+      "files": {
+        "light": "silk-light.webp",
+        "dark": "silk-dark.webp",
+        "msl": "silk.msl",
+        "agsl": "silk.agsl"
+      },
+      "sha256": {
+        "silk-light.webp": "147e67dba34d516e0679002b057fcaf0255527eedb6976f496c0c415e9ca8f2a",
+        "silk-dark.webp": "f92d81e2ea92a9c7a011d585c679fd2c78856e7a4d2e50063d417996236f7fd6",
+        "silk.msl": "cd0de86afcf4232bd3efc93ef09e487dc81ee986b00e3e8acedc845b59ed0f5c",
+        "silk.agsl": "f070dcd5742194bf2a46f530908a9ac49988a680573caddd2358b654404e943a"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "fallback_preset": "mint",
+      "bubble": {
+        "light": "teal",
+        "dark": "teal"
+      },
+      "still_time": 0
+    },
+    {
+      "id": "ipe",
+      "section": "live",
+      "live": true,
+      "files": {
+        "light": "ipe-light.webp",
+        "dark": "ipe-dark.webp",
+        "msl": "ipe.msl",
+        "agsl": "ipe.agsl"
+      },
+      "sha256": {
+        "ipe-light.webp": "fd79af9febdb4133a91b59e168439529ba44c1e213d7a87b8f186c21b3915e2e",
+        "ipe-dark.webp": "219bdff93170faf7f9ba85058beda1b79accff5657e715a3ce23a09f49a1359c",
+        "ipe.msl": "6917d4c2f1887d27cbab49145a782992eab696279a0f0da42144d4e2fc33af20",
+        "ipe.agsl": "524ae56aee7a0bf603560a70de1d918e1ee839a5fc5176265cf180558780c4c6"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0
+      },
+      "fallback_preset": "sunset",
+      "bubble": {
+        "light": "pink",
+        "dark": "yellow"
+      },
+      "still_time": 24
+    },
+    {
+      "id": "rain-on-glass",
+      "section": "live",
+      "live": true,
+      "files": {
+        "light": "rain-on-glass-light.webp",
+        "dark": "rain-on-glass-dark.webp",
+        "msl": "rain-on-glass.msl",
+        "agsl": "rain-on-glass.agsl"
+      },
+      "sha256": {
+        "rain-on-glass-light.webp": "4f174e00c13dbce0a13639cbf554a163cee866f7b8835e4fa3d8ca9cfa19c1e1",
+        "rain-on-glass-dark.webp": "f7e95ddccf232fa17f8d8b4d32a69d3e4a9c4923b8f1e68bfd4848a5f4fdb614",
+        "rain-on-glass.msl": "2217ac1c1c356285da2c0c7fee1ca6dbe8cc76040bbf81521a16939af43c51f3",
+        "rain-on-glass.agsl": "a8b767ab1a644a197bb48bc11dac64bfb6b24164e104c17c7607287f40ec25fa"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.3
+      },
+      "fallback_preset": "aurora",
+      "bubble": {
+        "light": "green",
+        "dark": "blue"
+      },
+      "still_time": 48
+    },
+    {
+      "id": "pantanal",
+      "section": "live",
+      "live": true,
+      "files": {
+        "light": "pantanal-light.webp",
+        "dark": "pantanal-dark.webp",
+        "msl": "pantanal.msl",
+        "agsl": "pantanal.agsl"
+      },
+      "sha256": {
+        "pantanal-light.webp": "0dacb49bfb21f5c3f119c189538e892ced3bb2413945a2a4d72ae21a902a22a3",
+        "pantanal-dark.webp": "7d1320f618fd7e275d85ddb521e3dc6fdcec94e5d43685fd119f67b82337bc50",
+        "pantanal.msl": "1c16b869c564bea9d87d019aa4ae758d617704dd4961fb48145cd0f33a38ba51",
+        "pantanal.agsl": "876c43345103c72ebc32c9147de23eeebba73dcd9b6fe9f8c9590c8069f1fd33"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.38
+      },
+      "fallback_preset": "mint",
+      "bubble": {
+        "light": "green",
+        "dark": "green"
+      },
+      "still_time": 24
+    },
+    {
+      "id": "currents-live",
+      "section": "live",
+      "live": true,
+      "files": {
+        "light": "currents-live-light.webp",
+        "dark": "currents-live-dark.webp",
+        "msl": "currents-live.msl",
+        "agsl": "currents-live.agsl"
+      },
+      "sha256": {
+        "currents-live-light.webp": "78d0decfbaf93dfd1e1a20aa7c100d5787a61fbe63eeef7303004e61445f1a6e",
+        "currents-live-dark.webp": "d0e90cf1edc30bdacc06540606aa404543ec1e2341b4fab4b00eb89af57ae8d5",
+        "currents-live.msl": "9f30c7eb5c28b90c1afeeeb45ea6acd0bc11d6af3f8418b9224eac30d29aadb6",
+        "currents-live.agsl": "206ba8318d01e1c0b7ae1fc15176bf5c6beb67db7081f334c4cbae8ed3e03b46"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "fallback_preset": "lavender",
+      "bubble": {
+        "light": "purple",
+        "dark": "purple"
+      },
+      "still_time": 24
+    },
+    {
+      "id": "boreal",
+      "section": "live",
+      "live": true,
+      "files": {
+        "light": "boreal-light.webp",
+        "dark": "boreal-dark.webp",
+        "msl": "boreal.msl",
+        "agsl": "boreal.agsl"
+      },
+      "sha256": {
+        "boreal-light.webp": "45f99d0304a0016b164e724341decb630d3862e2a052705af75d0a8071b57da6",
+        "boreal-dark.webp": "20f7eddb1cf5a745dfa65feedcaa3bbce32b6a31c96221ddd256dc1d1076ef34",
+        "boreal.msl": "c9aa012965947c0dd6d267f6a7830742d7fa7ce105286c207a096c0a26138c45",
+        "boreal.agsl": "556f8e61fcd837e8860700f172812ada8fe6399a551d4b756a611638d11a8604"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.3
+      },
+      "fallback_preset": "graphite",
+      "bubble": {
+        "light": "blue",
+        "dark": "green"
+      },
+      "still_time": 151
+    },
+    {
+      "id": "lagoon",
+      "section": "live",
+      "live": true,
+      "files": {
+        "light": "lagoon-light.webp",
+        "dark": "lagoon-dark.webp",
+        "msl": "lagoon.msl",
+        "agsl": "lagoon.agsl"
+      },
+      "sha256": {
+        "lagoon-light.webp": "14ec52e6061ae0ffa7dd55a2fa13e1563bcb19b495ff04abd9f66b1a66c67676",
+        "lagoon-dark.webp": "299f4842a3c7e17fdf81fe04ef59b2a54d96bee3fe8a26b6e8ff225a45739b90",
+        "lagoon.msl": "7a2ddd8755d40e3e5c7876b60625d8da70a0a794b768c938ab0066f308fd9287",
+        "lagoon.agsl": "bdf2a6840f4d46385e10e5ec4d867677194f587ae0857ad1d9b5cad5dad6ed58"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "fallback_preset": "mint",
+      "bubble": {
+        "light": "blue",
+        "dark": "teal"
+      },
+      "still_time": 36
+    },
+    {
+      "id": "sea-sparks",
+      "section": "live",
+      "live": true,
+      "files": {
+        "light": "sea-sparks-light.webp",
+        "dark": "sea-sparks-dark.webp",
+        "msl": "sea-sparks.msl",
+        "agsl": "sea-sparks.agsl"
+      },
+      "sha256": {
+        "sea-sparks-light.webp": "f582874a307d03a5e986f31481b7d1cfd2d1b10a6d1763f8f8280e87bd5498c9",
+        "sea-sparks-dark.webp": "5d3049cd27de9b1ec713782f4e3e2dc00066a4b2b8130f53612426ba47606915",
+        "sea-sparks.msl": "6e34d8857f513ebbb0362371c0b87783ec28eeac1e57d5620e10a6c1a4960b02",
+        "sea-sparks.agsl": "d146e8f11c3d546b6a74ed10a52052b0415eff7ec25109bc215972b16f775c0b"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.3
+      },
+      "fallback_preset": "aurora",
+      "bubble": {
+        "light": "blue",
+        "dark": "teal"
+      },
+      "still_time": 0
+    },
+    {
+      "id": "tropic-dusk",
+      "section": "live",
+      "live": true,
+      "files": {
+        "light": "tropic-dusk-light.webp",
+        "dark": "tropic-dusk-dark.webp",
+        "msl": "tropic-dusk.msl",
+        "agsl": "tropic-dusk.agsl"
+      },
+      "sha256": {
+        "tropic-dusk-light.webp": "f97bca32b8bdc02277fb2561dd97e0f8a7272e97c8313cc2936824fd3fdb33d9",
+        "tropic-dusk-dark.webp": "cb4ece53344d74c9d71bca7807cc1878ea8535b2ae50f421392f4789c83ec9a9",
+        "tropic-dusk.msl": "810feb3cf6b36623a81f3702974160cbc2564aab46a93180c9973f316648b59b",
+        "tropic-dusk.agsl": "b54a22d45008028fc5ef8bcc91ab2dd9d44b8754f4996033db8e9c24ab30811d"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.35
+      },
+      "fallback_preset": "sunset",
+      "bubble": {
+        "light": "pink",
+        "dark": "orange"
+      },
+      "still_time": 24
+    },
+    {
+      "id": "dune-lagoons",
+      "section": "nature",
+      "live": false,
+      "files": {
+        "light": "dune-lagoons-light.webp",
+        "dark": "dune-lagoons-dark.webp"
+      },
+      "sha256": {
+        "dune-lagoons-light.webp": "2d6e7be9c88d66e83100b87805f234ee06c176b615b0e5b03025260a8080c6af",
+        "dune-lagoons-dark.webp": "d89c70e9a7b235298ddc5b430876d396e4e3574c7031773b064b0b62a7e553b8"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.25
+      },
+      "fallback_preset": "mint",
+      "bubble": {
+        "light": "teal",
+        "dark": "purple"
+      }
+    },
+    {
+      "id": "palm-coast",
+      "section": "nature",
+      "live": false,
+      "files": {
+        "light": "palm-coast-light.webp",
+        "dark": "palm-coast-dark.webp"
+      },
+      "sha256": {
+        "palm-coast-light.webp": "bd543bac61ac256994cc8608feb30c8c843665954c3e512ceabaae90b79aadc9",
+        "palm-coast-dark.webp": "0d6b61831dcd4ce4969d64415371fcf74cb82740d07ab389f7783084f0a29d08"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.2
+      },
+      "fallback_preset": "ocean",
+      "bubble": {
+        "light": "orange",
+        "dark": "blue"
+      }
+    },
+    {
+      "id": "river-bends",
+      "section": "nature",
+      "live": false,
+      "files": {
+        "light": "river-bends-light.webp",
+        "dark": "river-bends-dark.webp"
+      },
+      "sha256": {
+        "river-bends-light.webp": "fd4dbbaff4ff42ec2382ee9b67fa9dec7fb5c490760f8b96d055d05375116100",
+        "river-bends-dark.webp": "8a1457f6b519b916c5feeb9c343fe3b0dfd115683ce0835e9d347fa1c4c38384"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "fallback_preset": "mint",
+      "bubble": {
+        "light": "teal",
+        "dark": "teal"
+      }
+    },
+    {
+      "id": "highland-mist",
+      "section": "nature",
+      "live": false,
+      "files": {
+        "light": "highland-mist-light.webp",
+        "dark": "highland-mist-dark.webp"
+      },
+      "sha256": {
+        "highland-mist-light.webp": "b3f820bbd36019b67a4308f0df577b96875a3c9dfb6758271117630980edcb10",
+        "highland-mist-dark.webp": "d4f4053e53737ed6d21cc749405dbd6cd36d74f807b3c8812df9359d25a8c8d8"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.3
+      },
+      "fallback_preset": "mint",
+      "bubble": {
+        "light": "blue",
+        "dark": "green"
+      }
+    },
+    {
+      "id": "glacier-lake",
+      "section": "nature",
+      "live": false,
+      "files": {
+        "light": "glacier-lake-light.webp",
+        "dark": "glacier-lake-dark.webp"
+      },
+      "sha256": {
+        "glacier-lake-light.webp": "9ed3b923a339bb8813d9845e6e1aa9e99f5ab3eaeafb91d6a924227635144201",
+        "glacier-lake-dark.webp": "04bcaab3960e07b9cdfa50eb6387d1a52dfe6ace27fcbb0201c89c7b2a62e3b6"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.35
+      },
+      "fallback_preset": "ocean",
+      "bubble": {
+        "light": "teal",
+        "dark": "teal"
+      }
+    },
+    {
+      "id": "canola-sky",
+      "section": "nature",
+      "live": false,
+      "files": {
+        "light": "canola-sky-light.webp",
+        "dark": "canola-sky-dark.webp"
+      },
+      "sha256": {
+        "canola-sky-light.webp": "61eee98f497888abdcbb017c678f7ea6d7952a8ab5c96559a11d580adc199ce8",
+        "canola-sky-dark.webp": "39cbb540bca6bc345c64d720a74989a20fee26d66852a6bdf5fc5731f82fedcb"
+      },
+      "anchor": {
+        "x": 0.4,
+        "y": 0.38
+      },
+      "fallback_preset": "sand",
+      "bubble": {
+        "light": "green",
+        "dark": "orange"
+      }
+    },
+    {
+      "id": "harbour-fog",
+      "section": "nature",
+      "live": false,
+      "files": {
+        "light": "harbour-fog-light.webp",
+        "dark": "harbour-fog-dark.webp"
+      },
+      "sha256": {
+        "harbour-fog-light.webp": "840a20a65f149f909629f6356431866d97d8c39076e29216b4be1fe888da8465",
+        "harbour-fog-dark.webp": "eab733fc42a941cdb47df4b9c54ae64faec45ee20035c60b7880c04fe2d037f9"
+      },
+      "anchor": {
+        "x": 0.7,
+        "y": 0.3
+      },
+      "fallback_preset": "ocean",
+      "bubble": {
+        "light": "blue",
+        "dark": "blue"
+      }
+    },
+    {
+      "id": "canyon-glow",
+      "section": "nature",
+      "live": false,
+      "files": {
+        "light": "canyon-glow-light.webp",
+        "dark": "canyon-glow-dark.webp"
+      },
+      "sha256": {
+        "canyon-glow-light.webp": "abc25293a40da85b30555a443111c829b72b94b772fda8da72095188cf593820",
+        "canyon-glow-dark.webp": "55a2bab53c6c145032b9ef64be3ea6bcc99e1eeb1d0a92c7a71c0c63c4a41e72"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.3
+      },
+      "fallback_preset": "sand",
+      "bubble": {
+        "light": "blue",
+        "dark": "purple"
+      }
+    },
+    {
+      "id": "polar-ice",
+      "section": "nature",
+      "live": false,
+      "files": {
+        "light": "polar-ice-light.webp",
+        "dark": "polar-ice-dark.webp"
+      },
+      "sha256": {
+        "polar-ice-light.webp": "8e01b99fc7749ec00c5001e39a7fab75a30ed26cc771014e8ed736915e84df68",
+        "polar-ice-dark.webp": "2abbb780826eecd47de83858a726741ae38c1e783f6d7e7765128b5164240707"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.3
+      },
+      "fallback_preset": "night",
+      "bubble": {
+        "light": "blue",
+        "dark": "purple"
+      }
+    },
+    {
+      "id": "moon-tide",
+      "section": "nature",
+      "live": false,
+      "files": {
+        "light": "moon-tide-light.webp",
+        "dark": "moon-tide-dark.webp"
+      },
+      "sha256": {
+        "moon-tide-light.webp": "d9ecffe7f95f29e7da5ea6f3fe50e914c0741a7fa089385c36cba71a88fc08e4",
+        "moon-tide-dark.webp": "3ddff939599165ddacaf1bdbe5ec297317277f289bf9f1f4390be48211c30701"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.72
+      },
+      "fallback_preset": "ocean",
+      "bubble": {
+        "light": "blue",
+        "dark": "blue"
+      }
+    },
+    {
+      "id": "guara",
+      "section": "nature",
+      "live": false,
+      "files": {
+        "light": "guara-light.webp",
+        "dark": "guara-dark.webp"
+      },
+      "sha256": {
+        "guara-light.webp": "348a02f0c789a8c8baee7889c29c8b2b8fbb35b7654e628bf989bdfc483ce98f",
+        "guara-dark.webp": "4fff0fa187bf0433151544f2c1b6b88e31ccecb0ed76b5f06f0e7be47571a37b"
+      },
+      "anchor": {
+        "x": 0.78,
+        "y": 0.19
+      },
+      "fallback_preset": "mint",
+      "bubble": {
+        "light": "green",
+        "dark": "green"
+      }
+    },
+    {
+      "id": "currents",
+      "section": "patterns",
+      "live": false,
+      "files": {
+        "light": "currents-light.webp",
+        "dark": "currents-dark.webp"
+      },
+      "sha256": {
+        "currents-light.webp": "71c3f7dbf7d3a4c2cf0ada52b5a14ebd19fa331c8582528df5a75a5b78a8423d",
+        "currents-dark.webp": "af54077c43d0fb05a1a9017417be74b705a5b96b8131380af7f0fc04d724266a"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "fallback_preset": "lavender",
+      "bubble": {
+        "light": "purple",
+        "dark": "purple"
+      }
+    },
+    {
+      "id": "azulejo",
+      "section": "patterns",
+      "live": false,
+      "files": {
+        "light": "azulejo-light.webp",
+        "dark": "azulejo-dark.webp"
+      },
+      "sha256": {
+        "azulejo-light.webp": "c1dd9798b94ba67b10e9625eeb65c68c3d3d077832f249f8296d0ef97daf3226",
+        "azulejo-dark.webp": "4d3db6e5fd18b3694902a7b5d38f845a64c1459e4321d653552207d9d300cf04"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "fallback_preset": "sky",
+      "bubble": {
+        "light": "blue",
+        "dark": "blue"
+      }
+    },
+    {
+      "id": "calcadao",
+      "section": "patterns",
+      "live": false,
+      "files": {
+        "light": "calcadao-light.webp",
+        "dark": "calcadao-dark.webp"
+      },
+      "sha256": {
+        "calcadao-light.webp": "95215b1960238fa0b8238a6a3e06d81c662382a32ca44eb3869b34ac614ede4b",
+        "calcadao-dark.webp": "523a4c068abaeed0c869edff0bc8368cfdebf628594952a762c46e481a0ae3d5"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "fallback_preset": "sand",
+      "bubble": {
+        "light": "teal",
+        "dark": "teal"
+      }
+    },
+    {
+      "id": "knit",
+      "section": "patterns",
+      "live": false,
+      "files": {
+        "light": "knit-light.webp",
+        "dark": "knit-dark.webp"
+      },
+      "sha256": {
+        "knit-light.webp": "ea85459cc443423fbd57ca9350f838186e936e732db5a0ad54566644eee71964",
+        "knit-dark.webp": "e82405ba6a28078a6217c5e7e11f412e7cc190f1f022c5743f87582f56d99a56"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0
+      },
+      "fallback_preset": "sand",
+      "bubble": {
+        "light": "blue",
+        "dark": "blue"
+      }
+    },
+    {
+      "id": "doodles-brasil",
+      "section": "patterns",
+      "live": false,
+      "files": {
+        "light": "doodles-brasil-light.webp",
+        "dark": "doodles-brasil-dark.webp"
+      },
+      "sha256": {
+        "doodles-brasil-light.webp": "1741678e2085ac33daf10e03d91eef86eac47f9ff789988e0154a5af9c28b662",
+        "doodles-brasil-dark.webp": "7e1d75340af711efd53f40cbe8e9359386cf172866698bc862da79e4e2ef73b5"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "fallback_preset": "mint",
+      "bubble": {
+        "light": "green",
+        "dark": "green"
+      }
+    },
+    {
+      "id": "doodles-canada",
+      "section": "patterns",
+      "live": false,
+      "files": {
+        "light": "doodles-canada-light.webp",
+        "dark": "doodles-canada-dark.webp"
+      },
+      "sha256": {
+        "doodles-canada-light.webp": "e3c92bf5c21d0d879e99f0f920425da6aa011feecb5cc39ed7fde64384ef34d2",
+        "doodles-canada-dark.webp": "c42df6a56801d36b1d798382a55f71d5d130a1ccf2d8d3e91668c64e7e5382c2"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "fallback_preset": "sand",
+      "bubble": {
+        "light": "blue",
+        "dark": "blue"
+      }
+    },
+    {
+      "id": "paper",
+      "section": "minimal",
+      "live": false,
+      "files": {
+        "light": "paper-light.webp",
+        "dark": "paper-dark.webp"
+      },
+      "sha256": {
+        "paper-light.webp": "8d5e62d4d708a421c897246ae8f237688e8185b49f57c8f1558a398352afeb46",
+        "paper-dark.webp": "fc43f0c44438226e1e22f2567a401666c59672134900dfdd4193042cfa775244"
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "fallback_preset": "sand",
+      "bubble": {
+        "light": "green",
+        "dark": "green"
+      }
+    },
+    {
+      "id": "paper-cut",
+      "section": "minimal",
+      "live": false,
+      "files": {
+        "light": "paper-cut-light.webp",
+        "dark": "paper-cut-dark.webp"
+      },
+      "sha256": {
+        "paper-cut-light.webp": "ea1ce8322345d4a439f9e04eab36fa73601dc8d78c4812b0146a5a0d4db2d49a",
+        "paper-cut-dark.webp": "d91897e51a4d9966a658c5477e183d211c9e3d794f4fc86cb08f9d5fde4a1505"
+      },
+      "anchor": {
+        "x": 1,
+        "y": 0
+      },
+      "fallback_preset": "sand",
+      "bubble": {
+        "light": "teal",
+        "dark": "orange"
+      }
+    }
+  ]
+}
