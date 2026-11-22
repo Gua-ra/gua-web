@@ -45,6 +45,7 @@ import ModuleApi from "../modules/Api";
 import { TextualEventViewModel } from "../viewmodels/event-tiles/TextualEventViewModel";
 import { TextualEventView } from "../shared-components/event-tiles/TextualEventView";
 import { ElementCallEventType } from "../call-types";
+import { CHAT_BACKGROUND_EVENT_TYPE } from "../gua/chatTheme/model/constants";
 
 // Subset of EventTile's IProps plus some mixins
 export interface EventTileTypeProps
@@ -120,6 +121,7 @@ const STATE_EVENT_TILE_TYPES = new Map<string, Factory>([
     [EventType.RoomTombstone, TextualEventFactory],
     [EventType.RoomJoinRules, TextualEventFactory],
     [EventType.RoomGuestAccess, TextualEventFactory],
+    [CHAT_BACKGROUND_EVENT_TYPE, TextualEventFactory],
 ]);
 
 for (const evType of ElementCallEventType.names) {

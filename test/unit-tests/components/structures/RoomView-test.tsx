@@ -59,6 +59,7 @@ import { RoomView } from "../../../../src/components/structures/RoomView";
 import ResizeNotifier from "../../../../src/utils/ResizeNotifier";
 import SettingsStore from "../../../../src/settings/SettingsStore";
 import { SettingLevel } from "../../../../src/settings/SettingLevel";
+import { Layout } from "../../../../src/settings/enums/Layout";
 import DMRoomMap from "../../../../src/utils/DMRoomMap";
 import { NotificationState } from "../../../../src/stores/notifications/NotificationState";
 import { RightPanelPhases } from "../../../../src/stores/right-panel/RightPanelStorePhases";
@@ -848,6 +849,47 @@ describe("RoomView", () => {
 
             expect(await screen.findByRole("button", upgradeButton)).toBeInTheDocument();
         });
+    });
+
+    it("draws the chat theme behind the timeline when chat themes are on", async () => {
+        // Earlier tests in this file leave SettingsStore.getValue mocked.
+        const earlierMock = jest.isMockFunction(SettingsStore.getValue)
+            ? jest.mocked(SettingsStore.getValue).getMockImplementation()
+            : undefined;
+        if (earlierMock) {
+            jest.mocked(SettingsStore.getValue).mockImplementation((setting, ...rest) =>
+                setting === "feature_gua_chat_themes"
+                    ? true
+                    : setting === "layout"
+                      ? Layout.Bubble
+                      : earlierMock(setting, ...rest),
+            );
+        }
+        await SettingsStore.setValue("feature_gua_chat_themes", null, SettingLevel.DEVICE, true);
+        await SettingsStore.setValue("layout", null, SettingLevel.DEVICE, Layout.Bubble);
+        try {
+            jest.spyOn(room, "getMyMembership").mockReturnValue(KnownMembership.Join);
+            room.currentState.setStateEvents([
+                new MatrixEvent({
+                    type: "global.gua.room.background",
+                    state_key: "",
+                    sender: "@alice:example.org",
+                    room_id: room.roomId,
+                    event_id: "$theme",
+                    content: { v: 1, kind: "preset", preset: "mint", bubble: "green" },
+                }),
+            ]);
+            const { container } = await mountRoomView();
+            await waitFor(() => expect(container.querySelector(".mx_GuaChatWallpaper")).not.toBeNull());
+            const body = container.querySelector(".mx_RoomView_body")!;
+            expect(body).toHaveAttribute("data-gua-wallpaper");
+            expect(body).toHaveAttribute("data-gua-bubble");
+            expect(body.querySelector(":scope > .mx_GuaChatWallpaper")).not.toBeNull();
+        } finally {
+            if (earlierMock) jest.mocked(SettingsStore.getValue).mockImplementation(earlierMock);
+            await SettingsStore.setValue("feature_gua_chat_themes", null, SettingLevel.DEVICE, false);
+            await SettingsStore.setValue("layout", null, SettingLevel.DEVICE, Layout.Group);
+        }
     });
 
     describe("when there is a RoomView", () => {

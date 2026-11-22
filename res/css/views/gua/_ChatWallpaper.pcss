@@ -1,0 +1,175 @@
+/*
+Copyright 2026 Gua
+
+SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
+Please see LICENSE files in the repository root for full details.
+*/
+
+/* A wallpaper layer fills its positioned parent, behind everything else in it. Never mirrored for right-to-left. */
+.mx_GuaWallpaper {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    direction: ltr;
+    contain: strict;
+}
+
+.mx_GuaWallpaper_layer {
+    position: absolute;
+    inset: 0;
+}
+
+.mx_GuaWallpaper_layer_entering {
+    animation: mx_GuaWallpaper_fadeIn 200ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mx_GuaWallpaper_layer_entering {
+        animation: none;
+    }
+}
+
+@keyframes mx_GuaWallpaper_fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.mx_GuaWallpaper_fill,
+.mx_GuaWallpaper_still,
+.mx_GuaWallpaper_live,
+.mx_GuaWallpaper_grain,
+.mx_GuaWallpaper_scrim {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.mx_GuaWallpaper_none {
+    background-color: var(--cpd-color-bg-canvas-default);
+}
+
+.mx_GuaWallpaper_still {
+    object-fit: cover;
+    user-select: none;
+}
+
+/* The canvas shows only once it has drawn, and the still stays under it. */
+.mx_GuaWallpaper_live {
+    display: block;
+}
+
+/* About one or two levels: it breaks up the banding of smooth fills. */
+.mx_GuaWallpaper_grain {
+    background-image: url("$(res)/img/gua/wallpapers/noise.webp");
+    background-repeat: repeat;
+    mix-blend-mode: soft-light;
+    opacity: 0.08;
+}
+
+.mx_GuaWallpaper_scrim {
+    background-color: #000;
+}
+
+.mx_GuaWallpaper_photo {
+    position: absolute;
+}
+
+/* The timeline's wallpaper sits below every tile, including the bubbles' own hover backgrounds at z-index -1. */
+.mx_RoomView_body[data-gua-wallpaper],
+.mx_RoomView_body[data-gua-bubble] {
+    position: relative;
+    isolation: isolate;
+}
+
+.mx_GuaChatWallpaper {
+    z-index: -1;
+}
+
+.mx_RoomView_body[data-gua-bubble] {
+    --gua-bubble: var(--gua-bubble-light, $eventbubble-self-bg);
+}
+
+.cpd-theme-dark .mx_RoomView_body[data-gua-bubble],
+.cpd-theme-dark-hc .mx_RoomView_body[data-gua-bubble] {
+    --gua-bubble: var(--gua-bubble-dark, $eventbubble-self-bg);
+}
+
+/* Only real bubbles: info tiles, stickers and other bubble-less tiles stay transparent. */
+.mx_RoomView_body[data-gua-bubble]
+    .mx_EventTile[data-layout="bubble"][data-self="true"]:not(
+        .mx_EventTile_info,
+        .mx_EventTile_noBubble,
+        .mx_EventTile_bubbleContainer,
+        .mx_EventTile_leftAlignedBubble
+    ) {
+    --backgroundColor: var(--gua-bubble);
+
+    .mx_MediaBody {
+        background: var(--gua-bubble);
+    }
+}
+
+.mx_RoomView_body[data-gua-wallpaper] {
+    --gua-legibility-background: color-mix(in srgb, var(--cpd-color-bg-canvas-default) 88%, transparent);
+
+    /* The bars around the timeline stay opaque, across the whole width. */
+    > .mx_MessageComposer,
+    > .mx_RoomView_statusArea,
+    > .mx_AuxPanel,
+    > .mx_RoomPreviewBar {
+        background-color: var(--cpd-color-bg-canvas-default);
+        box-shadow: 0 0 0 100vmax var(--cpd-color-bg-canvas-default);
+        clip-path: inset(0 -100vmax);
+    }
+
+    /* Rings cut out of the page colour would show as halos on a wallpaper. */
+    .mx_EventTile[data-layout="bubble"] .mx_EventTile_avatar {
+        border-color: transparent;
+
+        img {
+            box-shadow: none;
+        }
+    }
+
+    .mx_TimelineSeparator > hr {
+        visibility: hidden;
+    }
+
+    /* Small chrome that sits on the wallpaper reads on a capsule of the page colour. */
+    .mx_TimelineSeparator > div,
+    .mx_EventTile[data-layout="bubble"] .mx_TextualEvent,
+    .mx_GenericEventListSummary[data-layout="bubble"] .mx_GenericEventListSummary_summary,
+    .mx_GenericEventListSummary[data-layout="bubble"] .mx_GenericEventListSummary_toggle,
+    .mx_EventTile[data-layout="bubble"][data-self="false"] > .mx_DisambiguatedProfile,
+    .mx_EventTile.mx_EventTile_noBubble[data-layout="bubble"] .mx_MessageTimestamp,
+    .mx_WhoIsTypingTile_label {
+        width: fit-content;
+        padding: 3px 8px;
+        border-radius: 12px;
+        background-color: var(--gua-legibility-background);
+        color: var(--cpd-color-text-primary);
+    }
+
+    .mx_NewRoomIntro {
+        padding: 16px;
+        border-radius: 12px;
+        background-color: var(--gua-legibility-background);
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .mx_RoomView_body[data-gua-wallpaper] {
+        --gua-legibility-background: var(--cpd-color-bg-canvas-default);
+    }
+}
+
+.cpd-theme-light-hc .mx_RoomView_body[data-gua-wallpaper],
+.cpd-theme-dark-hc .mx_RoomView_body[data-gua-wallpaper] {
+    --gua-legibility-background: var(--cpd-color-bg-canvas-default);
+}

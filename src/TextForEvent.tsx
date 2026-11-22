@@ -39,6 +39,8 @@ import { highlightEvent, isLocationEvent } from "./utils/EventUtils";
 import { getSenderName } from "./utils/event/getSenderName";
 import PosthogTrackers from "./PosthogTrackers.ts";
 import { ElementCallEventType } from "./call-types.ts";
+import { CHAT_BACKGROUND_EVENT_TYPE } from "./gua/chatTheme/model/constants";
+import { textForChatThemeEvent } from "./gua/chatTheme/notice";
 
 function getRoomMemberDisplayname(client: MatrixClient, event: MatrixEvent, userId = event.getSender()): string {
     const roomId = event.getRoomId();
@@ -917,6 +919,7 @@ const stateHandlers: IHandlers = {
     // TODO: Enable support for m.widget event type (https://github.com/vector-im/element-web/issues/13111)
     "im.vector.modular.widgets": textForWidgetEvent,
     [WIDGET_LAYOUT_EVENT_TYPE]: textForWidgetLayoutEvent,
+    [CHAT_BACKGROUND_EVENT_TYPE]: textForChatThemeEvent,
 };
 
 // Add all the Mjolnir stuff to the renderer

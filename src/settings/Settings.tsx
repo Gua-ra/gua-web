@@ -219,6 +219,7 @@ export interface Settings {
     "feature_location_share_live": IFeature;
     "feature_dynamic_room_predecessors": IFeature;
     "feature_render_reaction_images": IFeature;
+    "feature_gua_chat_themes": IFeature;
     "feature_new_room_list": IFeature;
     "feature_ask_to_join": IFeature;
     "feature_notifications": IFeature;
@@ -681,6 +682,15 @@ export const SETTINGS: Settings = {
         labsGroup: LabGroup.Messaging,
         displayName: _td("labs|render_reaction_images"),
         description: _td("labs|render_reaction_images_description"),
+        supportedLevels: LEVELS_DEVICE_ONLY_SETTINGS_WITH_CONFIG_PRIORITISED,
+        supportedLevelsAreOrdered: true,
+        default: false,
+    },
+    "feature_gua_chat_themes": {
+        isFeature: true,
+        labsGroup: LabGroup.Themes,
+        displayName: _td("gua|chat_theme|labs_name"),
+        description: _td("gua|chat_theme|labs_description"),
         supportedLevels: LEVELS_DEVICE_ONLY_SETTINGS_WITH_CONFIG_PRIORITISED,
         supportedLevelsAreOrdered: true,
         default: false,
