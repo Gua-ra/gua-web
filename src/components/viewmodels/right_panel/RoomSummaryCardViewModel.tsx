@@ -34,6 +34,8 @@ import { Key } from "../../../Keyboard";
 import { usePinnedEvents } from "../../../hooks/usePinnedEvents";
 import { tagRoom } from "../../../utils/room/tagRoom";
 import { inviteToRoom } from "../../../utils/room/inviteToRoom";
+import { useFeatureEnabled } from "../../../hooks/useSettings";
+import { RoomSettingsTab } from "../../views/dialogs/RoomSettingsDialog";
 
 export interface RoomSummaryCardState {
     isDirectMessage: boolean;
@@ -83,6 +85,9 @@ export interface RoomSummaryCardState {
     onRoomExtensionsClick: () => void;
     onRoomPinsClick: () => void;
     onRoomSettingsClick: (ev: Event) => void;
+    /** Whether the room offers Gua's chat theme. */
+    showChatTheme: boolean;
+    onChatThemeClick: () => void;
     onLeaveRoomClick: () => void;
     onShareRoomClick: () => void;
     onRoomExportClick: () => Promise<void>;
@@ -199,6 +204,11 @@ export function useRoomSummaryCardViewModel(
         PosthogTrackers.trackInteraction("WebRightPanelRoomInfoSettingsButton", ev);
     };
 
+    const showChatTheme = useFeatureEnabled("feature_gua_chat_themes");
+    const onChatThemeClick = (): void => {
+        defaultDispatcher.dispatch({ action: "open_room_settings", initial_tab_id: RoomSettingsTab.ChatTheme });
+    };
+
     const onShareRoomClick = (): void => {
         Modal.createDialog(ShareDialog, {
             target: room,
@@ -266,6 +276,8 @@ export function useRoomSummaryCardViewModel(
         onRoomExtensionsClick,
         onRoomPinsClick,
         onRoomSettingsClick,
+        showChatTheme,
+        onChatThemeClick,
         onLeaveRoomClick,
         onShareRoomClick,
         onRoomExportClick,

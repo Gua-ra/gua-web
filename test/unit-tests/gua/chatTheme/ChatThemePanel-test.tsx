@@ -1,0 +1,153 @@
+/*
+Copyright 2026 Gua
+
+SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
+Please see LICENSE files in the repository root for full details.
+*/
+
+import React from "react";
+import { fireEvent, render, screen, waitFor } from "jest-matrix-react";
+import { type MatrixClient, MatrixEvent, Room } from "matrix-js-sdk/src/matrix";
+
+import { ChatThemePanel } from "../../../../src/gua/chatTheme/ui/ChatThemePanel";
+import Modal from "../../../../src/Modal";
+import ErrorDialog from "../../../../src/components/views/dialogs/ErrorDialog";
+import SettingsStore from "../../../../src/settings/SettingsStore";
+import { Layout } from "../../../../src/settings/enums/Layout";
+import { stubClient, withClientContextRenderOptions } from "../../../test-utils";
+import { overrideSettings } from "./overrideSettings";
+
+const ME = "@me:example.org";
+/** Sent themes are held per room until their echo, so every test gets its own room. */
+let roomCount = 0;
+
+describe("ChatThemePanel", () => {
+    let client: MatrixClient;
+    let room: Room;
+    let defaultTheme: MatrixEvent | undefined;
+    let layout: Layout;
+
+    function setRoomTheme(content: Record<string, unknown>): void {
+        room.currentState.setStateEvents([
+            new MatrixEvent({
+                type: "global.gua.room.background",
+                state_key: "",
+                sender: ME,
+                room_id: room.roomId,
+                event_id: "$theme",
+                content,
+            }),
+        ]);
+    }
+
+    beforeEach(() => {
+        client = stubClient();
+        room = new Room(`!room${++roomCount}:example.org`, client, ME);
+        defaultTheme = undefined;
+        layout = Layout.Bubble;
+        jest.spyOn(client, "getAccountData").mockImplementation((type) =>
+            type === "global.gua.chat_theme" ? defaultTheme : undefined,
+        );
+        jest.spyOn(client, "sendStateEvent").mockResolvedValue({ event_id: "$sent" });
+        jest.spyOn(room.currentState, "maySendStateEvent").mockReturnValue(true);
+        overrideSettings(() => ({ layout }));
+        jest.spyOn(Modal, "createDialog");
+    });
+
+    afterEach(() => jest.restoreAllMocks());
+
+    const renderPanel = (mode: "chat" | "default" = "chat") =>
+        render(
+            <ChatThemePanel mode={mode} room={mode === "chat" ? room : undefined} />,
+            withClientContextRenderOptions(client),
+        );
+
+    it("starts the gallery with the Default tile, selected for a chat without a theme", () => {
+        renderPanel();
+        const featured = screen.getByRole("radiogroup", { name: "Featured" });
+        const [first] = Array.from(featured.querySelectorAll("[role='radio']"));
+        expect(first).toHaveAccessibleName("Default");
+        expect(first).toHaveAttribute("aria-checked", "true");
+        expect(screen.getByText("Everyone in the chat sees this theme.")).toBeInTheDocument();
+    });
+
+    it("previews a tile and sends the apps' bytes when it is set", async () => {
+        renderPanel();
+        fireEvent.click(screen.getAllByRole("radio", { name: "Silk, Live" })[0]);
+        fireEvent.click(screen.getByRole("button", { name: "Set theme" }));
+        await waitFor(() =>
+            expect(client.sendStateEvent).toHaveBeenCalledWith(
+                room.roomId,
+                "global.gua.room.background",
+                expect.anything(),
+                "",
+            ),
+        );
+        expect(JSON.stringify(jest.mocked(client.sendStateEvent).mock.calls[0][2])).toBe(
+            '{"art":"silk","bubble":"teal","fallback_preset":"mint","kind":"art","v":1}',
+        );
+    });
+
+    it("cannot set the current theme again", () => {
+        setRoomTheme({ v: 1, kind: "art", art: "guara", bubble: "green", fallback_preset: "mint" });
+        renderPanel();
+        const guara = screen.getByRole("radio", { name: "Guará" });
+        expect(guara).toHaveAttribute("aria-checked", "true");
+        fireEvent.click(guara);
+        const setTheme = screen.getByRole("button", { name: "Set theme" });
+        expect(setTheme).toHaveAttribute("aria-disabled", "true");
+        fireEvent.click(setTheme);
+        expect(client.sendStateEvent).not.toHaveBeenCalled();
+    });
+
+    it("removes the chat theme with the Default tile", async () => {
+        setRoomTheme({ v: 1, kind: "preset", preset: "ocean", bubble: "blue" });
+        renderPanel();
+        fireEvent.click(screen.getByRole("radio", { name: "Default" }));
+        fireEvent.click(screen.getByRole("button", { name: "Set theme" }));
+        await waitFor(() => expect(client.sendStateEvent).toHaveBeenCalled());
+        expect(jest.mocked(client.sendStateEvent).mock.calls[0][2]).toEqual({});
+    });
+
+    it("disables everything without permission", () => {
+        jest.spyOn(room.currentState, "maySendStateEvent").mockReturnValue(false);
+        renderPanel();
+        expect(screen.getByText("Only admins and moderators can change it")).toBeInTheDocument();
+        expect(screen.getByRole("radio", { name: "Default" })).toBeDisabled();
+        expect(screen.getByRole("button", { name: /^Wallpaper/ })).toBeDisabled();
+    });
+
+    it("reports a refused send", async () => {
+        jest.spyOn(client, "sendStateEvent").mockRejectedValue(new Error("forbidden"));
+        renderPanel();
+        fireEvent.click(screen.getAllByRole("radio", { name: "Azulejo" })[0]);
+        fireEvent.click(screen.getByRole("button", { name: "Set theme" }));
+        await waitFor(() =>
+            expect(Modal.createDialog).toHaveBeenCalledWith(ErrorDialog, {
+                title: "Chat theme",
+                description: "Couldn’t change the background. Try again.",
+            }),
+        );
+    });
+
+    it("offers the message bubbles layout outside it", () => {
+        layout = Layout.Group;
+        const setValue = jest.spyOn(SettingsStore, "setValue").mockResolvedValue();
+        renderPanel();
+        fireEvent.click(screen.getByRole("button", { name: "Use message bubbles" }));
+        expect(setValue).toHaveBeenCalledWith("layout", null, "device", Layout.Bubble);
+    });
+
+    it("sets the personal default from the Classic tile's screen", async () => {
+        jest.spyOn(client, "setAccountData").mockResolvedValue({});
+        renderPanel("default");
+        expect(screen.getByRole("radio", { name: "Classic" })).toHaveAttribute("aria-checked", "true");
+        expect(screen.getByText("Applies to every chat that doesn’t have its own theme.")).toBeInTheDocument();
+        fireEvent.click(screen.getAllByRole("radio", { name: "Paper" })[0]);
+        fireEvent.click(screen.getByRole("button", { name: "Set default" }));
+        await waitFor(() => expect(client.setAccountData).toHaveBeenCalled());
+        expect(JSON.stringify(jest.mocked(client.setAccountData).mock.calls[0][1])).toBe(
+            '{"art":"paper","bubble":"green","fallback_preset":"sand","kind":"art","v":1}',
+        );
+    });
+});

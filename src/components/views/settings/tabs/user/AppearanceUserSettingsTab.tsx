@@ -25,6 +25,7 @@ import ImageSizePanel from "../../ImageSizePanel";
 import SettingsTab from "../SettingsTab";
 import { SettingsSection } from "../../shared/SettingsSection";
 import { SettingsSubsection } from "../../shared/SettingsSubsection";
+import { ChatThemeDefaultSettings } from "../../../../../gua/chatTheme/ui/ChatThemeDefaultSettings";
 
 interface IState {
     useBundledEmojiFont: boolean;
@@ -111,6 +112,7 @@ export default class AppearanceUserSettingsTab extends React.Component<EmptyObje
                 <SettingsSection>
                     <ThemeChoicePanel />
                     <LayoutSwitcher />
+                    <ChatThemeDefaultSettings />
                     <FontScalingPanel />
                     {this.renderAdvancedSection()}
                     <ImageSizePanel />

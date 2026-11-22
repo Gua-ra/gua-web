@@ -24,6 +24,7 @@ import FavouriteIcon from "@vector-im/compound-design-tokens/assets/web/icons/fa
 import UserAddIcon from "@vector-im/compound-design-tokens/assets/web/icons/user-add";
 import LinkIcon from "@vector-im/compound-design-tokens/assets/web/icons/link";
 import SettingsIcon from "@vector-im/compound-design-tokens/assets/web/icons/settings";
+import ImageIcon from "@vector-im/compound-design-tokens/assets/web/icons/image";
 import ExportArchiveIcon from "@vector-im/compound-design-tokens/assets/web/icons/export-archive";
 import LeaveIcon from "@vector-im/compound-design-tokens/assets/web/icons/leave";
 import FilesIcon from "@vector-im/compound-design-tokens/assets/web/icons/files";
@@ -291,6 +292,9 @@ const RoomSummaryCardView: React.FC<IProps> = ({
                     </>
                 )}
 
+                {vm.showChatTheme && (
+                    <MenuItem Icon={ImageIcon} label={_t("gua|chat_theme|title")} onSelect={vm.onChatThemeClick} />
+                )}
                 <MenuItem Icon={SettingsIcon} label={_t("common|settings")} onSelect={vm.onRoomSettingsClick} />
 
                 <Separator />

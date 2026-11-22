@@ -68,6 +68,8 @@ describe("<RoomSummaryCard />", () => {
         onRoomExtensionsClick: jest.fn(),
         onRoomPinsClick: jest.fn(),
         onRoomSettingsClick: jest.fn(),
+        showChatTheme: false,
+        onChatThemeClick: jest.fn(),
         onLeaveRoomClick: jest.fn(),
         onShareRoomClick: jest.fn(),
         onRoomExportClick: jest.fn(),
@@ -320,5 +322,20 @@ describe("<RoomSummaryCard />", () => {
 
             expect(screen.queryByText("Public room")).toBeInTheDocument();
         });
+    });
+
+    it("offers the chat theme only when the room has it", () => {
+        const { rerender } = getComponent();
+        expect(screen.queryByText("Chat theme")).not.toBeInTheDocument();
+
+        const onChatThemeClick = jest.fn();
+        mocked(useRoomSummaryCardViewModel).mockReturnValue({
+            ...vmDefaultValues,
+            showChatTheme: true,
+            onChatThemeClick,
+        });
+        rerender(<RoomSummaryCardView room={room} permalinkCreator={new RoomPermalinkCreator(room)} />);
+        fireEvent.click(screen.getByText("Chat theme"));
+        expect(onChatThemeClick).toHaveBeenCalled();
     });
 });
