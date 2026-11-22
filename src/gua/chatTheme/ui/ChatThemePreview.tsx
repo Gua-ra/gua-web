@@ -46,6 +46,7 @@ export function ChatThemePreview({ theme, appearance, live, localPhoto }: Props)
                 wallpaper={theme.wallpaper}
                 appearance={appearance}
                 live={animates ? liveOptions : undefined}
+                small
                 localPhoto={localPhoto}
             />
             <div className="mx_GuaThemePreview_messages" aria-hidden={true}>

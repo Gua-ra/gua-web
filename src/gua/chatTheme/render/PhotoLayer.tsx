@@ -13,11 +13,13 @@ import { mediaFromMxc } from "../../../customisations/Media";
 import { PHOTO_MAX_SIZE } from "../model/constants";
 import { aspectFill } from "../model/layout";
 import { type PhotoWallpaper } from "../model/types";
-import { type Size } from "./hooks";
+import { type Size, useDevicePixelRatio } from "./hooks";
 
 const MAX_DECODED_EDGE = 2048;
 /** Chromium decodes the full frame before createImageBitmap resizes it, and Gua uploads at most 2048 px. */
 const MAX_SOURCE_EDGE = 4096;
+/** Rounded up in steps, so resizing a preview decodes again only now and then. */
+const SMALL_EDGE_STEP = 256;
 /** Allows for rounding in the declared width and height. */
 const ASPECT_TOLERANCE = 0.02;
 /** Fixed, so a crafted width and height cannot make the placeholder expensive. */
@@ -73,7 +75,12 @@ export function readImageSize(blob: Blob): Promise<{ width: number; height: numb
  * Checks the image's real size, not the event's declared one, so a small declared size cannot hide a huge image or
  * one of another shape.
  */
-export async function decodePhoto(blob: Blob, declaredWidth: number, declaredHeight: number): Promise<ImageBitmap> {
+export async function decodePhoto(
+    blob: Blob,
+    declaredWidth: number,
+    declaredHeight: number,
+    maxEdge = MAX_DECODED_EDGE,
+): Promise<ImageBitmap> {
     const { width, height } = await readImageSize(blob);
     if (!width || !height || width > MAX_SOURCE_EDGE || height > MAX_SOURCE_EDGE) {
         throw new Error(`Photo wallpaper is ${width} by ${height} pixels`);
@@ -82,12 +89,18 @@ export async function decodePhoto(blob: Blob, declaredWidth: number, declaredHei
     if (!(Math.abs(Math.log(shape)) <= Math.log(1 + ASPECT_TOLERANCE))) {
         throw new Error(`Photo wallpaper is ${width} by ${height}, not ${declaredWidth} by ${declaredHeight}`);
     }
-    const scale = Math.min(1, MAX_DECODED_EDGE / Math.max(width, height));
+    const scale = Math.min(1, maxEdge / Math.max(width, height));
     return createImageBitmap(blob, {
         resizeWidth: Math.max(1, Math.round(width * scale)),
         resizeHeight: Math.max(1, Math.round(height * scale)),
         resizeQuality: "high",
     });
+}
+
+function smallViewEdge(size: Size, photo: PhotoWallpaper, devicePixelRatio: number): number {
+    const rect = aspectFill(size.width, size.height, photo.w, photo.h, 0, 0);
+    const edge = Math.max(rect.width, rect.height) * devicePixelRatio;
+    return Math.min(MAX_DECODED_EDGE, Math.ceil(edge / SMALL_EDGE_STEP) * SMALL_EDGE_STEP);
 }
 
 function rectStyle(size: Size, width: number, height: number, photo: PhotoWallpaper): CSSProperties {
@@ -120,13 +133,32 @@ function Blurhash({ hash, style }: { hash: string; style: CSSProperties }): JSX.
     );
 }
 
-type PhotoState = { status: "loading" } | { status: "loaded"; bitmap: ImageBitmap } | { status: "failed" };
+type PhotoState =
+    | { status: "loading" }
+    | { status: "loaded"; bitmap: ImageBitmap; width: number; height: number; owned: boolean }
+    | { status: "failed" };
 
-function usePhotoBitmap(url: string, size: number, width: number, height: number, local?: ImageBitmap): PhotoState {
+/** Keeps the size apart, since a closed bitmap reports 0 by 0. */
+const loaded = (bitmap: ImageBitmap, owned: boolean): PhotoState => ({
+    status: "loaded",
+    bitmap,
+    width: bitmap.width,
+    height: bitmap.height,
+    owned,
+});
+
+function usePhotoBitmap(
+    url: string,
+    size: number,
+    width: number,
+    height: number,
+    maxEdge: number,
+    local?: ImageBitmap,
+): PhotoState {
     const [state, setState] = useState<PhotoState>({ status: "loading" });
     useEffect(() => {
         if (local) {
-            setState({ status: "loaded", bitmap: local });
+            setState(loaded(local, false));
             return;
         }
         const abort = new AbortController();
@@ -137,12 +169,14 @@ function usePhotoBitmap(url: string, size: number, width: number, height: number
             setState({ status: "failed" });
             return;
         }
+        // A small view has no size until it is measured.
+        if (!maxEdge) return;
         fetchCapped(httpUrl, PHOTO_MAX_SIZE, abort.signal)
-            .then((blob) => decodePhoto(blob, width, height))
+            .then((blob) => decodePhoto(blob, width, height, maxEdge))
             .then((decoded) => {
                 bitmap = decoded;
                 if (abort.signal.aborted) decoded.close();
-                else setState({ status: "loaded", bitmap: decoded });
+                else setState(loaded(decoded, true));
             })
             .catch((error) => {
                 if (abort.signal.aborted) return;
@@ -153,7 +187,7 @@ function usePhotoBitmap(url: string, size: number, width: number, height: number
             abort.abort();
             bitmap?.close();
         };
-    }, [url, size, width, height, local]);
+    }, [url, size, width, height, maxEdge, local]);
     return state;
 }
 
@@ -162,17 +196,24 @@ interface PhotoLayerProps {
     size: Size;
     dark: boolean;
     increasedContrast: boolean;
+    /** Decodes only for `size`, where the chat view keeps 2048 px so resizing it never decodes again. */
+    small?: boolean;
     /** A photo being edited, shown before it is uploaded. */
     local?: ImageBitmap;
 }
 
-export function PhotoLayer({ photo, size, dark, increasedContrast, local }: PhotoLayerProps): JSX.Element {
-    const state = usePhotoBitmap(photo.url, photo.size, photo.w, photo.h, local);
+export function PhotoLayer({ photo, size, dark, increasedContrast, small, local }: PhotoLayerProps): JSX.Element {
+    const devicePixelRatio = useDevicePixelRatio();
+    const maxEdge = small ? smallViewEdge(size, photo, devicePixelRatio) : MAX_DECODED_EDGE;
+    const state = usePhotoBitmap(photo.url, photo.size, photo.w, photo.h, maxEdge, local);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
-        if (state.status !== "loaded") return;
+        // A closed bitmap is 0 by 0. StrictMode runs this twice, and the canvas already holds the pixels.
+        if (state.status !== "loaded" || !state.bitmap.width) return;
         canvasRef.current?.getContext("2d")?.drawImage(state.bitmap, 0, 0);
+        // The canvas keeps its pixels, since a resize only restyles it.
+        if (state.owned) state.bitmap.close();
     }, [state]);
 
     const failed = state.status === "failed";
@@ -186,9 +227,9 @@ export function PhotoLayer({ photo, size, dark, increasedContrast, local }: Phot
                 <canvas
                     ref={canvasRef}
                     className="mx_GuaWallpaper_photo"
-                    width={state.bitmap.width}
-                    height={state.bitmap.height}
-                    style={rectStyle(size, state.bitmap.width, state.bitmap.height, photo)}
+                    width={state.width}
+                    height={state.height}
+                    style={rectStyle(size, state.width, state.height, photo)}
                 />
             )}
             {!failed && dim > 0 && <div className="mx_GuaWallpaper_scrim" style={{ opacity: dim }} />}

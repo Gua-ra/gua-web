@@ -36,6 +36,7 @@ interface FillProps {
     /** Without it a live artwork shows its still. */
     live?: LiveOptions & { frozen?: boolean };
     thumbnail?: boolean;
+    small?: boolean;
     localPhoto?: ImageBitmap;
 }
 
@@ -64,7 +65,7 @@ function LightScrim({ appearance }: { appearance: Appearance }): JSX.Element | n
     ) : null;
 }
 
-function WallpaperFill({ wallpaper, size, appearance, live, thumbnail, localPhoto }: FillProps): JSX.Element {
+function WallpaperFill({ wallpaper, size, appearance, live, thumbnail, small, localPhoto }: FillProps): JSX.Element {
     const { dark } = appearance;
     switch (wallpaper.kind) {
         case "none":
@@ -125,6 +126,7 @@ function WallpaperFill({ wallpaper, size, appearance, live, thumbnail, localPhot
                         size={size}
                         dark={dark}
                         increasedContrast={appearance.increasedContrast}
+                        small={small}
                         local={localPhoto}
                     />
                 </>
@@ -136,11 +138,12 @@ interface Props {
     wallpaper: Wallpaper;
     appearance: Appearance;
     live?: LiveOptions;
+    small?: boolean;
     localPhoto?: ImageBitmap;
     className?: string;
 }
 
-export function WallpaperLayer({ wallpaper, appearance, live, localPhoto, className }: Props): JSX.Element {
+export function WallpaperLayer({ wallpaper, appearance, live, small, localPhoto, className }: Props): JSX.Element {
     const ref = useRef<HTMLDivElement>(null);
     const size = useElementSize(ref);
     const layers = useCrossfade(wallpaperKey(wallpaper), wallpaper, CROSSFADE_MS);
@@ -161,6 +164,7 @@ export function WallpaperLayer({ wallpaper, appearance, live, localPhoto, classN
                             size={size}
                             appearance={appearance}
                             live={isTop ? live : frozen}
+                            small={small}
                             localPhoto={isTop ? localPhoto : undefined}
                         />
                     </div>
@@ -187,7 +191,7 @@ export function WallpaperThumbnail({
     return (
         <div className={classNames("mx_GuaWallpaper", className)} aria-hidden={true}>
             <div className="mx_GuaWallpaper_layer">
-                <WallpaperFill wallpaper={wallpaper} size={size} appearance={appearance} thumbnail />
+                <WallpaperFill wallpaper={wallpaper} size={size} appearance={appearance} thumbnail small />
             </div>
         </div>
     );

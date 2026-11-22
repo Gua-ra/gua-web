@@ -20,7 +20,9 @@ import { stubClient, withClientContextRenderOptions } from "../../../test-utils"
 const BLURHASH = "LEHV6nWB2yk8pyo0adR*.7kCMdnj";
 
 function fakeBitmap(width: number, height: number): ImageBitmap {
-    return { width, height, close: jest.fn() } as unknown as ImageBitmap;
+    const bitmap = { width, height, close: jest.fn() };
+    bitmap.close.mockImplementation(() => Object.assign(bitmap, { width: 0, height: 0 }));
+    return bitmap as unknown as ImageBitmap;
 }
 
 const RealImage = window.Image;
@@ -64,6 +66,7 @@ const photo: PhotoWallpaper = {
 describe("photo wallpaper layer", () => {
     let client: MatrixClient;
     let finishDownload: (ok: boolean) => void;
+    let decoded: ImageBitmap;
 
     beforeAll(() => {
         window.Image = FakeImage as unknown as typeof Image;
@@ -92,7 +95,8 @@ describe("photo wallpaper layer", () => {
                             : reject(new Error("offline"));
                 }),
         );
-        window.createImageBitmap = jest.fn(async () => fakeBitmap(200, 100)) as typeof window.createImageBitmap;
+        decoded = fakeBitmap(200, 100);
+        window.createImageBitmap = jest.fn(async () => decoded) as typeof window.createImageBitmap;
         jest.spyOn(CanvasRenderingContext2D.prototype, "drawImage").mockImplementation(() => {});
         jest.spyOn(logger, "warn").mockImplementation(() => {});
     });
@@ -110,6 +114,43 @@ describe("photo wallpaper layer", () => {
         expect(container.querySelectorAll("canvas")).toHaveLength(1);
         expect(container.querySelector("canvas")!.style.width).toBe("200px");
         expect(container.querySelector("canvas")!.style.left).toBe("-50px");
+    });
+
+    it("frees the decoded photo once drawn and keeps showing it through a resize", async () => {
+        const { container, rerender } = renderLayer(false);
+        await act(async () => finishDownload(true));
+        await waitFor(() => expect(decoded.close).toHaveBeenCalled());
+        rerender(
+            <PhotoLayer photo={photo} size={{ width: 300, height: 100 }} dark={false} increasedContrast={false} />,
+        );
+        expect(container.querySelector("canvas")).toHaveAttribute("width", "200");
+        expect(container.querySelector("canvas")!.style.width).toBe("300px");
+    });
+
+    it("decodes only for the box at the screen's pixel ratio in a small view", async () => {
+        jest.replaceProperty(window, "devicePixelRatio", 2);
+        FakeImage.size = { width: 4000, height: 2000 };
+        try {
+            render(
+                <PhotoLayer
+                    photo={{ ...photo, w: 4000, h: 2000 }}
+                    size={{ width: 64, height: 64 }}
+                    dark={false}
+                    increasedContrast={false}
+                    small
+                />,
+            );
+            await act(async () => finishDownload(true));
+            await waitFor(() =>
+                expect(window.createImageBitmap).toHaveBeenCalledWith(expect.any(Blob), {
+                    resizeWidth: 256,
+                    resizeHeight: 128,
+                    resizeQuality: "high",
+                }),
+            );
+        } finally {
+            FakeImage.size = { width: 200, height: 100 };
+        }
     });
 
     it("dims only in dark appearance", async () => {
