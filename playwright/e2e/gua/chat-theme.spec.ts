@@ -27,7 +27,7 @@ test.describe("Chat themes", () => {
         await app.viewRoomByName("Themed");
         await expect(page.locator(".mx_RoomView_timeline > .mx_GuaChatWallpaper")).toBeVisible();
 
-        await page.getByRole("textbox", { name: "Send an unencrypted message…" }).pressSequentially("@");
+        await page.getByRole("textbox", { name: "Send an unencrypted message…" }).pressSequentially("@bot");
         const suggestion = page.locator(".mx_Autocomplete .mx_Autocomplete_Completion").first();
         await expect(suggestion).toBeVisible();
         // A trial click fails when another element would receive the click.
