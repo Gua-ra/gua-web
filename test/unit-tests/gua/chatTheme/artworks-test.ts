@@ -64,7 +64,12 @@ describe("artworks", () => {
             }
         }
         expect(sha256(path.join(WALLPAPERS, manifest.noise.file))).toBe(manifest.noise.sha256);
-        expect(new Set(fs.readdirSync(WALLPAPERS))).toEqual(expected);
+        expect(new Set(fs.readdirSync(WALLPAPERS))).toEqual(new Set([...expected, "thumbnails"]));
+    });
+
+    it("have a thumbnail for every still, and nothing else", () => {
+        const stills = manifest.artworks.flatMap((a) => [a.files.light, a.files.dark]);
+        expect(fs.readdirSync(path.join(WALLPAPERS, "thumbnails")).sort()).toEqual(stills.sort());
     });
 
     it("fall back to one of the presets every build knows", () => {
