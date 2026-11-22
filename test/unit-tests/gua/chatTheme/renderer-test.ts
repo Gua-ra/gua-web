@@ -18,7 +18,7 @@ import {
 const FRAG =
     "precision highp float;\nuniform vec2 u_res;\nvoid main(){gl_FragColor=vec4(gl_FragCoord.xy/u_res,0.0,1.0);}";
 
-/** Records the calls a renderer makes, with uniform locations named after their uniforms. */
+/** Records the renderer's calls. Each uniform location is its uniform's name. */
 function fakeGl(options: { compiles?: boolean; uniforms?: string[]; parallelAfterPolls?: number } = {}) {
     const calls: unknown[][] = [];
     const sources: string[] = [];

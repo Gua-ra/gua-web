@@ -7,12 +7,8 @@ Please see LICENSE files in the repository root for full details.
 */
 
 // Copies the chat wallpapers, live shaders and shared test fixtures from the apps, and bakes the gallery thumbnails.
-// Usage: node scripts/gua/sync-wallpapers.mjs --android <gua-android checkout> [--android-extra <checkout>]...
-//            [--ios <gua-ios checkout>] [--cwebp <path>] [--check]
-//
-// --android-extra adds the artworks of another gua-android checkout (a branch not yet merged into the first one)
-// that the first one lacks, each placed after the artwork it follows there. Stills, the grain tile and fixtures are
-// byte for byte; the manifest is the first checkout's with those artworks added, as the apps' own merge writes it.
+// --android-extra adds the artworks another gua-android checkout has and the first one lacks, writing the merged
+// manifest as the apps' own merge does.
 
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -36,7 +32,7 @@ const ANDROID_FIXTURES = {
 };
 const IOS_FIXTURES = "UnitTests/Resources";
 
-/** Twice the gallery tile (84 by 182 CSS px), the stills' aspect ratio. The pinned cwebp makes them byte-identical. */
+/** Twice the 84 by 182 CSS px gallery tile. Only the pinned cwebp reproduces the committed bytes. */
 const THUMBNAIL = { width: 168, height: 364, quality: 75 };
 const CWEBP_VERSION = "1.6.0";
 
@@ -127,7 +123,7 @@ function thumbnail(cwebp, still) {
 
 const camel = (id) => id.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 
-/** Prettier's own layout of this module, so `prettier --check` passes on it unchanged. */
+/** Writes the module exactly as Prettier formats it, so `prettier --check` passes. */
 function assetsModule(ids) {
     const imports = [];
     const stills = [];
@@ -213,7 +209,7 @@ async function main() {
     }
     wanted.set(ASSETS_MODULE, Buffer.from(assetsModule(manifest.artworks.map((a) => a.id)), "utf8"));
 
-    // generate.mjs runs its command line only when executed directly, so importing it only loads the Lab.
+    // generate.mjs runs its command line only when executed directly, so importing it is safe.
     const generate = await import(pathToFileURL(path.join(android, "tools/wallpapers/shaders/generate.mjs")).href);
     const shaders = generate.loadLabShaders(path.join(android, "tools/wallpapers/lab"));
     for (const [id, frag] of shaders) wanted.set(path.join(SHADERS, `${id}.frag`), Buffer.from(frag, "utf8"));

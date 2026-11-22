@@ -56,7 +56,7 @@ const GRADIENT_BUBBLES: [PresetId, BubbleId][] = [
 const artworkThemes = (section: "live" | "nature" | "patterns" | "minimal"): ChatTheme[] =>
     artworksIn(section).map((artwork) => artworkTheme(artwork.id));
 
-/** The theme screen's gallery. The Featured section also starts with the first tile, which is not listed here. */
+/** The screen puts its first tile, not listed here, at the start of Featured. */
 export const THEME_GALLERY: ThemeGallerySection[] = [
     { id: "featured", themes: FEATURED.map(artworkTheme) },
     { id: "live", themes: artworkThemes("live") },

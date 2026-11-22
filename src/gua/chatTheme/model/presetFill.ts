@@ -13,15 +13,14 @@ const stopList = (stops: GradientStop[]): string => stops.map(({ colour, at }) =
 const transparent = (hex: string): string => `${hex}00`;
 
 /**
- * The CSS angle whose gradient line runs from the top-left corner to the bottom-right corner of a w by h box, with
- * isolines perpendicular to it, as the apps draw a diagonal. `135deg` and `to bottom right` only match on a square.
+ * The CSS angle for a corner-to-corner gradient with isolines perpendicular to it, as the apps draw a diagonal.
+ * `135deg` and `to bottom right` only match it on a square.
  */
 export function diagonalAngle(width: number, height: number): number {
     if (width <= 0 || height <= 0) return 135;
     return 180 - (Math.atan(width / height) * 180) / Math.PI;
 }
 
-/** The CSS `background` for a preset fill drawn in a box of the given size. */
 export function presetBackground(fill: PresetFill, width: number, height: number): string {
     switch (fill.type) {
         case "solid":

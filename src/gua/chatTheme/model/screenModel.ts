@@ -25,11 +25,11 @@ export interface ThemeScreenState {
     current: ChatTheme;
     defaultTheme: ChatTheme;
     canChange: boolean;
-    /** A public chat that hides media does not show its photo here either. Always false for the default. */
+    /** The media setting hides this public chat's photo. Always false for the default. */
     isPhotoHidden: boolean;
 }
 
-/** The chat's first tile is "Default", drawn as the user's default; the default's first tile is "Classic". Both save STOCK. */
+/** "Default" in a chat, drawn as the user's default; "Classic" for the default itself. Both save STOCK. */
 export function firstTileTheme(state: ThemeScreenState): ChatTheme {
     return state.mode === "chat" ? state.defaultTheme : STOCK;
 }
@@ -38,12 +38,11 @@ export function isFirstTileSelected(state: ThemeScreenState): boolean {
     return isStock(state.current);
 }
 
-/** A tile is selected only when the theme has exactly its wallpaper and bubble pair. */
 export function isTileSelected(state: ThemeScreenState, tile: ChatTheme): boolean {
     return themesEqual(tile, state.current);
 }
 
-/** What the pickers start from: in a chat that follows the default, the default without its photo, which stays private. */
+/** What the pickers start from. A chat following the default starts from it without its photo, which stays private. */
 export function baseTheme(state: ThemeScreenState): ChatTheme {
     if (state.mode !== "chat" || !isStock(state.current)) return state.current;
     const { defaultTheme } = state;
@@ -55,7 +54,7 @@ export function shownWallpaper(state: ThemeScreenState): Wallpaper {
     return state.isPhotoHidden && wallpaper.kind === "photo" ? NO_WALLPAPER : wallpaper;
 }
 
-/** Saving no theme makes a chat follow the default, so its preview shows that, and a photo this chat hides stays hidden. */
+/** Saving STOCK makes a chat follow the default, so the preview shows the first tile. */
 export function shownTheme(state: ThemeScreenState, saving: ChatTheme): ChatTheme {
     if (isStock(saving)) return firstTileTheme(state);
     return state.isPhotoHidden && saving.wallpaper.kind === "photo" ? withBubbles(NO_WALLPAPER, saving) : saving;

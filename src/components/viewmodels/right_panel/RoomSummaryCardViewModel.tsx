@@ -85,7 +85,6 @@ export interface RoomSummaryCardState {
     onRoomExtensionsClick: () => void;
     onRoomPinsClick: () => void;
     onRoomSettingsClick: (ev: Event) => void;
-    /** Whether the room offers Gua's chat theme. */
     showChatTheme: boolean;
     onChatThemeClick: () => void;
     onLeaveRoomClick: () => void;

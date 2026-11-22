@@ -27,7 +27,6 @@ interface Props {
     screen: ThemeScreen;
     onBack: () => void;
     onSaved: () => void;
-    /** A chosen photo goes on to the editor, which places and saves it. */
     onPhoto: (photo: PreparedPhoto) => void;
 }
 
@@ -103,7 +102,7 @@ export function ChatWallpaperPicker({ screen, onBack, onSaved, onPhoto }: Props)
                 onSet={() => run(choice, onSaved)}
             />
             {groups.map((section) => {
-                // The first section is the one No wallpaper tile, which names itself.
+                // The No wallpaper tile names itself, so its section has no heading.
                 const headingId = section.id === "none" ? undefined : `${headingIds}-${section.id}`;
                 return (
                     <section key={section.id} className="mx_GuaThemePanel_section">

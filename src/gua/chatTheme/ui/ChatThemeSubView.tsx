@@ -12,9 +12,8 @@ import ChevronLeftIcon from "@vector-im/compound-design-tokens/assets/web/icons/
 import { _t } from "../../../languageHandler";
 
 /**
- * A step of the theme screen shown in place of the panel, never as a dialog of its own: Modal renders only its top
- * dialog, so a dialog would reset the settings dialog underneath. Back takes focus when the step opens, since the
- * button that opened it is gone.
+ * Replaces the panel rather than opening a dialog: Modal renders only its top dialog, so a dialog would reset the
+ * settings dialog. Back takes focus because the button that opened this view is gone.
  */
 export function ChatThemeSubView({
     title,
@@ -48,9 +47,7 @@ export function ChatThemeSubView({
     );
 }
 
-/**
- * Cancel and the save button, which stays in place while saving so focus stays on it, with a save error under them.
- */
+/** The save button stays mounted while saving so it keeps focus. */
 export function ChatThemeActions({
     setLabel,
     saving,

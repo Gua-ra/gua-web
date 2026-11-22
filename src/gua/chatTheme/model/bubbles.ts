@@ -20,7 +20,7 @@ export const BUBBLE_IDS = [
 
 export type BubbleId = (typeof BUBBLE_IDS)[number];
 
-/** Increased contrast keeps these: they already give the stock text colours the stock bubble's contrast. */
+/** Also used with increased contrast: they already give stock text the stock bubble's contrast. */
 export const BUBBLE_COLOURS: Record<Exclude<BubbleId, "standard">, { light: string; dark: string }> = {
     green: { light: "#D9F4DD", dark: "#173826" },
     teal: { light: "#D3F1EC", dark: "#123A38" },
@@ -36,7 +36,6 @@ export function isBubbleId(value: unknown): value is BubbleId {
     return typeof value === "string" && (BUBBLE_IDS as readonly string[]).includes(value);
 }
 
-/** The colour the bubble shows in an appearance, or undefined for the stock bubble. */
 export function bubbleColour(bubble: BubbleId, dark: boolean): string | undefined {
     if (bubble === "standard") return undefined;
     return dark ? BUBBLE_COLOURS[bubble].dark : BUBBLE_COLOURS[bubble].light;

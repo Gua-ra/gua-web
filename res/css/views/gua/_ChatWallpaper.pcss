@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
 Please see LICENSE files in the repository root for full details.
 */
 
-/* A wallpaper layer fills its positioned parent, behind everything else in it. Never mirrored for right-to-left. */
+/* Never mirrored for right-to-left layouts. */
 .mx_GuaWallpaper {
     position: absolute;
     inset: 0;
@@ -60,12 +60,11 @@ Please see LICENSE files in the repository root for full details.
     user-select: none;
 }
 
-/* The canvas shows only once it has drawn, and the still stays under it. It sets its own opacity. */
 .mx_GuaWallpaper_live {
     display: block;
 }
 
-/* About one or two levels: it breaks up the banding of smooth fills. */
+/* Breaks up banding in smooth fills by about one or two levels. */
 .mx_GuaWallpaper_grain {
     background-image: url("$(res)/img/gua/wallpapers/noise.webp");
     background-repeat: repeat;
@@ -81,8 +80,8 @@ Please see LICENSE files in the repository root for full details.
     position: absolute;
 }
 
-/* The wallpaper fills the timeline column, below every tile including the bubbles' own hover backgrounds at
-   z-index -1. The header, banners, status bar and composer keep their own backgrounds outside it. */
+/* Keeps the wallpaper's z-index -1 inside the timeline column, under every tile including the bubbles' own
+   z-index -1 hover backgrounds. */
 .mx_RoomView_body[data-gua-wallpaper] > .mx_RoomView_timeline {
     isolation: isolate;
 }
@@ -93,7 +92,6 @@ Please see LICENSE files in the repository root for full details.
     right: calc(var(--container-gap-width) / -2);
 }
 
-/* On the room, so the threads in its right panel get the colour too. */
 .mx_RoomView[data-gua-bubble] {
     --gua-bubble: var(--gua-bubble-light, $eventbubble-self-bg);
 }
@@ -103,9 +101,9 @@ Please see LICENSE files in the repository root for full details.
     --gua-bubble: var(--gua-bubble-dark, $eventbubble-self-bg);
 }
 
-/* Only real bubbles: info tiles, stickers and other bubble-less tiles stay transparent. The palette colours sit
-   further from the text than the stock bubble, so secondary text and links take the next step of their ramp to keep
-   4.5:1. The timestamp's colour is resolved on the root, so it is set here again. */
+/* Only real bubbles. The palette colours have less contrast with text than the stock bubble, so secondary text and
+   links take the next step of their ramp to keep 4.5:1. The timestamp colour is resolved on the root, so it is set
+   again here. */
 .mx_RoomView[data-gua-bubble]
     .mx_EventTile[data-layout="bubble"][data-self="true"]:not(
         .mx_EventTile_info,
@@ -162,7 +160,7 @@ Please see LICENSE files in the repository root for full details.
         }
     }
 
-    /* Small chrome that sits on the wallpaper reads on a capsule of the page colour. */
+    /* Small chrome on the wallpaper sits on a capsule of the page colour. */
     .mx_TimelineSeparator > div,
     .mx_EventTile[data-layout="bubble"] .mx_TextualEvent,
     .mx_GenericEventListSummary[data-layout="bubble"] .mx_GenericEventListSummary_summary,

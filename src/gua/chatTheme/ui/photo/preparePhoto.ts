@@ -13,9 +13,9 @@ import { type PhotoWallpaper } from "../../model/types";
 import { readImageSize } from "../../render/PhotoLayer";
 
 export const PHOTO_MIMETYPE = "image/jpeg";
+// The apps encode with the same passes.
 const FIRST_PASS = { maxEdge: 2048, quality: 0.8 };
 const SECOND_PASS = { maxEdge: 1600, quality: 0.75 };
-/** Over this, the photo is encoded again smaller. */
 const SECOND_PASS_ABOVE_BYTES = 1_500_000;
 const BLURHASH_WIDTH = 64;
 
@@ -26,7 +26,6 @@ export interface PreparedPhoto {
     width: number;
     height: number;
     blurhash: string;
-    /** The encoded photo, for the editor's preview. */
     bitmap: ImageBitmap;
 }
 
@@ -39,7 +38,7 @@ function canvasOf(width: number, height: number): CanvasRenderingContext2D {
     return context;
 }
 
-/** Redrawn over black into sRGB, so no metadata, location or transparency reaches the upload. */
+/** Redrawing over black into sRGB keeps metadata, location and transparency out of the upload. */
 async function encodeJpeg(
     source: ImageBitmap,
     pass: { maxEdge: number; quality: number },
@@ -66,9 +65,8 @@ function blurhashOf(source: ImageBitmap): string {
 }
 
 /**
- * A camera photo is decoded at most 2048 px on its long edge rather than at full size, which for 48 megapixels would
- * take about 190 MB. Only the long edge is given, so the shape stays right even where the size read from the file
- * does not follow its orientation.
+ * Decodes at most 2048 px on the long edge, since a full decode of 48 megapixels takes about 190 MB. Giving only one
+ * dimension keeps the shape where the size read from the file ignores its orientation.
  */
 async function decodeChosen(file: Blob): Promise<ImageBitmap> {
     const { width, height } = await readImageSize(file);
@@ -78,10 +76,6 @@ async function decodeChosen(file: Blob): Promise<ImageBitmap> {
     return createImageBitmap(file, { imageOrientation: "from-image", resizeQuality: "high", ...resize });
 }
 
-/**
- * Turns a chosen file into the photo the apps upload: oriented, at most 2048 px on the long edge as JPEG 0.8, or
- * 1600 px at 0.75 when that is over 1.5 MB. Refuses a result over the server's upload limit.
- */
 export async function preparePhoto(file: Blob, maxUploadSize: number | undefined): Promise<PreparedPhoto> {
     const source = await decodeChosen(file);
     try {
@@ -109,7 +103,7 @@ export async function maxUploadSize(client: MatrixClient): Promise<number | unde
     }
 }
 
-/** Uploads unencrypted: everyone in a chat, and every device of the user, must be able to show it. */
+/** Unencrypted, so every member of the chat and every device of the user can show it. */
 export async function uploadPhoto(
     client: MatrixClient,
     photo: PreparedPhoto,

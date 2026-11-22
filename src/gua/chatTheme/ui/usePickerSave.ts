@@ -14,9 +14,7 @@ type Choice = ChatTheme | (() => Promise<ChatTheme>);
 
 export interface ThemeSave {
     saving: boolean;
-    /** Why the last save failed, shown under the buttons. */
     error: string | null;
-    /** Saves the choice and then calls `onSaved`; a failure only sets `error`. */
     run: (choice: Choice, onSaved: () => void) => Promise<void>;
     setError: (error: string | null) => void;
 }

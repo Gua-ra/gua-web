@@ -7,13 +7,10 @@ Please see LICENSE files in the repository root for full details.
 
 export const LIVE_WALLPAPER_FPS = 30;
 const FRAME_MS = 1000 / LIVE_WALLPAPER_FPS;
-/**
- * How far an animation frame may land from a frame boundary and still count as on it, so 60, 90 and 120 Hz displays
- * all draw every 33 ms, and a frame one 60 Hz frame late (50 ms) is not a slow frame.
- */
+/** Allows for timer jitter, so 60, 90 and 120 Hz displays all draw every 33 ms and a 50 ms frame is not slow. */
 const FRAME_TOLERANCE_MS = 4;
 
-/** Keeps the float time small enough that it never loses precision. */
+/** Wraps the time before it loses float precision. */
 const TIME_PERIOD_SECONDS = 1800;
 const PULSE_RISE_SECONDS = 0.25;
 const PULSE_DECAY_SECONDS = 0.9;
@@ -36,8 +33,8 @@ function sendPulseRiseSeconds(value: number): number {
 }
 
 /**
- * The user's sends as the wallpaper's pulse, in real time. A send while a pulse shows never restarts it from 0,
- * which would snap the shaders' rings back: the new pulse starts where its rising edge has the current value.
+ * A send during a pulse does not restart it from 0, which would snap the shaders' rings back: the new pulse starts at
+ * the point of its rising edge that matches the current value.
  */
 export class SendPulse {
     private startMs?: number;
@@ -52,11 +49,7 @@ export class SendPulse {
     }
 }
 
-/**
- * A live wallpaper's own time. It advances only with drawn frames, at most 30 a second, so a pause freezes the
- * frame and `resume` continues from it. A new clock starts at the still, so the first frame after any still
- * condition is the still again.
- */
+/** Advances only with drawn frames, at most 30 a second, so a pause freezes the frame. */
 export class LiveWallpaperClock {
     private elapsedMs = 0;
     private lastFrameMs?: number;
@@ -84,17 +77,14 @@ export class LiveWallpaperClock {
 }
 
 const WATCHDOG_WINDOW_MS = 2000;
-/** With fewer frames than this in the window, one stray frame would decide the percentile. */
+/** Fewer frames would let one stray frame decide the percentile. */
 const WATCHDOG_MINIMUM_FRAMES = 10;
-/** 1.5 times the 30 fps budget plus the tolerance: 54 ms. */
 const WATCHDOG_LIMIT_MS = (1.5 * 1000) / LIVE_WALLPAPER_FPS + FRAME_TOLERANCE_MS;
 
 /**
- * Trips once the 90th percentile of the intervals between drawn frames, over a rolling 2 s window that holds at
- * least ten of them, is over 54 ms in two windows in a row: the first one starts a new window, and the second must
- * come within two window lengths of it. Main-thread work such as a sync or opening a large room rarely lasts that
- * long, a GPU that is too slow does. Each run gets a new instance, so a pause starts again. The first two frames of a
- * run are skipped: the browser finishes the shader around them.
+ * Trips when the 90th percentile frame interval is over the limit in two windows close together: a sync or opening a
+ * large room rarely stalls that long, a GPU that is too slow does. The first two frames are skipped while the browser
+ * finishes the shader.
  */
 export class FrameWatchdog {
     private frames: { endMs: number; durationMs: number }[] = [];
@@ -146,7 +136,6 @@ export interface MotionConditions {
     covered: boolean;
 }
 
-/** Anything that asks for the still wins over a pause. */
 export function wallpaperMotion(conditions: MotionConditions): WallpaperMotion {
     if (conditions.rendererUnavailable || conditions.reducedMotion || conditions.slowFrames) return "still";
     if (conditions.hidden || conditions.unfocused || conditions.offScreen || conditions.covered) return "paused";

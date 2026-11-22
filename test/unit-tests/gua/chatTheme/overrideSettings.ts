@@ -7,7 +7,7 @@ Please see LICENSE files in the repository root for full details.
 
 import SettingsStore from "../../../../src/settings/SettingsStore";
 
-/** Answers the settings `values()` names, read on each call, and reads every other one from the store. */
+/** Calls `values` on every read, so a test can change an override after rendering. */
 export function overrideSettings(values: () => Record<string, unknown>): void {
     const getValue = SettingsStore.getValue.bind(SettingsStore) as (...args: unknown[]) => unknown;
     jest.spyOn(SettingsStore, "getValue").mockImplementation(((name: string, ...rest: unknown[]) => {

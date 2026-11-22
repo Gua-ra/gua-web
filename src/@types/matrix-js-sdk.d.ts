@@ -51,7 +51,7 @@ declare module "matrix-js-sdk/src/types" {
         };
         "m.room.bot.options": unknown;
 
-        // Gua chat theme, kept as raw content so the codec alone decides what it means
+        // Gua chat theme, left raw for the codec to validate
         "global.gua.room.background": Record<string, unknown>;
     }
 
@@ -99,7 +99,7 @@ declare module "matrix-js-sdk/src/types" {
         // Indicate whether recovery is enabled or disabled
         "io.element.recovery": { enabled: boolean };
 
-        // Gua personal default chat theme, with the same content as the room event
+        // Gua default chat theme, left raw for the codec to validate
         "global.gua.chat_theme": Record<string, unknown>;
     }
 

@@ -179,7 +179,6 @@ Please see LICENSE files in the repository root for full details.
     color: var(--cpd-color-text-primary);
 }
 
-/* Wraps, so every option shows on a desktop without a sideways scroll. */
 .mx_GuaThemeTiles {
     display: grid;
     grid-template-columns: repeat(auto-fill, 84px);
@@ -187,7 +186,7 @@ Please see LICENSE files in the repository root for full details.
     padding: var(--cpd-space-1x);
 }
 
-/* Phone-shaped, 19.5 by 9 like the stills. */
+/* Phone-shaped, 19.5:9 like the stills. */
 .mx_GuaThemeTile {
     position: relative;
     isolation: isolate;
@@ -215,7 +214,6 @@ Please see LICENSE files in the repository root for full details.
     cursor: default;
 }
 
-/* The native radio fills its tile or swatch unseen, so a click anywhere on it picks it. */
 .mx_GuaThemeTile_input {
     position: absolute;
     inset: 0;
@@ -335,7 +333,6 @@ Please see LICENSE files in the repository root for full details.
     }
 }
 
-/* Swatches are smaller than tiles. */
 .mx_GuaThemeTiles:has(> .mx_GuaThemeSwatch) {
     grid-template-columns: repeat(auto-fill, 40px);
 }

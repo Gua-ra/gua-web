@@ -22,7 +22,6 @@ jest.mock("../../../../src/gua/chatTheme/live/liveShaders", () => ({
 
 const silk = getArtwork("silk");
 
-/** A WebGL context that builds every shader and counts what it is asked to do. */
 function fakeGl() {
     const draws: { width: number; height: number }[] = [];
     const loseContext = jest.fn();
@@ -74,7 +73,6 @@ describe("LiveWallpaperCanvas", () => {
     let nextFrame: number;
     let reducedMotion: boolean;
 
-    /** Runs the pending animation frames at a time, as the browser would. */
     function runFrame(timeMs: number): void {
         const pending = [...frames.values()];
         frames.clear();

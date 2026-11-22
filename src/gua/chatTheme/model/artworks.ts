@@ -19,9 +19,9 @@ interface ArtworkDefinition {
     readonly bubbleDark?: BubbleId;
     /** The point of the image that stays on screen when it is cropped. */
     readonly anchor: { readonly x: number; readonly y: number };
-    /** What builds that don't know the artwork show instead: written with it, and never changed once shipped. */
+    /** Shown by builds that don't know the artwork. It goes on the wire, so it never changes once shipped. */
     readonly fallback: PresetId;
-    /** The shader time the still was rendered at, where a live artwork starts so its first frame is the still. */
+    /** Shader time of the still; a live artwork starts here so its first frame matches. */
     readonly stillTime?: number;
 }
 
@@ -193,7 +193,6 @@ export type Artwork = ArtworkDefinition & { readonly id: ArtworkId };
 
 const BY_ID = new Map<string, Artwork>(ARTWORKS.map((artwork) => [artwork.id, artwork]));
 
-/** Ids are exact and case-sensitive. */
 export function findArtwork(id: unknown): Artwork | undefined {
     return typeof id === "string" ? BY_ID.get(id) : undefined;
 }

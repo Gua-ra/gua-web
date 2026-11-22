@@ -17,7 +17,7 @@ import { type ChatTheme, shownBubble, type Wallpaper } from "../model/types";
 import { WallpaperThumbnail } from "../render/WallpaperLayer";
 import { type Appearance } from "../state/useAppearance";
 
-/** The tile's CSS size, which its thumbnail is drawn for. */
+/** The tile's size in _ChatTheme.pcss, which the thumbnail is drawn at. */
 export const TILE_WIDTH = 84;
 export const TILE_HEIGHT = 182;
 
@@ -26,8 +26,8 @@ function isLiveWallpaper(wallpaper: Wallpaper): boolean {
 }
 
 /**
- * One section of a choice made with native radio buttons. All the sections of one choice share a radio name, so the
- * arrow keys move through every option, skip disabled ones, and pick as they go, which only previews here.
+ * All sections of one choice share a radio name, so the arrow keys move through every option. They also pick as they
+ * go, which is fine because picking only previews.
  */
 export function TileGroup({
     labelledBy,
@@ -53,25 +53,21 @@ export function TileGroup({
 }
 
 interface TileProps {
-    /** The radio name shared by every tile of one choice. */
     group: string;
     wallpaper: Wallpaper;
-    /** The tile's bubbles; a wallpaper picker tile shows the bubbles it would keep. */
     bubbles: ChatTheme;
-    /** Only the Default and Classic tiles carry a visible name. */
     name?: string;
-    /** The option being previewed, or the saved one when nothing is. */
+    /** Previewed, or saved when nothing is previewed. */
     selected: boolean;
-    /** The native radio's state: a selected option shown twice is checked only once. Defaults to `selected`. */
+    /** Defaults to `selected`; an option shown twice is checked only once. */
     checked?: boolean;
-    /** The saved option, marked while another one is previewed. */
+    /** The saved option, marked while a preview is shown. */
     current?: boolean;
     disabled?: boolean;
     appearance: Appearance;
     onSelect: () => void;
 }
 
-/** A small phone-shaped sample of a theme: its wallpaper with two bubbles. Live artworks show their still. */
 export function ThemeSample({
     wallpaper,
     bubbles,

@@ -101,7 +101,6 @@ export function bubbleName(theme: ChatTheme, dark: boolean): string {
     return _t(BUBBLE_NAMES[shownBubble(theme, dark)]);
 }
 
-/** A theme without a wallpaper is named after the bubble it shows in the current appearance. */
 export function themeName(theme: ChatTheme, dark: boolean): string {
     if (theme.wallpaper.kind !== "none") return wallpaperName(theme.wallpaper);
     return isStock(theme) ? _t("gua|chat_theme|default_tile") : bubbleName(theme, dark);

@@ -7,14 +7,13 @@ Please see LICENSE files in the repository root for full details.
 
 import { type ChatTheme, isStock } from "./types";
 
-/** Matches the apps, so unlike `useMediaVisible` it counts `knock_restricted`; an unknown join rule counts as public. */
+/** Like the apps and unlike `useMediaVisible`, this counts `knock_restricted` as private; unknown rules count as public. */
 const PRIVATE_JOIN_RULES = new Set(["invite", "knock", "restricted", "knock_restricted"]);
 
 export function isPrivateJoinRule(joinRule: string | null | undefined): boolean {
     return !!joinRule && PRIVATE_JOIN_RULES.has(joinRule);
 }
 
-/** The media previews setting (MSC4278) applied to a chat: `private` shows media only in private chats. */
 export function isMediaShown(mediaPreviews: string | undefined, roomIsPrivate: boolean): boolean {
     switch (mediaPreviews) {
         case "off":
@@ -26,10 +25,7 @@ export function isMediaShown(mediaPreviews: string | undefined, roomIsPrivate: b
     }
 }
 
-/**
- * What a chat shows. A chat photo the media setting hides hands over to the default as a whole, whose own photo
- * always shows.
- */
+/** A chat photo hidden by the media setting falls back to the whole default theme, whose own photo always shows. */
 export function effectiveChatTheme(
     chatTheme: ChatTheme,
     defaultTheme: ChatTheme,

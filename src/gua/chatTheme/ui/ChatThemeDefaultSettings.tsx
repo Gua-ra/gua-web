@@ -18,10 +18,7 @@ import { useAppearance } from "../state/useAppearance";
 import { ChatThemePanel } from "./ChatThemePanel";
 import { ThemeSample } from "./ChatThemeTile";
 
-/**
- * The personal default in the Appearance settings. Change opens the theme screen right here rather than in a dialog
- * of its own, which would replace the settings dialog.
- */
+/** Opens the theme screen inline, since a dialog of its own would replace the settings dialog. */
 export default function ChatThemeDefaultSettings(): JSX.Element {
     const client = useMatrixClientContext();
     const theme = useDefaultChatTheme(client);

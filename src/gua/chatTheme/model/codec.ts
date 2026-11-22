@@ -27,14 +27,14 @@ function isObject(value: unknown): value is JsonObject {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** 800.0 is the same JSON number as 800. Like iOS, a whole number outside 64-bit range is not one. */
+/** Accepts 800.0 as 800 and, like iOS, rejects whole numbers outside the 64-bit range. */
 function wholeNumber(value: unknown): number | undefined {
     return typeof value === "number" && Number.isInteger(value) && value >= -(2 ** 63) && value < 2 ** 63
         ? value
         : undefined;
 }
 
-/** Absent and null both take the default; any other value of the wrong type invalidates the photo. */
+/** Absent or null takes the default; any other non-integer invalidates the photo. */
 function optionalWholeNumber(object: JsonObject, key: string): number | undefined | typeof INVALID {
     const value = object[key];
     if (value === undefined || value === null) return undefined;
@@ -109,11 +109,7 @@ function decodeWallpaper(content: JsonObject, isVersion1: boolean): Wallpaper {
     }
 }
 
-/**
- * Reads the content of a `global.gua.room.background` event or the `global.gua.chat_theme` account data.
- * Anything unreadable is STOCK, which means no theme. The bubble is part of version 1: content of any other
- * version keeps only its fallback wallpaper.
- */
+/** Unreadable content is STOCK; content of a version other than 1 keeps only its fallback preset. */
 export function decodeChatTheme(content: unknown): ChatTheme {
     if (!isObject(content)) return STOCK;
     const isVersion1 = wholeNumber(content.v) === 1;
@@ -124,10 +120,7 @@ export function decodeChatTheme(content: unknown): ChatTheme {
     return isStock(theme) ? STOCK : theme;
 }
 
-/**
- * The event content for a theme, with keys inserted in sorted order so `JSON.stringify` gives the same bytes as
- * the apps. STOCK is `{}`.
- */
+/** Keys go in sorted order so `JSON.stringify` gives the same bytes as the apps. */
 export function encodeChatTheme(theme: ChatTheme): JsonObject {
     if (isStock(theme)) return {};
     const { wallpaper } = theme;

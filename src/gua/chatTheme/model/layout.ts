@@ -14,14 +14,11 @@ export interface Rect {
     height: number;
 }
 
-/** Where the shaders place a send pulse when no origin is given: a share of the visible chat, from its bottom-left. */
+/** The shaders' default send pulse spot, as fractions of the visible chat from its bottom-left. */
 const PULSE_SPOT_X = 0.83;
 const PULSE_SPOT_Y = 0.113;
 
-/**
- * Scales an image to cover the frame and aligns the overflow: 0 pins the image's left or top edge, 1 its right or
- * bottom edge. The same as CSS `background-size: cover` with percentage positions.
- */
+/** CSS `background-size: cover` with percentage positions: align 0 pins the left or top edge, 1 the right or bottom. */
 export function aspectFill(
     frameWidth: number,
     frameHeight: number,
@@ -41,19 +38,19 @@ export interface LiveFrame {
     canvasHeight: number;
     /** `u_res`: the still's whole aspect-fill frame in render pixels, so the first frame matches the still. */
     resolution: [number, number];
-    /** Added to `gl_FragCoord`, so a canvas the size of the view draws its part of the frame. Whole pixels keep it exact. */
+    /** Added to `gl_FragCoord` so a view-sized canvas draws its part of the frame; whole pixels keep it exact. */
     offset: [number, number];
     /** The frame in CSS pixels relative to the view's top-left corner. */
     frame: Rect;
     scale: number;
 }
 
-/** About a 1080p frame: past this a large display shades more than a laptop GPU can at 30 frames a second. */
+/** About 1080p, beyond which a laptop GPU cannot keep 30 frames a second. */
 const LIVE_MAX_RENDER_PIXELS = 2_500_000;
 
 /**
- * iOS draws at half the display scale. The web draws at least one render pixel per CSS pixel, unless the view is
- * so large that the frame would go over 2.5 million pixels, where it draws fewer and the browser scales them up.
+ * Half the display scale as on iOS, but at least one render pixel per CSS pixel unless the view would pass
+ * LIVE_MAX_RENDER_PIXELS.
  */
 export function liveRenderScale(devicePixelRatio: number, viewWidth: number, viewHeight: number): number {
     const scale = Math.max(1, devicePixelRatio / 2);
@@ -79,7 +76,7 @@ export function liveFrame(
     };
 }
 
-/** The part of the view the chat shows in, relative to the view's top-left corner. */
+/** Where the chat shows, relative to the view's top-left corner. */
 export interface VisibleChat {
     left: number;
     right: number;
@@ -88,8 +85,8 @@ export interface VisibleChat {
 }
 
 /**
- * `u_origin` for a send pulse: the default spot taken on the visible chat rather than the whole frame, in render
- * pixels of the frame with y from the bottom. Not mirrored for right-to-left layouts, as on iOS.
+ * `u_origin` for a send pulse: the default spot on the visible chat, in frame render pixels with y from the bottom.
+ * Not mirrored for right-to-left layouts, as on iOS.
  */
 export function pulseOrigin(live: LiveFrame, chat: VisibleChat): [number, number] {
     const spotX = chat.left + (chat.right - chat.left) * PULSE_SPOT_X;

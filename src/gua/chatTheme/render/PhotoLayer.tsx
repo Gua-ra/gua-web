@@ -15,16 +15,15 @@ import { aspectFill } from "../model/layout";
 import { type PhotoWallpaper } from "../model/types";
 import { type Size } from "./hooks";
 
-/** The longest edge a photo wallpaper is decoded at. */
 const MAX_DECODED_EDGE = 2048;
-/** How far the image's own shape may be from the declared one, for rounding. */
+/** Allows for rounding in the declared width and height. */
 const ASPECT_TOLERANCE = 0.02;
 /** Fixed, so a crafted width and height cannot make the placeholder expensive. */
 const BLURHASH_SIZE = 32;
 
 class DownloadTooLargeError extends Error {}
 
-/** Downloads at most `maxBytes`, refusing a larger file before and while it arrives. */
+/** Enforces `maxBytes` while streaming too, since the declared length can be missing or false. */
 export async function fetchCapped(url: string, maxBytes: number, signal?: AbortSignal): Promise<Blob> {
     const response = await fetch(url, { signal });
     if (!response.ok) throw new Error(`Photo wallpaper download failed: ${response.status}`);
@@ -53,7 +52,7 @@ export async function fetchCapped(url: string, maxBytes: number, signal?: AbortS
 
 class PhotoRefusedError extends Error {}
 
-/** The image's own size. An image that is never shown is not decoded, so only its header is read. */
+/** Reads only the header: an image that is never shown is not decoded. */
 export function readImageSize(blob: Blob): Promise<{ width: number; height: number }> {
     return new Promise((resolve, reject) => {
         const url = URL.createObjectURL(blob);
@@ -71,9 +70,8 @@ export function readImageSize(blob: Blob): Promise<{ width: number; height: numb
 }
 
 /**
- * Decodes at most 2048 pixels on the long edge. The size comes from the image itself, not from what the event
- * declares, so a small declared size cannot hide a huge image: one larger than the apps accept, or of another shape
- * than declared, is refused.
+ * Checks the image's real size, not the event's declared one, so a small declared size cannot hide a huge image or
+ * one of another shape.
  */
 export async function decodePhoto(blob: Blob, declaredWidth: number, declaredHeight: number): Promise<ImageBitmap> {
     const { width, height } = await readImageSize(blob);
@@ -170,7 +168,6 @@ interface PhotoLayerProps {
     local?: ImageBitmap;
 }
 
-/** A user's photo: the blurhash until it loads, never after a failure, and the dim only in dark appearance. */
 export function PhotoLayer({ photo, size, dark, increasedContrast, local }: PhotoLayerProps): JSX.Element {
     const state = usePhotoBitmap(photo.url, photo.size, photo.w, photo.h, local);
     const canvasRef = useRef<HTMLCanvasElement>(null);

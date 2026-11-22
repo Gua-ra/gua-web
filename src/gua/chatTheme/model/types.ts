@@ -9,7 +9,7 @@ import { type ArtworkId, getArtwork } from "./artworks";
 import { type BubbleId } from "./bubbles";
 import { type PresetId } from "./presets";
 
-/** Integers only, as on the wire: `dim` in whole percent, `alignX` and `alignY` in thousandths (0 pins the left or top edge). */
+/** As on the wire: `dim` in whole percent, `alignX` and `alignY` in thousandths where 0 pins the left or top edge. */
 export interface PhotoWallpaper {
     url: string;
     mimetype: string;
@@ -31,7 +31,7 @@ export type Wallpaper =
 export interface ChatTheme {
     readonly wallpaper: Wallpaper;
     readonly bubble: BubbleId;
-    /** Only ever a palette colour other than `bubble`, and never beside the standard bubble. */
+    /** Set only when it and `bubble` are different palette colours. */
     readonly bubbleDark?: BubbleId;
 }
 
@@ -43,7 +43,7 @@ export function makeTheme(wallpaper: Wallpaper, bubble: BubbleId = "standard", b
     return keepsDark ? { wallpaper, bubble, bubbleDark } : { wallpaper, bubble };
 }
 
-/** No wallpaper and the stock bubble, which is the same as no theme at all. */
+/** No theme: no wallpaper and the stock bubble. */
 export const STOCK: ChatTheme = makeTheme(NO_WALLPAPER);
 
 export function wallpapersEqual(a: Wallpaper, b: Wallpaper): boolean {

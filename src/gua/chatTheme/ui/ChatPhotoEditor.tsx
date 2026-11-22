@@ -37,10 +37,7 @@ const DIM_STEP = 5;
 
 const clampAlign = (value: number): number => Math.round(Math.min(Math.max(value, 0), PHOTO_MAX_ALIGN));
 
-/**
- * Closes the photo once the editor is really gone. A development double mount runs the cleanup and mounts again
- * within the same task, so the close waits a task to see whether it did.
- */
+/** StrictMode unmounts and remounts within one task, so the close waits a task to see whether the editor came back. */
 function useCloseOnUnmount(bitmap: ImageBitmap): void {
     const mounted = useRef(false);
     useEffect(() => {
@@ -83,7 +80,7 @@ export function ChatPhotoEditor({ screen, photo, onBack, onSaved }: Props): JSX.
 
     const move = (x: number, y: number): void => setAlign({ x: clampAlign(x), y: clampAlign(y) });
 
-    /** Dragging right moves the photo right, which is a smaller align: the offset is the overflow times the align. */
+    // A smaller align moves the photo right or down, so the drag distance is subtracted.
     const onPointerMove = (event: PointerEvent<HTMLDivElement>): void => {
         const start = drag.current;
         const frame = frameRef.current;

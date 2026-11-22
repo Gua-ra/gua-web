@@ -11,7 +11,6 @@ import { PhotoTooLargeError, preparePhoto, uploadPhoto } from "../../../../src/g
 import { decodePhoto, fetchCapped } from "../../../../src/gua/chatTheme/render/PhotoLayer";
 import { stubClient } from "../../../test-utils";
 
-/** The JPEG sizes the canvas produces, in order. */
 let encodedSizes: number[];
 let toBlobCalls: { width: number; height: number; type?: string; quality?: unknown }[];
 
@@ -19,7 +18,6 @@ function fakeBitmap(width: number, height: number): ImageBitmap {
     return { width, height, close: jest.fn() } as unknown as ImageBitmap;
 }
 
-/** The size an image reports from its header, or null for a file that is not an image. */
 let imageSize: { width: number; height: number } | null;
 const RealImage = window.Image;
 

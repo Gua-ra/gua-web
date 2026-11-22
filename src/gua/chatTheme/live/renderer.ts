@@ -11,12 +11,12 @@ import { type ArtworkId } from "../model/artworks";
 import { OFFSET_UNIFORM, withFrameOffset } from "./shaderSource";
 
 const VERTEX_SHADER = "attribute vec2 p;void main(){gl_Position=vec4(p,0.0,1.0);}";
-/** One triangle that covers the whole viewport, as the Lab, the bake and the goldens draw. */
+/** Covers the viewport with one triangle, like the Lab, the bake and the goldens. */
 const FULL_SCREEN_TRIANGLE = new Float32Array([-1, -1, 3, -1, -1, 3]);
 
 /**
- * The Lab's context, except that the drawing buffer is not preserved, which changes no pixel. A software fallback
- * would be too slow to animate, so the browser is asked to refuse one.
+ * The Lab's context, but without a preserved drawing buffer, which changes no pixel. A software renderer would be too
+ * slow to animate, so it is refused.
  */
 export const CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
     alpha: false,
@@ -36,7 +36,6 @@ export function hasShaderFailed(artwork: ArtworkId): boolean {
     return failedArtworks.has(artwork);
 }
 
-/** Null without usable WebGL. */
 export function openContext(canvas: HTMLCanvasElement): WebGLRenderingContext | null {
     return canvas.getContext("webgl", CONTEXT_ATTRIBUTES);
 }
@@ -70,8 +69,8 @@ export class LiveWallpaperRenderer {
     ) {}
 
     /**
-     * Null when the shader does not build or the context is lost first. With KHR_parallel_shader_compile the driver
-     * builds it off the main thread and it is checked once a frame, so a large shader does not stall the page.
+     * Null when the shader does not build or the context is lost. With KHR_parallel_shader_compile the status is
+     * polled once a frame, so a large shader does not stall the page.
      */
     public static async create(
         gl: WebGLRenderingContext,
@@ -126,7 +125,7 @@ export class LiveWallpaperRenderer {
         gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
 
-    /** Frees the program and buffer. The context belongs to the canvas's owner, which releases it. */
+    /** The context belongs to the canvas's owner, which releases it. */
     public dispose(): void {
         this.gl.deleteBuffer(this.buffer);
         this.gl.deleteProgram(this.program);
@@ -139,7 +138,7 @@ interface ProgramBuild {
     fragment: WebGLShader;
 }
 
-/** Compiles and links without reading any status, which would wait for the driver. Null once the context is lost. */
+/** Reads no status, which would block on the driver. Null once the context is lost. */
 function startProgram(gl: WebGLRenderingContext, frag: string): ProgramBuild | null {
     const program = gl.createProgram();
     const vertex = gl.createShader(gl.VERTEX_SHADER);
@@ -156,7 +155,7 @@ function startProgram(gl: WebGLRenderingContext, frag: string): ProgramBuild | n
     return { program, vertex, fragment };
 }
 
-/** The linked program, or why it failed. The shaders are freed either way: a linked program no longer needs them. */
+/** The linked program, or why it failed. A linked program no longer needs its shaders. */
 function finishProgram(gl: WebGLRenderingContext, { program, vertex, fragment }: ProgramBuild): WebGLProgram | string {
     const linked = !!gl.getProgramParameter(program, gl.LINK_STATUS);
     const reason = linked

@@ -21,14 +21,13 @@ import { type Appearance } from "../state/useAppearance";
 interface Props {
     theme: ChatTheme;
     appearance: Appearance;
-    /** Animates a live artwork and offers its send effect. Pickers show the still. */
     live?: boolean;
     localPhoto?: ImageBitmap;
 }
 
 /**
- * A sample conversation on the theme, drawn the same whatever the device's message layout. The send effect is
- * offered only while the artwork moves, not while reduced motion, a failed shader or slow frames keep it still.
+ * The send button shows only while the artwork moves, not while reduced motion, a failed shader or slow frames hold
+ * it still.
  */
 export function ChatThemePreview({ theme, appearance, live, localPhoto }: Props): JSX.Element {
     const [pulse] = useState(() => new SendPulse());

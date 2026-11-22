@@ -42,10 +42,7 @@ export function useDevicePixelRatio(): number {
     return ratio;
 }
 
-/**
- * The layers to draw, oldest first: a change keeps the previous one mounted under the new one while it fades in.
- * Entries are keyed so neither layer remounts during the fade.
- */
+/** The layers to draw, oldest first: the previous value stays mounted under the new one while it fades in. */
 export function useCrossfade<T>(key: string, value: T, durationMs: number): { key: string; value: T }[] {
     const [shown, setShown] = useState({ key, value });
     const [previous, setPrevious] = useState<{ key: string; value: T } | null>(null);

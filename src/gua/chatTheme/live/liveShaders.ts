@@ -33,10 +33,7 @@ import { type ArtworkId } from "../model/artworks";
 
 type ShaderLoader = () => Promise<{ default: string }>;
 
-/**
- * The Lab's WebGL shaders, one lazy chunk each so only the shown artwork's is fetched. The `.frag` files are written
- * by `scripts/gua/sync-wallpapers.mjs` from the Lab's sources.
- */
+/** One lazy chunk per shader. `scripts/gua/sync-wallpapers.mjs` writes the `.frag` files from the Lab's sources. */
 export const LIVE_SHADERS = new Map<ArtworkId, ShaderLoader>([
     [
         "glass-drops",

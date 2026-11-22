@@ -25,7 +25,6 @@ function fakeBitmap(width: number, height: number): ImageBitmap {
 
 const RealImage = window.Image;
 
-/** Reports the size every image's header gives. */
 class FakeImage {
     public static size = { width: 200, height: 100 };
     public naturalWidth = 0;
@@ -41,7 +40,7 @@ class FakeImage {
     }
 }
 
-/** jsdom has no pointer events, and a plain Event would carry no coordinates. */
+/** jsdom has no PointerEvent, and a plain Event carries no coordinates. */
 class FakePointerEvent extends MouseEvent {
     public readonly pointerId: number;
     public constructor(type: string, init: PointerEventInit = {}) {

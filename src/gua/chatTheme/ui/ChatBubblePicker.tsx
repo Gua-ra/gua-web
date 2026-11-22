@@ -27,10 +27,6 @@ interface Props {
     onSaved: () => void;
 }
 
-/**
- * Picks one bubble for both appearances. The checked swatch is the one this appearance shows, and picking it again
- * changes nothing, so a pair's other half, which this appearance hides, is never dropped without a visible change.
- */
 export function ChatBubblePicker({ screen: { state, save }, onBack, onSaved }: Props): JSX.Element {
     const appearance = useAppearance();
     const base = baseTheme(state);
@@ -40,6 +36,7 @@ export function ChatBubblePicker({ screen: { state, save }, onBack, onSaved }: P
     const choice = withBubbles(base.wallpaper, bubbles);
     const shown = shownBubble(bubbles, appearance.dark);
 
+    // Picking the shown swatch again would drop the other appearance's bubble with no visible change.
     const pick = (bubble: BubbleId): void => {
         if (bubble !== shown) setBubbles(makeTheme(NO_WALLPAPER, bubble));
     };

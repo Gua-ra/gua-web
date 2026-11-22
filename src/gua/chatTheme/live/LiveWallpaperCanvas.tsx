@@ -21,9 +21,8 @@ interface Props {
     dark: boolean;
     width: number;
     height: number;
-    /** Inside a dialog no other dialog pauses the wallpaper; in the timeline any dialog does. */
     inDialog: boolean;
-    /** Holds the current frame, as an outgoing wallpaper does while the next one fades in over it. */
+    /** Holds the current frame, for an outgoing wallpaper while the next one fades in. */
     frozen?: boolean;
     pulse?: SendPulse;
     onMotion?: (motion: WallpaperMotion) => void;
@@ -51,11 +50,8 @@ interface Surface {
 }
 
 /**
- * A live artwork drawn over its still, on exactly the still's aspect-fill frame so the first frame is the still.
- * The canvas stays transparent until it has drawn, and whenever the wallpaper must show its still.
- *
- * Each mount makes its own canvas and releases its context on unmount, so a development double mount never reuses
- * a released context. A lost context is final for the mount: the still shows until the artwork or room changes.
+ * Each mount creates its own canvas, so a development double mount never reuses a released context. A lost context
+ * keeps the still until the artwork or room changes.
  */
 export function LiveWallpaperCanvas(props: Props): JSX.Element {
     const { artwork, dark, width, height, inDialog, frozen, pulse, onMotion } = props;
@@ -136,7 +132,7 @@ export function LiveWallpaperCanvas(props: Props): JSX.Element {
 
     useEffect(() => {
         if (motion === "still") {
-            // A new clock after any still, so the first frame shown again is the still.
+            // A fresh clock starts at the still, so showing the canvas again does not jump.
             clockRef.current = null;
             setHasDrawn(false);
             return;
@@ -159,8 +155,7 @@ export function LiveWallpaperCanvas(props: Props): JSX.Element {
         return () => cancelAnimationFrame(frame);
     }, [motion, artwork.stillTime]);
 
-    // Resizing the canvas clears it, so it is drawn again before the browser paints. A paused frame holds its time
-    // but shows no pulse.
+    // Resizing clears the canvas, so it is redrawn before the browser paints.
     const { canvasWidth, canvasHeight } = live;
     useLayoutEffect(() => {
         if (!surface) return;

@@ -19,9 +19,8 @@ import {
 const MAX_REMEMBERED_SENDS = 50;
 
 /**
- * Whether a local echo is a new send of the user's own on the room's main timeline. History, edits, reactions,
- * redactions and thread replies send nothing; events from other devices arrive without a transaction id; retries
- * and the echo becoming the remote event carry an old status.
+ * Whether a local echo is the user's own new send on the main timeline. Other devices' events have no transaction id,
+ * and retries and the remote echo carry an old status.
  */
 export function isNewSend(event: MatrixEvent, myUserId: string, oldStatus: EventStatus | null | undefined): boolean {
     if (oldStatus !== undefined || event.status !== EventStatus.SENDING) return false;
@@ -32,7 +31,7 @@ export function isNewSend(event: MatrixEvent, myUserId: string, oldStatus: Event
     return !event.threadRootId || event.isThreadRoot;
 }
 
-/** Calls `onSend` once per new send in the room, counting only from mount, so opening a chat plays no pulse. */
+/** Calls `onSend` once per new send in the room. */
 export function useSendPulse(client: MatrixClient, room: Room, onSend: () => void): void {
     const onSendRef = useRef(onSend);
     useEffect(() => {

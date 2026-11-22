@@ -12,7 +12,6 @@ import Modal, { ModalManagerEvent } from "../../../Modal";
 
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
-/** How long every live wallpaper stays still after frames were too slow, before they try again. */
 const SLOW_FRAMES_COOL_DOWN_MS = 10 * 60 * 1000;
 
 let framesTooSlow = false;
@@ -23,7 +22,6 @@ function setFramesTooSlow(slow: boolean): void {
     for (const listener of slowFrameListeners) listener(slow);
 }
 
-/** Once frames are too slow, every live wallpaper shows its still for ten minutes. */
 export function reportSlowFrames(): void {
     if (framesTooSlow) return;
     logger.warn("Live wallpapers stay still for ten minutes: frames are too slow.");
@@ -45,8 +43,8 @@ function prefersReducedMotion(): boolean {
 }
 
 /**
- * What the page says about a live wallpaper's view. In the timeline any dialog covers it. Inside a dialog nothing
- * does: Modal renders only the top dialog, so one opened above unmounts this one.
+ * In the timeline any dialog covers the wallpaper. Inside a dialog none does: Modal renders only the top dialog, so
+ * one opened above unmounts this one.
  */
 export function useMotionConditions(ref: RefObject<HTMLElement | null>, inDialog: boolean): ViewConditions {
     const [reducedMotion, setReducedMotion] = useState(prefersReducedMotion);

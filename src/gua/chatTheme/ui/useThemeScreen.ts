@@ -19,7 +19,6 @@ import { isPrivateRoom, useMediaPreviews } from "../state/useEffectiveChatTheme"
 
 export interface ThemeScreen {
     state: ThemeScreenState;
-    /** Saves the chat's theme or the default; rejects when the server refuses it. */
     save: (theme: ChatTheme) => Promise<void>;
 }
 

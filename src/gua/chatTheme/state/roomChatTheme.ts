@@ -25,16 +25,15 @@ const CHANGED = "changed";
 
 interface PendingTheme {
     content: Record<string, unknown>;
-    /** The state event the send replaced: while room state still holds it, the sent theme shows instead. */
+    /** Id of the event the send replaced; the sent theme shows while room state still holds it. */
     sentOver?: string;
 }
 
 const themeEvent = (state: RoomState): MatrixEvent | null => state.getStateEvents(CHAT_BACKGROUND_EVENT_TYPE, "");
 
 /**
- * Themes sent from this device, held until the sync echo so the chat does not flash back to its old theme. An entry
- * goes with the room's next theme event, whichever it is. None is kept when the echo came first, or when the server
- * answered with the event it already had, as it does for the same content sent again.
+ * Holds a theme sent from this device until the room's next theme event, so the chat does not flash back. Nothing is
+ * held when the echo came first, or when the server returned the event it already had for identical content.
  */
 class PendingRoomThemes extends TypedEventEmitter<typeof CHANGED, { [CHANGED]: () => void }> {
     private readonly pending = new Map<string, PendingTheme & { stop: () => void }>();
@@ -71,12 +70,10 @@ class PendingRoomThemes extends TypedEventEmitter<typeof CHANGED, { [CHANGED]: (
 
 const pendingThemes = new PendingRoomThemes();
 
-/** Sends the chat's theme; STOCK sends `{}`, which removes it. */
 export function sendChatTheme(client: MatrixClient, room: Room, theme: ChatTheme): Promise<void> {
     return pendingThemes.send(client, room, theme);
 }
 
-/** The chat's own theme, STOCK when it has none or the app cannot read it. */
 export function useRoomChatTheme(room: Room | undefined): ChatTheme {
     const event = useRoomState(room, themeEvent);
     const [, setPendingVersion] = useState(0);
@@ -85,7 +82,7 @@ export function useRoomChatTheme(room: Room | undefined): ChatTheme {
         CHANGED,
         useCallback(() => setPendingVersion((version) => version + 1), []),
     );
-    // Read by room on every render, so a component that moves to another room never shows this one's send.
+    // Looked up on every render so a component moved to another room never shows this room's send.
     const pending = room ? pendingThemes.get(room.roomId) : undefined;
     const content = pending && event?.getId() === pending.sentOver ? pending.content : event?.getContent();
     return useMemo(() => decodeChatTheme(content), [content]);

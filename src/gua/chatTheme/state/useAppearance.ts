@@ -15,7 +15,7 @@ export interface Appearance {
 
 const REDUCED_TRANSPARENCY = "(prefers-reduced-transparency: reduce)";
 
-/** Follows the Compound theme class on the body, which is what Compound's own colours follow. */
+/** Reads the Compound theme class on the body, which Compound's own colours follow. */
 function readAppearance(): Appearance {
     const classes = document.body.classList;
     return {

@@ -14,22 +14,15 @@ import { type ChatTheme } from "../model/types";
 import { useDefaultChatTheme } from "./defaultChatTheme";
 import { useRoomChatTheme } from "./roomChatTheme";
 
-/**
- * The join rule as sent, like the apps: a room without a join rules event is not private, although the SDK's
- * `getJoinRule` calls it invite-only.
- */
+/** Like the apps, a room without a join rules event is not private, though the SDK's `getJoinRule` says invite-only. */
 export const isPrivateRoom = (state: RoomState): boolean =>
     isPrivateJoinRule(state.getStateEvents(EventType.RoomJoinRules, "")?.getContent().join_rule);
 
-/**
- * The media previews setting as the apps read it: the account-wide value, never a per-room override, so a chat shows
- * the same photo on every device.
- */
+/** The account-wide value, ignoring per-room overrides as the apps do, so a chat shows the same photo everywhere. */
 export function useMediaPreviews(): string | undefined {
     return useSettingValue("mediaPreviewConfig").media_previews;
 }
 
-/** What a chat draws: its own theme, or the default when it has none or hides its photo. */
 export function useEffectiveChatTheme(client: MatrixClient, room: Room): ChatTheme {
     const chatTheme = useRoomChatTheme(room);
     const defaultTheme = useDefaultChatTheme(client);

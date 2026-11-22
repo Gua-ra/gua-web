@@ -12,7 +12,7 @@ export function useChatThemesFeature(): boolean {
     return useFeatureEnabled("feature_gua_chat_themes");
 }
 
-/** Themes draw only in the message bubbles layout, the only one with an outgoing bubble to colour. */
+/** Themes draw only in the bubble layout, the only one with outgoing bubbles to colour. */
 export function useIsBubbleLayout(): boolean {
     return useSettingValue("layout") === Layout.Bubble;
 }

@@ -60,13 +60,11 @@ interface Preview {
     theme: ChatTheme;
     /** What the preview draws: the user's default for the Default tile. */
     shown: ChatTheme;
-    /** What the tile is called, for the announcement. */
     label: string;
 }
 
 type View = { kind: "panel" } | { kind: "bubble" } | { kind: "wallpaper" } | { kind: "photo"; photo: PreparedPhoto };
 
-/** The button that opened a picker, which takes focus when the panel shows again. */
 type FocusTarget = "bubble" | "wallpaper";
 
 const ROUND_BUTTON_SIZE = 64;
@@ -112,10 +110,6 @@ function BubbleSwatch({ theme, appearance }: { theme: ChatTheme; appearance: App
     );
 }
 
-/**
- * The theme screen for a chat or for the personal default. Picking a tile previews it; the pickers and the photo
- * editor open in its place, each with Back. A save announces itself and puts focus back where the user was.
- */
 export function ChatThemePanel({ mode, room }: Props): JSX.Element {
     const screen = useThemeScreen(mode, room);
     const [view, setView] = useState<View>({ kind: "panel" });
@@ -208,7 +202,7 @@ function ThemeGallery({
         onFocused();
     }, [focusTarget, onFocused]);
 
-    // The Set button goes with the preview, so after a save focus moves to the tile that is now the saved one.
+    // The Set button leaves with the preview, so after a save focus moves to the saved tile.
     const [focusChecked, setFocusChecked] = useState(false);
     useEffect(() => {
         if (!focusChecked) return;
@@ -231,7 +225,7 @@ function ThemeGallery({
 
     const status = preview ? _t("gua|chat_theme|previewing", { name: preview.label, action: setLabel }) : announcement;
 
-    // A theme can be in two sections; only its first tile is the group's checked radio.
+    // A theme can be in two sections; only its first tile is the checked radio.
     let checkedGiven = false;
     const sections = THEME_GALLERY.map((section) => {
         const tiles: TileEntry[] = section.themes.map((theme) => ({

@@ -34,7 +34,7 @@ describe("ChatWallpaper", () => {
         ]);
     }
 
-    /** As RoomView mounts it: in the timeline column, inside the body, inside the room view. */
+    /** Mirrors RoomView's DOM. */
     function renderWallpaper(Component: typeof ThemedChat = ThemedChat) {
         const bodyRef = createRef<HTMLDivElement>();
         const result = render(

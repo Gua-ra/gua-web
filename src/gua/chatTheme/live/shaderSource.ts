@@ -8,8 +8,8 @@ Please see LICENSE files in the repository root for full details.
 export const OFFSET_UNIFORM = "u_offset";
 
 /**
- * Lets a canvas the size of the view draw its part of the still's larger frame: every `gl_FragCoord` read is moved
- * by `u_offset`. With whole-pixel offsets each fragment sees exactly the coordinate it has in the full frame.
+ * Lets a view-sized canvas draw its part of the still's larger frame by moving every `gl_FragCoord` read by
+ * `u_offset`. Whole-pixel offsets give each fragment exactly its full-frame coordinate.
  */
 export function withFrameOffset(frag: string): string {
     const precision = /^precision\s+\w+\s+float\s*;[^\n]*\n/m;

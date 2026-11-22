@@ -33,11 +33,9 @@ interface FillProps {
     wallpaper: Wallpaper;
     appearance: Appearance;
     size: Size;
-    /** Only the timeline and the theme preview animate a live artwork; elsewhere it shows its still. */
+    /** Without it a live artwork shows its still. */
     live?: LiveOptions & { frozen?: boolean };
-    /** A small sample: the artwork's thumbnail, no grain, and lazy loading for galleries. */
     thumbnail?: boolean;
-    /** A photo being edited, shown before it is uploaded. */
     localPhoto?: ImageBitmap;
 }
 
@@ -142,7 +140,6 @@ interface Props {
     className?: string;
 }
 
-/** One theme's wallpaper filling its box, crossfading when it changes. Never mirrored for right-to-left layouts. */
 export function WallpaperLayer({ wallpaper, appearance, live, localPhoto, className }: Props): JSX.Element {
     const ref = useRef<HTMLDivElement>(null);
     const size = useElementSize(ref);
@@ -173,10 +170,6 @@ export function WallpaperLayer({ wallpaper, appearance, live, localPhoto, classN
     );
 }
 
-/**
- * A wallpaper in a small box of a fixed size, such as a gallery tile: no crossfade, grain or live canvas, and the
- * artwork's thumbnail rather than its full still.
- */
 export function WallpaperThumbnail({
     wallpaper,
     appearance,

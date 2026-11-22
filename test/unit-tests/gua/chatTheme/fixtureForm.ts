@@ -10,7 +10,7 @@ import { type BubbleId } from "../../../../src/gua/chatTheme/model/bubbles";
 import { type PresetId } from "../../../../src/gua/chatTheme/model/presets";
 import { type ChatTheme, makeTheme, type Wallpaper } from "../../../../src/gua/chatTheme/model/types";
 
-/** A theme in the shared fixtures' `expected` form, the same helper the apps' tests use. */
+/** A theme in the shared fixtures' `expected` form. */
 export interface FixtureTheme {
     kind: string;
     preset?: string;

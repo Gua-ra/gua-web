@@ -32,10 +32,6 @@ function clearStyle(element: HTMLElement, ...properties: string[]): void {
     if (!element.getAttribute("style")) element.removeAttribute("style");
 }
 
-/**
- * A chat's theme: the wallpaper fills the timeline column it is mounted in, the body says the timeline has one, and
- * the bubble colour goes on the whole room view, so the threads in its right panel get it too.
- */
 export default function ThemedChat({ room, bodyRef }: Props): JSX.Element | null {
     const client = useMatrixClientContext();
     const effective = useEffectiveChatTheme(client, room);
@@ -56,6 +52,7 @@ export default function ThemedChat({ room, bodyRef }: Props): JSX.Element | null
     useLayoutEffect(() => {
         const body = bodyRef.current;
         if (!body) return;
+        // The bubble colour goes on the whole room, so threads in the right panel get it too.
         const roomView = body.closest<HTMLElement>(".mx_RoomView") ?? body;
         if (hasWallpaper) body.setAttribute(WALLPAPER_ATTRIBUTE, "");
         if (light && dark) {

@@ -16,10 +16,8 @@ import { type ChatTheme } from "../model/types";
 const CHANGED = "changed";
 
 /**
- * The personal default theme in global account data. A write shows at once and is dropped if the server refuses it;
- * `setAccountData` resolves only once the sync echo has arrived, so a finished write can then be dropped too. While
- * writes overlap the newest one still in flight shows, and with none left the account data does, so a refused write
- * never brings back one that already finished, and later changes from other devices show.
+ * The newest write still in flight shows, else the account data. `setAccountData` resolves only after the sync echo,
+ * so a write can leave `inFlight` as soon as it settles, whether it succeeded or was refused.
  */
 export class DefaultChatThemeStore extends TypedEventEmitter<typeof CHANGED, { [CHANGED]: () => void }> {
     private static readonly stores = new WeakMap<MatrixClient, DefaultChatThemeStore>();
@@ -48,7 +46,6 @@ export class DefaultChatThemeStore extends TypedEventEmitter<typeof CHANGED, { [
         return theme;
     }
 
-    /** Clearing writes `{}`. */
     public async set(theme: ChatTheme): Promise<void> {
         const next = encodeChatTheme(theme);
         this.inFlight.push(next);

@@ -30,7 +30,7 @@ test.describe("Chat themes", () => {
         await page.getByRole("textbox", { name: "Send an unencrypted message…" }).pressSequentially("@");
         const suggestion = page.locator(".mx_Autocomplete .mx_Autocomplete_Completion").first();
         await expect(suggestion).toBeVisible();
-        // A trial click fails unless the suggestion itself is what a click at its centre would hit.
+        // A trial click fails when another element would receive the click.
         await suggestion.click({ trial: true });
     });
 });
