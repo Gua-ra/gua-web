@@ -17,6 +17,8 @@ const FIRST_PASS = { maxEdge: 2048, quality: 0.8 };
 const SECOND_PASS = { maxEdge: 1600, quality: 0.75 };
 const SECOND_PASS_ABOVE_BYTES = 1_500_000;
 const BLURHASH_WIDTH = 64;
+/** The browser may decode the full frame before resizing it, at 4 bytes a pixel. */
+const MAX_CHOSEN_PIXELS = 100_000_000;
 
 export class PhotoTooLargeError extends Error {}
 
@@ -64,11 +66,12 @@ function blurhashOf(source: ImageBitmap): string {
 }
 
 /**
- * Decodes at most 2048 px on the long edge, since a full decode of 48 megapixels takes about 190 MB. Giving only one
+ * Keeps at most 2048 px on the long edge, though the browser may decode the full frame first. Giving only one
  * dimension keeps the shape where the size read from the file ignores its orientation.
  */
 async function decodeChosen(file: Blob): Promise<ImageBitmap> {
     const { width, height } = await readImageSize(file);
+    if (width * height > MAX_CHOSEN_PIXELS) throw new PhotoTooLargeError();
     const longEdge = Math.max(width, height);
     if (longEdge <= FIRST_PASS.maxEdge) return createImageBitmap(file, { imageOrientation: "from-image" });
     const resize = width >= height ? { resizeWidth: FIRST_PASS.maxEdge } : { resizeHeight: FIRST_PASS.maxEdge };

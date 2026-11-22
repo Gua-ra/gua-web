@@ -119,6 +119,12 @@ describe("photo wallpapers", () => {
         });
     });
 
+    it("refuses a photo over 100 megapixels before decoding it", async () => {
+        imageSize = { width: 12000, height: 9000 };
+        await expect(preparePhoto(new Blob(["x"]), undefined)).rejects.toBeInstanceOf(PhotoTooLargeError);
+        expect(window.createImageBitmap).not.toHaveBeenCalled();
+    });
+
     it("refuses a photo over the server's upload limit", async () => {
         await expect(preparePhoto(new Blob(["x"]), 999_999)).rejects.toBeInstanceOf(PhotoTooLargeError);
     });
