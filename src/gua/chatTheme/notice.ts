@@ -10,11 +10,15 @@ import { type MatrixClient, type MatrixEvent } from "matrix-js-sdk/src/matrix";
 import { _t } from "../../languageHandler";
 import SettingsStore from "../../settings/SettingsStore";
 import { getSenderName } from "../../utils/event/getSenderName";
-import { isRemovalContent } from "./model/codec";
+import { isRemovalContent } from "./model/removal";
 
-/** The timeline notice for a chat theme change. Without chat themes there is none, so the event stays hidden. */
+/**
+ * The timeline notice for a chat theme change. Without chat themes there is none, so the event stays hidden, and
+ * the same for a non-empty state key, which no app reads.
+ */
 export function textForChatThemeEvent(event: MatrixEvent, client: MatrixClient): (() => string) | null {
     if (!SettingsStore.getValue("feature_gua_chat_themes")) return null;
+    if (event.getStateKey() !== "") return null;
     const removed = isRemovalContent(event.getContent());
     if (event.getSender() === client.getUserId()) {
         return () =>

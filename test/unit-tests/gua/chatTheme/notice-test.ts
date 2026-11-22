@@ -13,10 +13,10 @@ import { stubClient } from "../../../test-utils";
 
 const ME = "@me:example.org";
 
-function themeEvent(sender: string, content: Record<string, unknown>): MatrixEvent {
+function themeEvent(sender: string, content: Record<string, unknown>, stateKey = ""): MatrixEvent {
     const event = new MatrixEvent({
         type: "global.gua.room.background",
-        state_key: "",
+        state_key: stateKey,
         sender,
         room_id: "!room:example.org",
         content,
@@ -46,6 +46,12 @@ describe("chat theme notices", () => {
 
     it("counts unreadable content as a change", () => {
         expect(textForEvent(themeEvent(ME, { v: 2, kind: "hologram" }), client)).toBe("You changed the chat theme");
+    });
+
+    it("stays hidden for a state key no app reads", () => {
+        const preset = { v: 1, kind: "preset", preset: "aurora" };
+        expect(hasText(themeEvent("@helena:example.org", preset, "decoy"), client)).toBe(false);
+        expect(textForEvent(themeEvent("@helena:example.org", preset, "decoy"), client)).toBe("");
     });
 
     it("stays hidden without chat themes", () => {

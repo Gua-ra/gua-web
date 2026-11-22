@@ -153,8 +153,3 @@ export function encodeChatTheme(theme: ChatTheme): JsonObject {
     content.v = 1;
     return content;
 }
-
-/** Content with no keys, which a redaction also leaves, removes the theme. */
-export function isRemovalContent(content: unknown): boolean {
-    return isObject(content) && Object.keys(content).length === 0;
-}

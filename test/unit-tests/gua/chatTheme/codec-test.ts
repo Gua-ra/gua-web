@@ -6,7 +6,8 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import fixtures from "./fixtures/chat-background-fixtures.json";
-import { decodeChatTheme, encodeChatTheme, isRemovalContent } from "../../../../src/gua/chatTheme/model/codec";
+import { decodeChatTheme, encodeChatTheme } from "../../../../src/gua/chatTheme/model/codec";
+import { isRemovalContent } from "../../../../src/gua/chatTheme/model/removal";
 import { STOCK } from "../../../../src/gua/chatTheme/model/types";
 import { type FixtureTheme, fromFixture, toFixture } from "./fixtureForm";
 

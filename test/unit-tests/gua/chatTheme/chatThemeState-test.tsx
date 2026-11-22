@@ -65,6 +65,45 @@ describe("personal default theme", () => {
         expect(result.current).toEqual(presetTheme("aurora", "green"));
     });
 
+    it("never brings back a finished write when a later one is refused", async () => {
+        const writes: { resolve: () => void; reject: () => void }[] = [];
+        jest.spyOn(client, "setAccountData").mockImplementation(
+            () =>
+                new Promise((resolve, reject) =>
+                    writes.push({ resolve: () => resolve({}), reject: () => reject(new Error("refused")) }),
+                ),
+        );
+        const { result } = renderHook(() => useDefaultChatTheme(client));
+        const store = DefaultChatThemeStore.for(client);
+
+        let first!: Promise<void>;
+        let second!: Promise<void>;
+        act(() => {
+            first = store.set(presetTheme("aurora", "green"));
+            second = store.set(presetTheme("dusk", "purple"));
+        });
+        expect(result.current).toEqual(presetTheme("dusk", "purple"));
+
+        await act(async () => {
+            stored = accountData({ v: 1, kind: "preset", preset: "aurora", bubble: "green" });
+            writes[0].resolve();
+            await first;
+        });
+        expect(result.current).toEqual(presetTheme("dusk", "purple"));
+
+        await act(async () => {
+            writes[1].reject();
+            await expect(second).rejects.toThrow("refused");
+        });
+        expect(result.current).toEqual(presetTheme("aurora", "green"));
+
+        act(() => {
+            stored = accountData({ v: 1, kind: "preset", preset: "ocean", bubble: "blue" });
+            client.emit(ClientEvent.AccountData, stored);
+        });
+        expect(result.current).toEqual(presetTheme("ocean", "blue"));
+    });
+
     it("rolls back a refused write", async () => {
         stored = accountData({ v: 1, kind: "preset", preset: "night" });
         jest.spyOn(client, "setAccountData").mockRejectedValue(new Error("refused"));
@@ -123,6 +162,40 @@ describe("room theme", () => {
 
         act(() => setTheme("$3", { v: 1, kind: "preset", preset: "night" }));
         expect(result.current).toEqual(presetTheme("night", "standard"));
+    });
+
+    it("keeps nothing when the echo arrives before the send returns", async () => {
+        setTheme("$1", { v: 1, kind: "preset", preset: "ocean" });
+        jest.spyOn(client, "sendStateEvent").mockImplementation(async () => {
+            setTheme("$2", { v: 1, kind: "preset", preset: "dawn", bubble: "pink" });
+            return { event_id: "$2" };
+        });
+        const { result } = renderHook(() => useRoomChatTheme(room));
+        await act(() => sendChatTheme(client, room, presetTheme("dawn", "pink")));
+        expect(result.current).toEqual(presetTheme("dawn", "pink"));
+
+        act(() => setTheme("$3", { v: 1, kind: "preset", preset: "night" }));
+        expect(result.current).toEqual(presetTheme("night", "standard"));
+    });
+
+    it("keeps nothing when the server answers with the event it already had", async () => {
+        setTheme("$1", { v: 1, kind: "preset", preset: "ocean" });
+        jest.spyOn(client, "sendStateEvent").mockResolvedValue({ event_id: "$1" });
+        const { result } = renderHook(() => useRoomChatTheme(room));
+        await act(() => sendChatTheme(client, room, presetTheme("ocean", "standard")));
+        expect(result.current).toEqual(presetTheme("ocean", "standard"));
+    });
+
+    it("never shows one room's send in another room", async () => {
+        jest.spyOn(client, "sendStateEvent").mockResolvedValue({ event_id: "$2" });
+        const other = new Room(`!room${++roomCount}:example.org`, client, ME);
+        await sendChatTheme(client, room, presetTheme("dawn", "pink"));
+        const { result, rerender } = renderHook(({ shown }) => useRoomChatTheme(shown), {
+            initialProps: { shown: room },
+        });
+        expect(result.current).toEqual(presetTheme("dawn", "pink"));
+        rerender({ shown: other });
+        expect(result.current).toEqual(STOCK);
     });
 
     it("removes the theme with empty content", async () => {
