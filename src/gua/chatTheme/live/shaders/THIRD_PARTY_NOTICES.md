@@ -2,7 +2,7 @@
 
 ## Hash without Sine
 
-`hash12` and `hash22` in these shaders are adapted from "Hash without Sine" by David Hoskins (https://www.shadertoy.com/view/4djSRW). The shaders are copied unchanged from the Gua Wallpaper Lab in gua-android (`tools/wallpapers/lab/`) by `scripts/gua/sync-wallpapers.mjs`.
+`hash12` and `hash22` in these shaders are adapted from "Hash without Sine" by David Hoskins (https://www.shadertoy.com/view/4djSRW). The shaders are copied from the Gua Wallpaper Lab in gua-android (`tools/wallpapers/lab/`) by `scripts/gua/sync-wallpapers.mjs`, which adds only the Gua header.
 
 ```
 Copyright (c) 2014 David Hoskins.

@@ -36,6 +36,15 @@ const IOS_FIXTURES = "UnitTests/Resources";
 const THUMBNAIL = { width: 168, height: 364, quality: 75 };
 const CWEBP_VERSION = "1.6.0";
 
+const HEADER = [
+    "/*",
+    "Copyright 2026 Gua",
+    "",
+    "SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only",
+    "Please see LICENSE files in the repository root for full details.",
+    "*/",
+];
+
 function parseArgs(argv) {
     const args = { check: false, extra: [], cwebp: "cwebp" };
     for (let i = 0; i < argv.length; i++) {
@@ -141,12 +150,7 @@ function assetsModule(ids) {
         thumbnails.push(`    "${id}": { light: ${name}LightThumbnail, dark: ${name}DarkThumbnail },`);
     }
     return [
-        "/*",
-        "Copyright 2026 Gua",
-        "",
-        "SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only",
-        "Please see LICENSE files in the repository root for full details.",
-        "*/",
+        ...HEADER,
         "",
         "// Written by scripts/gua/sync-wallpapers.mjs from the manifest.",
         "",
@@ -212,7 +216,9 @@ async function main() {
     // generate.mjs runs its command line only when executed directly, so importing it is safe.
     const generate = await import(pathToFileURL(path.join(android, "tools/wallpapers/shaders/generate.mjs")).href);
     const shaders = generate.loadLabShaders(path.join(android, "tools/wallpapers/lab"));
-    for (const [id, frag] of shaders) wanted.set(path.join(SHADERS, `${id}.frag`), Buffer.from(frag, "utf8"));
+    for (const [id, frag] of shaders) {
+        wanted.set(path.join(SHADERS, `${id}.frag`), Buffer.from(`${HEADER.join("\n")}\n\n${frag}`, "utf8"));
+    }
     for (const { id, live } of manifest.artworks) {
         if (live && !shaders.has(id)) problems.push(`The Lab has no shader for the live artwork ${id}`);
     }

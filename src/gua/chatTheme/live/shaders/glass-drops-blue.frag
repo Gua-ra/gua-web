@@ -1,3 +1,10 @@
+/*
+Copyright 2026 Gua
+
+SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
+Please see LICENSE files in the repository root for full details.
+*/
+
 precision highp float;
 uniform vec2 u_res;
 uniform float u_time;
