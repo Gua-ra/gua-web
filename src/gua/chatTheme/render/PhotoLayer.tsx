@@ -10,12 +10,14 @@ import { decode } from "blurhash";
 import { logger } from "matrix-js-sdk/src/logger";
 
 import { mediaFromMxc } from "../../../customisations/Media";
-import { PHOTO_MAX_DIMENSION, PHOTO_MAX_SIZE } from "../model/constants";
+import { PHOTO_MAX_SIZE } from "../model/constants";
 import { aspectFill } from "../model/layout";
 import { type PhotoWallpaper } from "../model/types";
 import { type Size } from "./hooks";
 
 const MAX_DECODED_EDGE = 2048;
+/** Chromium decodes the full frame before createImageBitmap resizes it, and Gua uploads at most 2048 px. */
+const MAX_SOURCE_EDGE = 4096;
 /** Allows for rounding in the declared width and height. */
 const ASPECT_TOLERANCE = 0.02;
 /** Fixed, so a crafted width and height cannot make the placeholder expensive. */
@@ -73,7 +75,7 @@ export function readImageSize(blob: Blob): Promise<{ width: number; height: numb
  */
 export async function decodePhoto(blob: Blob, declaredWidth: number, declaredHeight: number): Promise<ImageBitmap> {
     const { width, height } = await readImageSize(blob);
-    if (!width || !height || width > PHOTO_MAX_DIMENSION || height > PHOTO_MAX_DIMENSION) {
+    if (!width || !height || width > MAX_SOURCE_EDGE || height > MAX_SOURCE_EDGE) {
         throw new Error(`Photo wallpaper is ${width} by ${height} pixels`);
     }
     const shape = width / height / (declaredWidth / declaredHeight);

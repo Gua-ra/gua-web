@@ -142,8 +142,8 @@ describe("photo wallpapers", () => {
     });
 
     it("decodes a large photo at 2048 px on its long edge", async () => {
-        imageSize = { width: 3000, height: 6000 };
-        await decodePhoto(new Blob(["x"]), 3000, 6000);
+        imageSize = { width: 2048, height: 4096 };
+        await decodePhoto(new Blob(["x"]), 2048, 4096);
         expect(window.createImageBitmap).toHaveBeenCalledWith(expect.any(Blob), {
             resizeWidth: 1024,
             resizeHeight: 2048,
@@ -152,7 +152,7 @@ describe("photo wallpapers", () => {
     });
 
     it("decodes by the image's own size, whatever the event declares", async () => {
-        imageSize = { width: 6000, height: 6000 };
+        imageSize = { width: 4000, height: 4000 };
         await decodePhoto(new Blob(["x"]), 100, 100);
         expect(window.createImageBitmap).toHaveBeenCalledWith(expect.any(Blob), {
             resizeWidth: 2048,
@@ -161,9 +161,11 @@ describe("photo wallpapers", () => {
         });
     });
 
-    it("refuses an image larger than the apps accept, or of another shape than declared", async () => {
+    it("refuses an image over 4096 px on a side, or of another shape than declared", async () => {
         imageSize = { width: 30000, height: 30000 };
         await expect(decodePhoto(new Blob(["x"]), 100, 100)).rejects.toThrow("30000 by 30000");
+        imageSize = { width: 2048, height: 4097 };
+        await expect(decodePhoto(new Blob(["x"]), 2048, 4097)).rejects.toThrow("2048 by 4097");
         imageSize = { width: 4000, height: 1000 };
         await expect(decodePhoto(new Blob(["x"]), 100, 100)).rejects.toThrow("not 100 by 100");
         imageSize = null;
