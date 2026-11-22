@@ -1,0 +1,354 @@
+{
+  "cases": [
+    {
+      "name": "a chat theme wins over the default",
+      "chatTheme": {
+        "v": 1,
+        "kind": "preset",
+        "preset": "ocean",
+        "bubble": "teal"
+      },
+      "defaultTheme": {
+        "v": 1,
+        "kind": "preset",
+        "preset": "sunset",
+        "bubble": "pink"
+      },
+      "roomIsPrivate": false,
+      "mediaShown": true,
+      "expected": {
+        "kind": "preset",
+        "preset": "ocean",
+        "bubble": "teal"
+      }
+    },
+    {
+      "name": "no chat theme shows the default",
+      "chatTheme": {},
+      "defaultTheme": {
+        "v": 1,
+        "kind": "preset",
+        "preset": "sunset",
+        "bubble": "pink"
+      },
+      "roomIsPrivate": false,
+      "mediaShown": true,
+      "expected": {
+        "kind": "preset",
+        "preset": "sunset",
+        "bubble": "pink"
+      }
+    },
+    {
+      "name": "neither theme shows stock",
+      "chatTheme": {},
+      "defaultTheme": {},
+      "roomIsPrivate": false,
+      "mediaShown": true,
+      "expected": {
+        "kind": "none"
+      }
+    },
+    {
+      "name": "a chat photo in a private room with media off still shows",
+      "chatTheme": {
+        "v": 1,
+        "kind": "photo",
+        "photo": {
+          "url": "mxc://gua.global/ChatPhoto",
+          "mimetype": "image/jpeg",
+          "w": 1536,
+          "h": 2048,
+          "size": 412337
+        },
+        "bubble": "blue"
+      },
+      "defaultTheme": {
+        "v": 1,
+        "kind": "preset",
+        "preset": "sunset",
+        "bubble": "pink"
+      },
+      "roomIsPrivate": true,
+      "mediaShown": false,
+      "expected": {
+        "kind": "photo",
+        "photo": {
+          "url": "mxc://gua.global/ChatPhoto",
+          "mimetype": "image/jpeg",
+          "w": 1536,
+          "h": 2048,
+          "size": 412337,
+          "blurhash": null,
+          "dim": 35,
+          "align": {
+            "x": 500,
+            "y": 500
+          }
+        },
+        "bubble": "blue"
+      }
+    },
+    {
+      "name": "a chat photo in a public room with media off falls back to the default",
+      "chatTheme": {
+        "v": 1,
+        "kind": "photo",
+        "photo": {
+          "url": "mxc://gua.global/ChatPhoto",
+          "mimetype": "image/jpeg",
+          "w": 1536,
+          "h": 2048,
+          "size": 412337
+        },
+        "bubble": "blue"
+      },
+      "defaultTheme": {
+        "v": 1,
+        "kind": "preset",
+        "preset": "sunset",
+        "bubble": "pink"
+      },
+      "roomIsPrivate": false,
+      "mediaShown": false,
+      "expected": {
+        "kind": "preset",
+        "preset": "sunset",
+        "bubble": "pink"
+      }
+    },
+    {
+      "name": "a chat photo in a public room with media off and no default shows stock",
+      "chatTheme": {
+        "v": 1,
+        "kind": "photo",
+        "photo": {
+          "url": "mxc://gua.global/ChatPhoto",
+          "mimetype": "image/jpeg",
+          "w": 1536,
+          "h": 2048,
+          "size": 412337
+        },
+        "bubble": "blue"
+      },
+      "defaultTheme": {},
+      "roomIsPrivate": false,
+      "mediaShown": false,
+      "expected": {
+        "kind": "none"
+      }
+    },
+    {
+      "name": "a chat photo in a public room with media on shows",
+      "chatTheme": {
+        "v": 1,
+        "kind": "photo",
+        "photo": {
+          "url": "mxc://gua.global/ChatPhoto",
+          "mimetype": "image/jpeg",
+          "w": 1536,
+          "h": 2048,
+          "size": 412337
+        },
+        "bubble": "blue"
+      },
+      "defaultTheme": {
+        "v": 1,
+        "kind": "preset",
+        "preset": "sunset",
+        "bubble": "pink"
+      },
+      "roomIsPrivate": false,
+      "mediaShown": true,
+      "expected": {
+        "kind": "photo",
+        "photo": {
+          "url": "mxc://gua.global/ChatPhoto",
+          "mimetype": "image/jpeg",
+          "w": 1536,
+          "h": 2048,
+          "size": 412337,
+          "blurhash": null,
+          "dim": 35,
+          "align": {
+            "x": 500,
+            "y": 500
+          }
+        },
+        "bubble": "blue"
+      }
+    },
+    {
+      "name": "a default photo with media off still shows",
+      "chatTheme": {},
+      "defaultTheme": {
+        "v": 1,
+        "kind": "photo",
+        "photo": {
+          "url": "mxc://gua.global/DefaultPhoto",
+          "mimetype": "image/jpeg",
+          "w": 1536,
+          "h": 2048,
+          "size": 412337
+        },
+        "bubble": "graphite"
+      },
+      "roomIsPrivate": false,
+      "mediaShown": false,
+      "expected": {
+        "kind": "photo",
+        "photo": {
+          "url": "mxc://gua.global/DefaultPhoto",
+          "mimetype": "image/jpeg",
+          "w": 1536,
+          "h": 2048,
+          "size": 412337,
+          "blurhash": null,
+          "dim": 35,
+          "align": {
+            "x": 500,
+            "y": 500
+          }
+        },
+        "bubble": "graphite"
+      }
+    },
+    {
+      "name": "a chat preset in a public room with media off still shows",
+      "chatTheme": {
+        "v": 1,
+        "kind": "preset",
+        "preset": "aurora",
+        "bubble": "green"
+      },
+      "defaultTheme": {
+        "v": 1,
+        "kind": "preset",
+        "preset": "sunset",
+        "bubble": "pink"
+      },
+      "roomIsPrivate": false,
+      "mediaShown": false,
+      "expected": {
+        "kind": "preset",
+        "preset": "aurora",
+        "bubble": "green"
+      }
+    },
+    {
+      "name": "a chat bubble without a wallpaper wins over the default",
+      "chatTheme": {
+        "v": 1,
+        "kind": "none",
+        "bubble": "blue"
+      },
+      "defaultTheme": {
+        "v": 1,
+        "kind": "preset",
+        "preset": "sunset",
+        "bubble": "pink"
+      },
+      "roomIsPrivate": false,
+      "mediaShown": true,
+      "expected": {
+        "kind": "none",
+        "bubble": "blue"
+      }
+    },
+    {
+      "name": "a chat theme the app cannot read shows the default",
+      "chatTheme": {
+        "v": 1,
+        "kind": "preset",
+        "preset": "rainbow"
+      },
+      "defaultTheme": {
+        "v": 1,
+        "kind": "preset",
+        "preset": "sunset",
+        "bubble": "pink"
+      },
+      "roomIsPrivate": false,
+      "mediaShown": true,
+      "expected": {
+        "kind": "preset",
+        "preset": "sunset",
+        "bubble": "pink"
+      }
+    },
+    {
+      "name": "a chat artwork in a public room with media off still shows",
+      "chatTheme": {
+        "v": 1,
+        "kind": "art",
+        "art": "glass-drops",
+        "bubble": "purple",
+        "bubble_dark": "pink",
+        "fallback_preset": "blush"
+      },
+      "defaultTheme": {
+        "v": 1,
+        "kind": "preset",
+        "preset": "sunset",
+        "bubble": "pink"
+      },
+      "roomIsPrivate": false,
+      "mediaShown": false,
+      "expected": {
+        "kind": "art",
+        "art": "glass-drops",
+        "bubble": "purple",
+        "bubble_dark": "pink"
+      }
+    },
+    {
+      "name": "a default artwork with media off shows",
+      "chatTheme": {},
+      "defaultTheme": {
+        "v": 1,
+        "kind": "art",
+        "art": "palm-coast",
+        "bubble": "orange",
+        "bubble_dark": "blue",
+        "fallback_preset": "ocean"
+      },
+      "roomIsPrivate": false,
+      "mediaShown": false,
+      "expected": {
+        "kind": "art",
+        "art": "palm-coast",
+        "bubble": "orange",
+        "bubble_dark": "blue"
+      }
+    },
+    {
+      "name": "a chat artwork wins over a default photo",
+      "chatTheme": {
+        "v": 1,
+        "kind": "art",
+        "art": "silk",
+        "bubble": "teal",
+        "fallback_preset": "mint"
+      },
+      "defaultTheme": {
+        "v": 1,
+        "kind": "photo",
+        "photo": {
+          "url": "mxc://gua.global/DefaultPhoto",
+          "mimetype": "image/jpeg",
+          "w": 1536,
+          "h": 2048,
+          "size": 412337
+        },
+        "bubble": "graphite"
+      },
+      "roomIsPrivate": false,
+      "mediaShown": true,
+      "expected": {
+        "kind": "art",
+        "art": "silk",
+        "bubble": "teal"
+      }
+    }
+  ]
+}
