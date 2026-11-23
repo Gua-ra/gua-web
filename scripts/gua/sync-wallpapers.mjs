@@ -8,7 +8,7 @@ Please see LICENSE files in the repository root for full details.
 
 // Copies the chat wallpapers, live shaders and shared test fixtures from the apps, and bakes the gallery thumbnails.
 // --android-extra adds the artworks another gua-android checkout has and the first one lacks, writing the merged
-// manifest as the apps' own merge does.
+// manifest as the apps' own merge does. Every --ios and --ios-extra manifest must be part of that merge.
 
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -16,6 +16,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { isDeepStrictEqual } from "node:util";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WALLPAPERS = path.join(ROOT, "res/img/gua/wallpapers");
@@ -30,6 +31,7 @@ const ANDROID_FIXTURES = {
     "chat-theme-precedence-fixtures.json": "libraries/chatbackground/api/src/test/resources",
     "live-wallpaper-motion-fixtures.json": "libraries/matrixui/src/test/resources",
 };
+const IOS_WALLPAPERS = "ElementX/Resources/Wallpapers";
 const IOS_FIXTURES = "UnitTests/Resources";
 
 /** Twice the 84 by 182 CSS px gallery tile. Only the pinned cwebp reproduces the committed bytes. */
@@ -52,10 +54,11 @@ const SHADER_HEADER = [
 ];
 
 function parseArgs(argv) {
-    const args = { check: false, extra: [], cwebp: "cwebp" };
+    const args = { check: false, extra: [], iosExtra: [], cwebp: "cwebp" };
     for (let i = 0; i < argv.length; i++) {
         if (argv[i] === "--check") args.check = true;
         else if (argv[i] === "--android-extra") args.extra.push(argv[++i]);
+        else if (argv[i] === "--ios-extra") args.iosExtra.push(argv[++i]);
         else if (argv[i] === "--android" || argv[i] === "--ios" || argv[i] === "--cwebp")
             args[argv[i].slice(2)] = argv[++i];
         else throw new Error(`Unknown argument ${argv[i]}`);
@@ -91,7 +94,10 @@ function readManifest(checkout) {
     return { dir, manifest: JSON.parse(fs.readFileSync(path.join(dir, "manifest.json"), "utf8")) };
 }
 
-/** Each extra artwork goes after the one it follows in its own manifest, or first when it leads that list. */
+/**
+ * Each extra artwork goes after the one it follows in its own manifest, or first when it leads that list. One that
+ * opens a section goes after the whole section before it, so another checkout's additions to that section stay in it.
+ */
 function mergeArtworks(main, extras) {
     const artworks = main.manifest.artworks.map((artwork) => ({ artwork, dir: main.dir }));
     for (const extra of extras) {
@@ -99,13 +105,39 @@ function mergeArtworks(main, extras) {
         for (const artwork of extra.manifest.artworks) {
             const known = artworks.findIndex((entry) => entry.artwork.id === artwork.id);
             if (known < 0) {
-                const at = previous === undefined ? 0 : artworks.findIndex((e) => e.artwork.id === previous) + 1;
+                let at = previous === undefined ? 0 : artworks.findIndex((e) => e.artwork.id === previous.id) + 1;
+                if (previous && previous.section !== artwork.section) {
+                    while (artworks[at]?.artwork.section === previous.section) at++;
+                }
                 artworks.splice(at, 0, { artwork, dir: extra.dir });
             }
-            previous = artwork.id;
+            previous = artwork;
         }
     }
     return artworks;
+}
+
+/** What the web reads of an entry. An app baked with `--images-only` lists no shader files. */
+function stillEntry({ files, sha256: hashes, ...artwork }) {
+    const stills = stillFiles({ files });
+    return { ...artwork, files: { light: files.light, dark: files.dark }, sha256: stills.map((f) => hashes[f]) };
+}
+
+/** Each app's manifest must appear in the merged one in the same order, with the same entries. */
+function compareWithApp(name, manifest, app) {
+    const problems = [];
+    if (!isDeepStrictEqual(app.noise, manifest.noise)) problems.push(`${name} has another noise tile`);
+    const ids = new Set(app.artworks.map((artwork) => artwork.id));
+    const merged = manifest.artworks.filter((artwork) => ids.has(artwork.id));
+    const order = (artworks) => artworks.map((artwork) => artwork.id).join(" ");
+    if (order(merged) !== order(app.artworks)) problems.push(`${name} has other artworks or another order`);
+    for (const artwork of app.artworks) {
+        const entry = merged.find((a) => a.id === artwork.id);
+        if (entry && !isDeepStrictEqual(stillEntry(entry), stillEntry(artwork))) {
+            problems.push(`${artwork.id} differs from ${name}`);
+        }
+    }
+    return problems;
 }
 
 function checkCwebp(cwebp) {
@@ -136,24 +168,27 @@ function thumbnail(cwebp, still) {
     }
 }
 
-const camel = (id) => id.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+const camel = (file) => path.basename(file, ".webp").replace(/-([a-z0-9])/g, (_, next) => next.toUpperCase());
+
+/** A photo has one file for both appearances. */
+const stillFiles = (artwork) => [...new Set([artwork.files.light, artwork.files.dark])];
 
 /** Writes the module exactly as Prettier formats it, so `prettier --check` passes. */
-function assetsModule(ids) {
+function assetsModule(artworks) {
     const imports = [];
     const stills = [];
     const thumbnails = [];
-    for (const id of ids) {
-        const name = camel(id);
-        for (const look of ["light", "dark"]) {
-            const suffix = look === "light" ? "Light" : "Dark";
-            imports.push(`import ${name}${suffix} from "../../../../res/img/gua/wallpapers/${id}-${look}.webp";`);
+    for (const artwork of artworks) {
+        for (const file of stillFiles(artwork)) {
+            imports.push(`import ${camel(file)} from "../../../../res/img/gua/wallpapers/${file}";`);
             imports.push(
-                `import ${name}${suffix}Thumbnail from "../../../../res/img/gua/wallpapers/thumbnails/${id}-${look}.webp";`,
+                `import ${camel(file)}Thumbnail from "../../../../res/img/gua/wallpapers/thumbnails/${file}";`,
             );
         }
-        stills.push(`    "${id}": { light: ${name}Light, dark: ${name}Dark },`);
-        thumbnails.push(`    "${id}": { light: ${name}LightThumbnail, dark: ${name}DarkThumbnail },`);
+        const light = camel(artwork.files.light);
+        const dark = camel(artwork.files.dark);
+        stills.push(`    "${artwork.id}": { light: ${light}, dark: ${dark} },`);
+        thumbnails.push(`    "${artwork.id}": { light: ${light}Thumbnail, dark: ${dark}Thumbnail },`);
     }
     return [
         ...HEADER,
@@ -189,12 +224,13 @@ async function main() {
     if (!args.android) {
         console.error(
             "usage: sync-wallpapers.mjs --android <gua-android checkout> [--android-extra <checkout>]... " +
-                "[--ios <gua-ios checkout>] [--cwebp <path>] [--check]",
+                "[--ios <gua-ios checkout>] [--ios-extra <checkout>]... [--cwebp <path>] [--check]",
         );
         process.exit(2);
     }
     const android = path.resolve(args.android);
     const extras = args.extra.map((checkout) => path.resolve(checkout));
+    const iosCheckouts = [args.ios, ...args.iosExtra].filter(Boolean).map((checkout) => path.resolve(checkout));
     checkCwebp(args.cwebp);
     const wanted = new Map();
     const problems = [];
@@ -203,13 +239,17 @@ async function main() {
     const artworks = mergeArtworks(main, extras.map(readManifest));
     const manifest = { ...main.manifest, artworks: artworks.map((entry) => entry.artwork) };
     wanted.set(path.join(WALLPAPERS, "manifest.json"), Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`, "utf8"));
+    for (const ios of iosCheckouts) {
+        const app = JSON.parse(fs.readFileSync(path.join(ios, IOS_WALLPAPERS, "manifest.json"), "utf8"));
+        problems.push(...compareWithApp(`gua-ios ${path.basename(ios)}`, manifest, app));
+    }
 
     const noise = fs.readFileSync(path.join(main.dir, manifest.noise.file));
     if (sha256(noise) !== manifest.noise.sha256) problems.push(`${manifest.noise.file} does not match its sha256`);
     wanted.set(path.join(WALLPAPERS, manifest.noise.file), noise);
 
     for (const { artwork, dir } of artworks) {
-        for (const name of [artwork.files.light, artwork.files.dark]) {
+        for (const name of stillFiles(artwork)) {
             const still = path.join(dir, name);
             const bytes = fs.readFileSync(still);
             if (sha256(bytes) !== artwork.sha256[name]) problems.push(`${name} does not match its sha256`);
@@ -217,7 +257,7 @@ async function main() {
             wanted.set(path.join(THUMBNAILS, name), thumbnail(args.cwebp, still));
         }
     }
-    wanted.set(ASSETS_MODULE, Buffer.from(assetsModule(manifest.artworks.map((a) => a.id)), "utf8"));
+    wanted.set(ASSETS_MODULE, Buffer.from(assetsModule(manifest.artworks), "utf8"));
 
     // generate.mjs runs its command line only when executed directly, so importing it is safe.
     const generate = await import(pathToFileURL(path.join(android, "tools/wallpapers/shaders/generate.mjs")).href);
@@ -239,7 +279,7 @@ async function main() {
     }
 
     const stale = [
-        ...listFiles(WALLPAPERS),
+        ...listFiles(WALLPAPERS).filter((f) => f.endsWith(".webp")),
         ...listFiles(THUMBNAILS),
         ...listFiles(SHADERS).filter((f) => f.endsWith(".frag")),
     ].filter((f) => !wanted.has(f));
@@ -260,6 +300,7 @@ async function main() {
     console.log(`gua-android: ${commitOf(android)}`);
     for (const extra of extras) console.log(`gua-android extra: ${commitOf(extra)}`);
     if (args.ios) console.log(`gua-ios: ${commitOf(path.resolve(args.ios))}`);
+    for (const extra of args.iosExtra) console.log(`gua-ios extra: ${commitOf(path.resolve(extra))}`);
     if (problems.length > 0) {
         for (const problem of problems) console.error(problem);
         process.exit(1);
