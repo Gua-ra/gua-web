@@ -3,6 +3,8 @@ Copyright 2026 Gua
 
 SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
 Please see LICENSE files in the repository root for full details.
+
+hash12 and hash22 are "Hash without Sine" by David Hoskins, used under the MIT licence; see THIRD_PARTY_NOTICES.md.
 */
 
 precision highp float;

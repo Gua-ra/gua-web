@@ -44,6 +44,12 @@ const HEADER = [
     "Please see LICENSE files in the repository root for full details.",
     "*/",
 ];
+const SHADER_HEADER = [
+    ...HEADER.slice(0, -1),
+    "",
+    'hash12 and hash22 are "Hash without Sine" by David Hoskins, used under the MIT licence; see THIRD_PARTY_NOTICES.md.',
+    "*/",
+];
 
 function parseArgs(argv) {
     const args = { check: false, extra: [], cwebp: "cwebp" };
@@ -217,7 +223,7 @@ async function main() {
     const generate = await import(pathToFileURL(path.join(android, "tools/wallpapers/shaders/generate.mjs")).href);
     const shaders = generate.loadLabShaders(path.join(android, "tools/wallpapers/lab"));
     for (const [id, frag] of shaders) {
-        wanted.set(path.join(SHADERS, `${id}.frag`), Buffer.from(`${HEADER.join("\n")}\n\n${frag}`, "utf8"));
+        wanted.set(path.join(SHADERS, `${id}.frag`), Buffer.from(`${SHADER_HEADER.join("\n")}\n\n${frag}`, "utf8"));
     }
     for (const { id, live } of manifest.artworks) {
         if (live && !shaders.has(id)) problems.push(`The Lab has no shader for the live artwork ${id}`);

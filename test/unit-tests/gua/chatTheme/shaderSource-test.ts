@@ -14,7 +14,8 @@ const SHADERS = path.resolve(__dirname, "../../../../src/gua/chatTheme/live/shad
 const files = fs.readdirSync(SHADERS).filter((f) => f.endsWith(".frag"));
 const HEADER =
     "/*\nCopyright 2026 Gua\n\nSPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only\n" +
-    "Please see LICENSE files in the repository root for full details.\n*/\n\n";
+    "Please see LICENSE files in the repository root for full details.\n\n" +
+    'hash12 and hash22 are "Hash without Sine" by David Hoskins, used under the MIT licence; see THIRD_PARTY_NOTICES.md.\n*/\n\n';
 
 describe("live wallpaper shader source", () => {
     it.each(files)("%s declares the uniform contract", (file) => {
