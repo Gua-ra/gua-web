@@ -6,7 +6,7 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import { _t, _td, type TranslationKey } from "../../../languageHandler";
-import { type ArtworkId } from "./artworks";
+import { type ArtworkId, type PhotoCredit } from "./artworks";
 import { type BubbleId } from "./bubbles";
 import { type GallerySectionId } from "./gallery";
 import { type PresetId } from "./presets";
@@ -65,6 +65,25 @@ export const ARTWORK_NAMES: Record<ArtworkId, TranslationKey> = {
     "polar-ice": _td("gua|chat_theme|art|polar_ice"),
     "moon-tide": _td("gua|chat_theme|art|moon_tide"),
     "guara": _td("gua|chat_theme|art|guara"),
+    "photo-lencois-lagoon": _td("gua|chat_theme|art|photo_lencois_lagoon"),
+    "photo-lencois-dunes": _td("gua|chat_theme|art|photo_lencois_dunes"),
+    "photo-gruta-azul": _td("gua|chat_theme|art|photo_gruta_azul"),
+    "photo-ipe": _td("gua|chat_theme|art|photo_ipe"),
+    "photo-araucaria": _td("gua|chat_theme|art|photo_araucaria"),
+    "photo-maned-wolf": _td("gua|chat_theme|art|photo_maned_wolf"),
+    "photo-maned-wolf-standing": _td("gua|chat_theme|art|photo_maned_wolf_standing"),
+    "photo-yukon-trail": _td("gua|chat_theme|art|photo_yukon_trail"),
+    "photo-yukon-sun": _td("gua|chat_theme|art|photo_yukon_sun"),
+    "photo-yukon-forest": _td("gua|chat_theme|art|photo_yukon_forest"),
+    "photo-yukon-sled": _td("gua|chat_theme|art|photo_yukon_sled"),
+    "photo-yukon-sled-2": _td("gua|chat_theme|art|photo_yukon_sled_2"),
+    "photo-peyto-lake": _td("gua|chat_theme|art|photo_peyto_lake"),
+    "photo-lone-canoe": _td("gua|chat_theme|art|photo_lone_canoe"),
+    "photo-jasper-aurora": _td("gua|chat_theme|art|photo_jasper_aurora"),
+    "photo-nunavik-aurora": _td("gua|chat_theme|art|photo_nunavik_aurora"),
+    "photo-lac-delage": _td("gua|chat_theme|art|photo_lac_delage"),
+    "photo-quebec-ice": _td("gua|chat_theme|art|photo_quebec_ice"),
+    "photo-quebec-leaves": _td("gua|chat_theme|art|photo_quebec_leaves"),
     "currents": _td("gua|chat_theme|art|currents"),
     "azulejo": _td("gua|chat_theme|art|azulejo"),
     "calcadao": _td("gua|chat_theme|art|calcadao"),
@@ -79,6 +98,7 @@ export const SECTION_NAMES: Record<GallerySectionId, TranslationKey> = {
     featured: _td("gua|chat_theme|section|featured"),
     live: _td("gua|chat_theme|section|live"),
     nature: _td("gua|chat_theme|section|nature"),
+    photos: _td("gua|chat_theme|section|photos"),
     patterns: _td("gua|chat_theme|section|patterns"),
     minimal: _td("gua|chat_theme|section|minimal"),
     gradients: _td("gua|chat_theme|section|gradients"),
@@ -95,6 +115,14 @@ export function wallpaperName(wallpaper: Wallpaper): string {
         case "photo":
             return _t("gua|chat_theme|photo_value");
     }
+}
+
+export function photoCreditText(credit: PhotoCredit): string {
+    return _t("gua|chat_theme|photo_credit", { author: credit.author });
+}
+
+export function photoCreditWithLicence(credit: PhotoCredit): string {
+    return _t("gua|chat_theme|photo_credit_licence", { author: credit.author, licence: credit.licence });
 }
 
 export function bubbleName(theme: ChatTheme, dark: boolean): string {

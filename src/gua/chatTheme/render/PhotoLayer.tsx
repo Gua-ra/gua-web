@@ -191,6 +191,12 @@ function usePhotoBitmap(
     return state;
 }
 
+/** Dark mode dims only photos, by `dim` percent; light mode dims every wallpaper a little for increased contrast. */
+export function scrimOpacity(dark: boolean, increasedContrast: boolean, dim?: number): number {
+    if (!dark) return increasedContrast ? 0.06 : 0;
+    return dim === undefined ? 0 : Math.max(dim / 100, increasedContrast ? 0.5 : 0);
+}
+
 interface PhotoLayerProps {
     photo: PhotoWallpaper;
     size: Size;
@@ -217,7 +223,7 @@ export function PhotoLayer({ photo, size, dark, increasedContrast, small, local 
     }, [state]);
 
     const failed = state.status === "failed";
-    const dim = dark ? Math.max(photo.dim / 100, increasedContrast ? 0.5 : 0) : increasedContrast ? 0.06 : 0;
+    const dim = scrimOpacity(dark, increasedContrast, photo.dim);
     return (
         <>
             {state.status === "loading" && photo.blurhash && (

@@ -15,6 +15,7 @@ import { BUBBLE_NAMES } from "../model/names";
 import { baseTheme, canSavePickerChoice, shownTheme } from "../model/screenModel";
 import { type ChatTheme, makeTheme, NO_WALLPAPER, shownBubble, withBubbles } from "../model/types";
 import { useAppearance } from "../state/useAppearance";
+import { usePhotoCredits } from "./ChatPhotoCredits";
 import { ChatThemePreview } from "./ChatThemePreview";
 import { ChatThemeActions, ChatThemeSubView } from "./ChatThemeSubView";
 import { TileGroup } from "./ChatThemeTile";
@@ -32,6 +33,7 @@ export function ChatBubblePicker({ screen: { state, save }, onBack, onSaved }: P
     const base = baseTheme(state);
     const [bubbles, setBubbles] = useState<ChatTheme>(base);
     const { saving, error, run } = useThemeSave(save);
+    const credits = usePhotoCredits();
     const group = useId();
     const choice = withBubbles(base.wallpaper, bubbles);
     const shown = shownBubble(bubbles, appearance.dark);
@@ -42,40 +44,47 @@ export function ChatBubblePicker({ screen: { state, save }, onBack, onSaved }: P
     };
 
     return (
-        <ChatThemeSubView title={_t("gua|chat_theme|chat_bubble")} onBack={onBack}>
-            <ChatThemePreview theme={shownTheme(state, choice)} appearance={appearance} />
-            <TileGroup label={_t("gua|chat_theme|chat_bubble")}>
-                {BUBBLE_IDS.map((bubble) => {
-                    const selected = bubble === shown;
-                    const colour = bubbleColour(bubble, appearance.dark);
-                    return (
-                        <label
-                            key={bubble}
-                            className={classNames("mx_GuaThemeSwatch", { mx_GuaThemeSwatch_standard: !colour })}
-                            style={colour ? { backgroundColor: colour } : undefined}
-                        >
-                            <input
-                                type="radio"
-                                className="mx_GuaThemeTile_input"
-                                name={group}
-                                checked={selected}
-                                disabled={saving}
-                                aria-label={_t("gua|chat_theme|bubble_label", { name: _t(BUBBLE_NAMES[bubble]) })}
-                                onChange={() => pick(bubble)}
-                            />
-                            {selected && <CheckIcon aria-hidden={true} />}
-                        </label>
-                    );
-                })}
-            </TileGroup>
-            <ChatThemeActions
-                setLabel={_t("gua|chat_theme|set")}
-                saving={saving}
-                disabled={!canSavePickerChoice(state, choice)}
-                error={error}
-                onCancel={onBack}
-                onSet={() => run(choice, onSaved)}
-            />
-        </ChatThemeSubView>
+        <>
+            <ChatThemeSubView title={_t("gua|chat_theme|chat_bubble")} onBack={onBack} hidden={credits.shown}>
+                <ChatThemePreview
+                    theme={shownTheme(state, choice)}
+                    appearance={appearance}
+                    onPhotoCredits={credits.open}
+                />
+                <TileGroup label={_t("gua|chat_theme|chat_bubble")}>
+                    {BUBBLE_IDS.map((bubble) => {
+                        const selected = bubble === shown;
+                        const colour = bubbleColour(bubble, appearance.dark);
+                        return (
+                            <label
+                                key={bubble}
+                                className={classNames("mx_GuaThemeSwatch", { mx_GuaThemeSwatch_standard: !colour })}
+                                style={colour ? { backgroundColor: colour } : undefined}
+                            >
+                                <input
+                                    type="radio"
+                                    className="mx_GuaThemeTile_input"
+                                    name={group}
+                                    checked={selected}
+                                    disabled={saving}
+                                    aria-label={_t("gua|chat_theme|bubble_label", { name: _t(BUBBLE_NAMES[bubble]) })}
+                                    onChange={() => pick(bubble)}
+                                />
+                                {selected && <CheckIcon aria-hidden={true} />}
+                            </label>
+                        );
+                    })}
+                </TileGroup>
+                <ChatThemeActions
+                    setLabel={_t("gua|chat_theme|set")}
+                    saving={saving}
+                    disabled={!canSavePickerChoice(state, choice)}
+                    error={error}
+                    onCancel={onBack}
+                    onSet={() => run(choice, onSaved)}
+                />
+            </ChatThemeSubView>
+            {credits.view}
+        </>
     );
 }

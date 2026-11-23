@@ -126,3 +126,7 @@ under the GNU Affero General Public License (version 3 or later), under the GNU 
 Public License (version 3 or later), or under a paid-for Element Commercial License. See
 [LICENSE-AGPL-3.0](LICENSE-AGPL-3.0), [LICENSE-GPL-3.0](LICENSE-GPL-3.0), and
 [LICENSE-COMMERCIAL](LICENSE-COMMERCIAL) for the full terms.
+
+The photo wallpapers (`res/img/gua/wallpapers/photo-*.webp` and their thumbnails) are not under
+these licenses. Each keeps its own license; see
+[res/img/gua/wallpapers/THIRD_PARTY_NOTICES.md](res/img/gua/wallpapers/THIRD_PARTY_NOTICES.md).

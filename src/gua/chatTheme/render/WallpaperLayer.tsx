@@ -8,7 +8,7 @@ Please see LICENSE files in the repository root for full details.
 import React, { type JSX, useMemo, useRef } from "react";
 import classNames from "classnames";
 
-import { getArtwork, isLive } from "../model/artworks";
+import { darkDim, getArtwork, isLive } from "../model/artworks";
 import { stillUrl, thumbnailUrl } from "../model/artworkAssets";
 import { presetBackground } from "../model/presetFill";
 import { isGradient, presetFill } from "../model/presets";
@@ -17,7 +17,7 @@ import { LiveWallpaperCanvas } from "../live/LiveWallpaperCanvas";
 import { type SendPulse, type WallpaperMotion } from "../live/timing";
 import { type Appearance } from "../state/useAppearance";
 import { type Size, useCrossfade, useDevicePixelRatio, useElementSize } from "./hooks";
-import { PhotoLayer } from "./PhotoLayer";
+import { PhotoLayer, scrimOpacity } from "./PhotoLayer";
 
 const CROSSFADE_MS = 200;
 /** The noise tile's side in image pixels, drawn at one image pixel per device pixel. */
@@ -59,10 +59,9 @@ function Grain(): JSX.Element {
     return <div className="mx_GuaWallpaper_grain" style={{ backgroundSize: `${side} ${side}` }} />;
 }
 
-function LightScrim({ appearance }: { appearance: Appearance }): JSX.Element | null {
-    return !appearance.dark && appearance.increasedContrast ? (
-        <div className="mx_GuaWallpaper_scrim" style={{ opacity: 0.06 }} />
-    ) : null;
+function Scrim({ appearance, dim }: { appearance: Appearance; dim?: number }): JSX.Element | null {
+    const opacity = scrimOpacity(appearance.dark, appearance.increasedContrast, dim);
+    return opacity > 0 ? <div className="mx_GuaWallpaper_scrim" style={{ opacity }} /> : null;
 }
 
 function WallpaperFill({ wallpaper, size, appearance, live, thumbnail, small, localPhoto }: FillProps): JSX.Element {
@@ -79,7 +78,7 @@ function WallpaperFill({ wallpaper, size, appearance, live, thumbnail, small, lo
                         style={{ background: presetBackground(fill, size.width, size.height) }}
                     />
                     {isGradient(fill) && !thumbnail && <Grain />}
-                    <LightScrim appearance={appearance} />
+                    <Scrim appearance={appearance} />
                 </>
             );
         }
@@ -113,7 +112,7 @@ function WallpaperFill({ wallpaper, size, appearance, live, thumbnail, small, lo
                         />
                     )}
                     {!thumbnail && <Grain />}
-                    <LightScrim appearance={appearance} />
+                    <Scrim appearance={appearance} dim={darkDim(artwork)} />
                 </>
             );
         }

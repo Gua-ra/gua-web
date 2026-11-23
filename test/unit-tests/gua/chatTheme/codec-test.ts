@@ -8,7 +8,7 @@ Please see LICENSE files in the repository root for full details.
 import fixtures from "./fixtures/chat-background-fixtures.json";
 import { decodeChatTheme, encodeChatTheme } from "../../../../src/gua/chatTheme/model/codec";
 import { isRemovalContent } from "../../../../src/gua/chatTheme/model/removal";
-import { STOCK } from "../../../../src/gua/chatTheme/model/types";
+import { artworkTheme, STOCK } from "../../../../src/gua/chatTheme/model/types";
 import { type FixtureTheme, fromFixture, toFixture } from "./fixtureForm";
 
 describe("chat theme codec", () => {
@@ -31,6 +31,15 @@ describe("chat theme codec", () => {
             const theme = fromFixture(fixture.theme as FixtureTheme);
             expect(decodeChatTheme(JSON.parse(fixture.expected))).toEqual(theme);
         }
+    });
+
+    it("writes a built-in photo as art, with its fallback for builds without it", () => {
+        const ipe = artworkTheme("photo-ipe");
+        const content = JSON.stringify(encodeChatTheme(ipe));
+        expect(content).toBe(
+            '{"art":"photo-ipe","bubble":"blue","bubble_dark":"orange","fallback_preset":"graphite","kind":"art","v":1}',
+        );
+        expect(decodeChatTheme(JSON.parse(content))).toEqual(ipe);
     });
 
     it("rejects a photo whose whole numbers are beyond 64 bits, as iOS does", () => {

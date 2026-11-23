@@ -12,6 +12,11 @@ Please see LICENSE files in the repository root for full details.
     min-width: 0;
 }
 
+/* The view that opened the photo credits stays mounted behind them. */
+.mx_GuaThemePanel[hidden] {
+    display: none;
+}
+
 .mx_GuaThemePanel_layoutNote {
     display: flex;
     align-items: center;
@@ -74,6 +79,10 @@ Please see LICENSE files in the repository root for full details.
     position: absolute;
     right: var(--cpd-space-3x);
     bottom: var(--cpd-space-3x);
+}
+
+.mx_GuaThemePanel_credit {
+    align-self: center;
 }
 
 .mx_GuaThemePanel_buttons {
@@ -177,6 +186,18 @@ Please see LICENSE files in the repository root for full details.
     margin: 0 0 var(--cpd-space-2x);
     font: var(--cpd-font-body-md-semibold);
     color: var(--cpd-color-text-primary);
+}
+
+.mx_GuaThemePanel_sectionHeading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cpd-space-2x);
+    margin-bottom: var(--cpd-space-2x);
+
+    h3 {
+        margin: 0;
+    }
 }
 
 .mx_GuaThemeTiles {
@@ -307,6 +328,31 @@ Please see LICENSE files in the repository root for full details.
     background-color: var(--cpd-color-bg-canvas-default);
 }
 
+.mx_GuaThemeTile_photo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cpd-space-1x);
+}
+
+/* No line limit, so the author's name always shows in full. */
+.mx_GuaThemeTile_caption {
+    font: var(--cpd-font-body-xs-regular);
+    color: var(--cpd-color-text-secondary);
+    text-align: center;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+
+.mx_GuaThemeTile_disabled + .mx_GuaThemeTile_caption {
+    cursor: default;
+}
+
+.mx_GuaThemeTile_captionName {
+    display: block;
+    font: var(--cpd-font-body-xs-semibold);
+    color: var(--cpd-color-text-primary);
+}
+
 .mx_GuaThemeSwatch {
     position: relative;
     display: flex;
@@ -391,4 +437,54 @@ Please see LICENSE files in the repository root for full details.
     gap: var(--cpd-space-2x);
     font: var(--cpd-font-body-md-semibold);
     color: var(--cpd-color-text-primary);
+}
+
+.mx_GuaPhotoCredits {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cpd-space-4x);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.mx_GuaPhotoCredits_photo {
+    display: flex;
+    gap: var(--cpd-space-4x);
+}
+
+.mx_GuaPhotoCredits_thumbnail {
+    position: relative;
+    isolation: isolate;
+    flex: none;
+    box-sizing: border-box;
+    width: 45px;
+    height: 80px;
+    border-radius: 8px;
+    border: 1px solid var(--cpd-color-border-interactive-secondary);
+    overflow: hidden;
+}
+
+.mx_GuaPhotoCredits_text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    font: var(--cpd-font-body-md-regular);
+    color: var(--cpd-color-text-secondary);
+}
+
+.mx_GuaPhotoCredits_name {
+    font: var(--cpd-font-body-lg-semibold);
+    color: var(--cpd-color-text-primary);
+}
+
+.mx_GuaPhotoCredits_links {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--cpd-space-4x);
+}
+
+.mx_GuaPhotoCredits_changes {
+    font: var(--cpd-font-body-sm-regular);
 }

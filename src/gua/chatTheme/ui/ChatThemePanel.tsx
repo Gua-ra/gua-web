@@ -32,6 +32,7 @@ import { WallpaperThumbnail } from "../render/WallpaperLayer";
 import { useIsBubbleLayout } from "../state/flags";
 import { type Appearance, useAppearance } from "../state/useAppearance";
 import { ChatBubblePicker } from "./ChatBubblePicker";
+import { SectionHeading, usePhotoCredits } from "./ChatPhotoCredits";
 import { ChatPhotoEditor } from "./ChatPhotoEditor";
 import { ChatThemeActions } from "./ChatThemeSubView";
 import { ChatThemePreview } from "./ChatThemePreview";
@@ -186,6 +187,7 @@ function ThemeGallery({
     const bubbleLayout = useIsBubbleLayout();
     const [preview, setPreview] = useState<Preview | null>(null);
     const { saving, error, run, setError } = useThemeSave(save);
+    const credits = usePhotoCredits();
     const rootRef = useRef<HTMLDivElement>(null);
     const bubbleRef = useRef<HTMLButtonElement>(null);
     const wallpaperRef = useRef<HTMLButtonElement>(null);
@@ -255,97 +257,107 @@ function ThemeGallery({
     });
 
     return (
-        <div ref={rootRef} className="mx_GuaThemePanel">
-            {!bubbleLayout && (
-                <div className="mx_GuaThemePanel_layoutNote">
-                    <span>{_t("gua|chat_theme|bubble_layout_note")}</span>
-                    <Button
-                        className="mx_Dialog_nonDialogButton"
-                        kind="secondary"
-                        size="sm"
-                        onClick={() => SettingsStore.setValue("layout", null, SettingLevel.DEVICE, Layout.Bubble)}
-                    >
-                        {_t("gua|chat_theme|use_bubble_layout")}
-                    </Button>
-                </div>
-            )}
+        <>
+            <div ref={rootRef} className="mx_GuaThemePanel" hidden={credits.shown}>
+                {!bubbleLayout && (
+                    <div className="mx_GuaThemePanel_layoutNote">
+                        <span>{_t("gua|chat_theme|bubble_layout_note")}</span>
+                        <Button
+                            className="mx_Dialog_nonDialogButton"
+                            kind="secondary"
+                            size="sm"
+                            onClick={() => SettingsStore.setValue("layout", null, SettingLevel.DEVICE, Layout.Bubble)}
+                        >
+                            {_t("gua|chat_theme|use_bubble_layout")}
+                        </Button>
+                    </div>
+                )}
 
-            <ChatThemePreview theme={preview?.shown ?? shownTheme(state, state.current)} appearance={appearance} live />
-
-            {preview ? (
-                <ChatThemeActions
-                    setLabel={setLabel}
-                    saving={saving}
-                    disabled={!canSave(state, preview.theme)}
-                    error={error}
-                    onCancel={() => {
-                        setPreview(null);
-                        setError(null);
-                    }}
-                    onSet={() => onSave(preview.theme)}
+                <ChatThemePreview
+                    theme={preview?.shown ?? shownTheme(state, state.current)}
+                    appearance={appearance}
+                    live
+                    onPhotoCredits={credits.open}
                 />
-            ) : (
-                <div className="mx_GuaThemePanel_buttons">
-                    <RoundButton
-                        buttonRef={bubbleRef}
-                        title={_t("gua|chat_theme|chat_bubble")}
-                        value={bubbleName(base, appearance.dark)}
-                        disabled={disabled}
-                        onClick={() => onOpen("bubble")}
-                    >
-                        <BubbleSwatch theme={base} appearance={appearance} />
-                    </RoundButton>
-                    <RoundButton
-                        buttonRef={wallpaperRef}
-                        title={_t("gua|chat_theme|wallpaper")}
-                        value={wallpaperName(base.wallpaper)}
-                        disabled={disabled}
-                        onClick={() => onOpen("wallpaper")}
-                    >
-                        <WallpaperThumbnail
-                            wallpaper={shownWallpaper(state)}
-                            appearance={appearance}
-                            width={ROUND_BUTTON_SIZE}
-                            height={ROUND_BUTTON_SIZE}
-                        />
-                    </RoundButton>
+
+                {preview ? (
+                    <ChatThemeActions
+                        setLabel={setLabel}
+                        saving={saving}
+                        disabled={!canSave(state, preview.theme)}
+                        error={error}
+                        onCancel={() => {
+                            setPreview(null);
+                            setError(null);
+                        }}
+                        onSet={() => onSave(preview.theme)}
+                    />
+                ) : (
+                    <div className="mx_GuaThemePanel_buttons">
+                        <RoundButton
+                            buttonRef={bubbleRef}
+                            title={_t("gua|chat_theme|chat_bubble")}
+                            value={bubbleName(base, appearance.dark)}
+                            disabled={disabled}
+                            onClick={() => onOpen("bubble")}
+                        >
+                            <BubbleSwatch theme={base} appearance={appearance} />
+                        </RoundButton>
+                        <RoundButton
+                            buttonRef={wallpaperRef}
+                            title={_t("gua|chat_theme|wallpaper")}
+                            value={wallpaperName(base.wallpaper)}
+                            disabled={disabled}
+                            onClick={() => onOpen("wallpaper")}
+                        >
+                            <WallpaperThumbnail
+                                wallpaper={shownWallpaper(state)}
+                                appearance={appearance}
+                                width={ROUND_BUTTON_SIZE}
+                                height={ROUND_BUTTON_SIZE}
+                            />
+                        </RoundButton>
+                    </div>
+                )}
+
+                <div className="mx_GuaThemePanel_status" role="status">
+                    {status}
                 </div>
-            )}
 
-            <div className="mx_GuaThemePanel_status" role="status">
-                {status}
+                <div className="mx_GuaThemePanel_note">
+                    <p>{mode === "chat" ? _t("gua|chat_theme|chat_note") : _t("gua|chat_theme|default_note")}</p>
+                    {!state.canChange && <p>{_t("gua|chat_theme|no_permission")}</p>}
+                </div>
+
+                {sections.map(({ id, tiles }) => {
+                    const headingId = `${headingIds}-${id}`;
+                    return (
+                        <section key={id} className="mx_GuaThemePanel_section">
+                            <SectionHeading section={id} id={headingId} onPhotoCredits={credits.open}>
+                                {_t(SECTION_NAMES[id])}
+                            </SectionHeading>
+                            <TileGroup labelledBy={headingId}>
+                                {tiles.map((tile, index) => (
+                                    <ChatThemeTile
+                                        key={index}
+                                        group={group}
+                                        wallpaper={tile.theme.wallpaper}
+                                        bubbles={tile.theme}
+                                        name={tile.name}
+                                        selected={tile.selected}
+                                        checked={tile.checked}
+                                        current={tile.current}
+                                        disabled={disabled}
+                                        appearance={appearance}
+                                        onSelect={tile.onSelect}
+                                    />
+                                ))}
+                            </TileGroup>
+                        </section>
+                    );
+                })}
             </div>
-
-            <div className="mx_GuaThemePanel_note">
-                <p>{mode === "chat" ? _t("gua|chat_theme|chat_note") : _t("gua|chat_theme|default_note")}</p>
-                {!state.canChange && <p>{_t("gua|chat_theme|no_permission")}</p>}
-            </div>
-
-            {sections.map(({ id, tiles }) => {
-                const headingId = `${headingIds}-${id}`;
-                return (
-                    <section key={id} className="mx_GuaThemePanel_section">
-                        <h3 id={headingId}>{_t(SECTION_NAMES[id])}</h3>
-                        <TileGroup labelledBy={headingId}>
-                            {tiles.map((tile, index) => (
-                                <ChatThemeTile
-                                    key={index}
-                                    group={group}
-                                    wallpaper={tile.theme.wallpaper}
-                                    bubbles={tile.theme}
-                                    name={tile.name}
-                                    selected={tile.selected}
-                                    checked={tile.checked}
-                                    current={tile.current}
-                                    disabled={disabled}
-                                    appearance={appearance}
-                                    onSelect={tile.onSelect}
-                                />
-                            ))}
-                        </TileGroup>
-                    </section>
-                );
-            })}
-        </div>
+            {credits.view}
+        </>
     );
 }

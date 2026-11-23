@@ -6,9 +6,10 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "jest-matrix-react";
+import { fireEvent, render, screen, waitFor, within } from "jest-matrix-react";
 import { type MatrixClient, MatrixEvent, Room } from "matrix-js-sdk/src/matrix";
 
+import { PHOTO_LICENCE_URLS, photoCredits } from "../../../../src/gua/chatTheme/model/artworks";
 import { ChatThemePanel } from "../../../../src/gua/chatTheme/ui/ChatThemePanel";
 import Modal from "../../../../src/Modal";
 import SettingsStore from "../../../../src/settings/SettingsStore";
@@ -152,6 +153,96 @@ describe("ChatThemePanel", () => {
         expect(screen.getByText("Only admins and moderators can change it")).toBeInTheDocument();
         expect(screen.getByRole("radio", { name: "Default" })).toBeDisabled();
         expect(screen.getByRole("button", { name: /^Wallpaper/ })).toBeDisabled();
+    });
+
+    it("names a photo tile and its photographer, and previews it from the caption too", () => {
+        renderPanel();
+        const lagoon = screen.getByRole("radio", { name: "Lençóis Lagoon, Photo: Gerda Arendt" });
+        const caption = lagoon.closest(".mx_GuaThemeTile_photo")!.querySelector(".mx_GuaThemeTile_caption")!;
+        expect(caption).toHaveTextContent(/^Lençóis LagoonPhoto: Gerda Arendt$/);
+        fireEvent.click(caption);
+        expect(lagoon).toBeChecked();
+        expect(screen.getByRole("status")).toHaveTextContent("Previewing Lençóis Lagoon, Photo: Gerda Arendt.");
+    });
+
+    it("opens the photo credits from the Photos heading and comes back to it", () => {
+        renderPanel();
+        fireEvent.click(screen.getByRole("button", { name: "Photo credits" }));
+        expect(screen.getByRole("heading", { name: "Photo credits" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Back" })).toHaveFocus();
+        expect(screen.queryByRole("radiogroup")).toBeNull();
+
+        fireEvent.click(screen.getByRole("button", { name: "Back" }));
+        expect(screen.queryByRole("heading", { name: "Photo credits" })).toBeNull();
+        expect(screen.getByRole("button", { name: "Photo credits" })).toHaveFocus();
+    });
+
+    it("shows a previewed photo's credit and licence, which open the credits and keep the preview", () => {
+        renderPanel();
+        fireEvent.click(screen.getByRole("radio", { name: "Peyto Lake, Photo: Ezra Jeffrey-Comeau" }));
+        const credit = screen.getByRole("button", { name: "Photo: Ezra Jeffrey-Comeau · CC0 1.0" });
+        fireEvent.click(credit);
+        fireEvent.click(screen.getByRole("button", { name: "Back" }));
+        expect(credit).toHaveFocus();
+        expect(screen.getByRole("radio", { name: "Peyto Lake, Photo: Ezra Jeffrey-Comeau" })).toBeChecked();
+        expect(screen.getByRole("button", { name: "Set theme" })).toBeInTheDocument();
+    });
+
+    it("shows no credit line while the theme is not a photo", () => {
+        setRoomTheme({ v: 1, kind: "art", art: "guara", bubble: "green", fallback_preset: "mint" });
+        renderPanel();
+        expect(screen.queryByRole("button", { name: /^Photo:/ })).toBeNull();
+        fireEvent.click(screen.getAllByRole("radio", { name: "Silk, Live" })[0]);
+        expect(screen.queryByRole("button", { name: /^Photo:/ })).toBeNull();
+    });
+
+    it("lets a member who cannot change a photo theme reach its credits, and nothing else", () => {
+        jest.spyOn(room.currentState, "maySendStateEvent").mockReturnValue(false);
+        setRoomTheme({
+            v: 1,
+            kind: "art",
+            art: "photo-gruta-azul",
+            bubble: "teal",
+            bubble_dark: "blue",
+            fallback_preset: "sky",
+        });
+        renderPanel();
+        const tile = screen.getByRole("radio", { name: "Blue Grotto, Photo: Wilfredo Rodriguez (Wilfredor)" });
+        expect(tile).toBeChecked();
+        expect(tile).toBeDisabled();
+        expect(screen.getByRole("button", { name: /^Wallpaper/ })).toBeDisabled();
+
+        const credit = screen.getByRole("button", { name: "Photo: Wilfredo Rodriguez (Wilfredor) · CC0 1.0" });
+        expect(credit).not.toHaveAttribute("aria-disabled");
+        fireEvent.click(credit);
+        expect(screen.getByRole("heading", { name: "Photo credits" })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Back" }));
+
+        const heading = screen.getByRole("button", { name: "Photo credits" });
+        expect(heading).not.toHaveAttribute("aria-disabled");
+        fireEvent.click(heading);
+        expect(screen.getByRole("heading", { name: "Photo credits" })).toBeInTheDocument();
+        expect(client.sendStateEvent).not.toHaveBeenCalled();
+    });
+
+    it("credits every photo with its author, licence, source and changes, linking out in a new tab", () => {
+        renderPanel();
+        fireEvent.click(screen.getByRole("button", { name: "Photo credits" }));
+        const rows = screen.getAllByRole("listitem");
+        expect(rows).toHaveLength(photoCredits().length);
+        expect(rows[0]).toHaveTextContent(/^Lençóis LagoonPhoto: Gerda Arendt/);
+        photoCredits().forEach(({ credit }, index) => {
+            const row = within(rows[index]);
+            expect(row.getByText(`Photo: ${credit.author}`)).toBeInTheDocument();
+            expect(row.getByText("Cropped and resized for phones.")).toBeInTheDocument();
+            const licence = row.getByRole("link", { name: credit.licence });
+            expect(licence).toHaveAttribute("href", PHOTO_LICENCE_URLS[credit.licence]);
+            expect(licence).toHaveAttribute("target", "_blank");
+            expect(licence.getAttribute("rel")).toContain("noopener");
+            const source = row.queryByRole("link", { name: "Source" });
+            expect(source?.getAttribute("href") ?? null).toBe(credit.sourceUrl ?? null);
+            expect(rows[index].querySelector(".mx_GuaPhotoCredits_thumbnail .mx_GuaWallpaper_still")).not.toBeNull();
+        });
     });
 
     it("reports a refused send under the buttons, keeping the preview", async () => {

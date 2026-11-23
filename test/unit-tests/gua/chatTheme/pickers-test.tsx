@@ -61,6 +61,15 @@ describe("theme pickers", () => {
         fallback_preset: "blush",
     };
 
+    const lencoisLagoon = {
+        v: 1,
+        kind: "art",
+        art: "photo-lencois-lagoon",
+        bubble: "teal",
+        bubble_dark: "purple",
+        fallback_preset: "sky",
+    };
+
     beforeEach(() => {
         client = stubClient();
         room = new Room(`!room${++roomCount}:example.org`, client, ME);
@@ -147,6 +156,40 @@ describe("theme pickers", () => {
         fireEvent.click(screen.getByRole("button", { name: "Set" }));
         expect(await screen.findByRole("alert")).toHaveTextContent("Couldn’t change the background. Try again.");
         expect(onSaved).not.toHaveBeenCalled();
+    });
+
+    it("reads a photo by its name, then its credit, and sends it as art", async () => {
+        setRoomTheme(lencoisLagoon);
+        render(<Wallpapers />, withClientContextRenderOptions(client));
+        expect(screen.getByRole("radio", { name: "Lençóis Lagoon, Photo: Gerda Arendt" })).toBeChecked();
+        fireEvent.click(screen.getByRole("radio", { name: "Lençóis Dusk, Photo: Gerda Arendt" }));
+        fireEvent.click(screen.getByRole("button", { name: "Set" }));
+        await waitFor(() => expect(onSaved).toHaveBeenCalled());
+        expect(sent()).toBe(
+            '{"art":"photo-lencois-dunes","bubble":"teal","bubble_dark":"purple","fallback_preset":"graphite","kind":"art","v":1}',
+        );
+    });
+
+    it("opens the photo credits from the preview and the Photos heading, keeping the picked photo", () => {
+        render(<Wallpapers />, withClientContextRenderOptions(client));
+        fireEvent.click(screen.getByRole("radio", { name: "Lone Canoe, Photo: Braxton Stuntz" }));
+        const credit = screen.getByRole("button", { name: "Photo: Braxton Stuntz · CC0 1.0" });
+        fireEvent.click(credit);
+        expect(screen.getByRole("heading", { name: "Photo credits" })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Back" }));
+        expect(credit).toHaveFocus();
+        expect(screen.getByRole("radio", { name: "Lone Canoe, Photo: Braxton Stuntz" })).toBeChecked();
+
+        fireEvent.click(screen.getByRole("button", { name: "Photo credits" }));
+        expect(screen.getByRole("heading", { name: "Photo credits" })).toBeInTheDocument();
+        expect(onBack).not.toHaveBeenCalled();
+    });
+
+    it("shows the credit of a photo wallpaper in the bubble picker", () => {
+        setRoomTheme(lencoisLagoon);
+        render(<Bubbles />, withClientContextRenderOptions(client));
+        fireEvent.click(screen.getByRole("button", { name: "Photo: Gerda Arendt · CC0 1.0" }));
+        expect(screen.getByRole("heading", { name: "Photo credits" })).toBeInTheDocument();
     });
 
     it("names each gallery section from its heading, as one choice", () => {

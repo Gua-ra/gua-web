@@ -10,7 +10,14 @@ import fs from "node:fs";
 import path from "node:path";
 
 import manifest from "../../../../res/img/gua/wallpapers/manifest.json";
-import { ARTWORKS, isLive } from "../../../../src/gua/chatTheme/model/artworks";
+import {
+    type Artwork,
+    ARTWORKS,
+    darkDim,
+    isLive,
+    PHOTO_LICENCE_URLS,
+    photoCredits,
+} from "../../../../src/gua/chatTheme/model/artworks";
 import { BUBBLE_IDS } from "../../../../src/gua/chatTheme/model/bubbles";
 import { ARTWORK_NAMES, BUBBLE_NAMES, PRESET_NAMES } from "../../../../src/gua/chatTheme/model/names";
 import { ORIGINAL_TEN, PRESET_IDS } from "../../../../src/gua/chatTheme/model/presets";
@@ -52,6 +59,50 @@ describe("artworks", () => {
         );
     });
 
+    it("credit exactly the photos, as the manifest does", () => {
+        expect(
+            ARTWORKS.map(({ credit }: Artwork) =>
+                credit
+                    ? {
+                          author: credit.author,
+                          licence: credit.licence,
+                          licence_url: PHOTO_LICENCE_URLS[credit.licence],
+                          source_url: credit.sourceUrl ?? null,
+                          modified: "cropped and resized",
+                      }
+                    : undefined,
+            ),
+        ).toEqual(manifest.artworks.map((a) => ("credit" in a ? a.credit : undefined)));
+        expect(PHOTO_LICENCE_URLS).toEqual({
+            "CC0 1.0": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "CC BY 4.0": "https://creativecommons.org/licenses/by/4.0/",
+        });
+    });
+
+    it("keep the photos in their own section, each with one still for both appearances", () => {
+        for (const artwork of manifest.artworks) {
+            const isPhoto = artwork.section === "photos";
+            expect([artwork.id, "credit" in artwork, artwork.id.startsWith("photo-")]).toEqual([
+                artwork.id,
+                isPhoto,
+                isPhoto,
+            ]);
+            const still = isPhoto ? `${artwork.id}.webp` : undefined;
+            expect(artwork.files.light).toBe(still ?? `${artwork.id}-light.webp`);
+            expect(artwork.files.dark).toBe(still ?? `${artwork.id}-dark.webp`);
+        }
+        expect(photoCredits().map((p) => p.id)).toEqual(
+            ARTWORKS.filter((a) => a.section === "photos").map((a) => a.id),
+        );
+        expect(photoCredits()).toHaveLength(19);
+    });
+
+    it("dim a photo in dark mode like a user's own photo, and no other artwork", () => {
+        for (const artwork of ARTWORKS) {
+            expect([artwork.id, darkDim(artwork)]).toEqual([artwork.id, artwork.section === "photos" ? 35 : undefined]);
+        }
+    });
+
     it("ship every still in the manifest unchanged, and nothing else", () => {
         const expected = new Set(["manifest.json", manifest.noise.file]);
         for (const artwork of manifest.artworks) {
@@ -64,12 +115,24 @@ describe("artworks", () => {
             }
         }
         expect(sha256(path.join(WALLPAPERS, manifest.noise.file))).toBe(manifest.noise.sha256);
-        expect(new Set(fs.readdirSync(WALLPAPERS))).toEqual(new Set([...expected, "thumbnails"]));
+        expect(new Set(fs.readdirSync(WALLPAPERS))).toEqual(
+            new Set([...expected, "thumbnails", "licenses", "THIRD_PARTY_NOTICES.md"]),
+        );
     });
 
     it("have a thumbnail for every still, and nothing else", () => {
-        const stills = manifest.artworks.flatMap((a) => [a.files.light, a.files.dark]);
-        expect(fs.readdirSync(path.join(WALLPAPERS, "thumbnails")).sort()).toEqual(stills.sort());
+        const stills = new Set(manifest.artworks.flatMap((a) => [a.files.light, a.files.dark]));
+        expect(fs.readdirSync(path.join(WALLPAPERS, "thumbnails")).sort()).toEqual([...stills].sort());
+    });
+
+    it("list every photo in the notices, next to both licence texts", () => {
+        const notices = fs.readFileSync(path.join(WALLPAPERS, "THIRD_PARTY_NOTICES.md"), "utf8");
+        for (const { id, credit } of photoCredits()) {
+            const row = notices.split("\n").find((line) => line.startsWith(`| \`${id}.webp\``));
+            expect([id, row]).toEqual([id, expect.stringContaining(`| ${credit.author} `)]);
+            expect(row).toContain(`[${credit.licence}](${PHOTO_LICENCE_URLS[credit.licence]})`);
+        }
+        expect(fs.readdirSync(path.join(WALLPAPERS, "licenses")).sort()).toEqual(["CC-BY-4.0.txt", "CC0-1.0.txt"]);
     });
 
     it("fall back to one of the presets every build knows", () => {
@@ -92,5 +155,6 @@ describe("artworks", () => {
         for (const preset of PRESET_IDS) expect(lookup(PRESET_NAMES[preset])).toEqual(expect.any(String));
         for (const bubble of BUBBLE_IDS) expect(lookup(BUBBLE_NAMES[bubble])).toEqual(expect.any(String));
         expect(lookup(ARTWORK_NAMES.guara)).toBe("Guará");
+        expect(lookup(ARTWORK_NAMES["photo-yukon-sled-2"])).toBe("Sled Dogs");
     });
 });

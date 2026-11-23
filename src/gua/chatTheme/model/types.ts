@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
 Please see LICENSE files in the repository root for full details.
 */
 
-import { type ArtworkId, getArtwork } from "./artworks";
+import { type ArtworkId, getArtwork, type PhotoCredit } from "./artworks";
 import { type BubbleId } from "./bubbles";
 import { type PresetId } from "./presets";
 
@@ -81,6 +81,10 @@ export function withBubbles(wallpaper: Wallpaper, bubbles: ChatTheme): ChatTheme
 export function artworkTheme(id: ArtworkId): ChatTheme {
     const artwork = getArtwork(id);
     return makeTheme({ kind: "art", art: id }, artwork.bubble, artwork.bubbleDark);
+}
+
+export function photoCredit(wallpaper: Wallpaper): PhotoCredit | undefined {
+    return wallpaper.kind === "art" ? getArtwork(wallpaper.art).credit : undefined;
 }
 
 export function presetTheme(preset: PresetId, bubble: BubbleId): ChatTheme {

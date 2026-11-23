@@ -5,15 +5,15 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
 Please see LICENSE files in the repository root for full details.
 */
 
-import React, { type JSX, type ReactNode } from "react";
+import React, { type JSX, type ReactNode, useId } from "react";
 import classNames from "classnames";
 import CheckCircleSolidIcon from "@vector-im/compound-design-tokens/assets/web/icons/check-circle-solid";
 
 import { _t } from "../../../languageHandler";
 import { getArtwork, isLive } from "../model/artworks";
 import { bubbleColour } from "../model/bubbles";
-import { themeName, wallpaperName } from "../model/names";
-import { type ChatTheme, shownBubble, type Wallpaper } from "../model/types";
+import { photoCreditText, themeName, wallpaperName } from "../model/names";
+import { type ChatTheme, photoCredit, shownBubble, type Wallpaper } from "../model/types";
 import { WallpaperThumbnail } from "../render/WallpaperLayer";
 import { type Appearance } from "../state/useAppearance";
 
@@ -99,13 +99,17 @@ export function ThemeSample({
 
 export function tileLabel(wallpaper: Wallpaper, bubbles: ChatTheme, dark: boolean, name?: string): string {
     const label = name ?? (wallpaper.kind === "none" ? themeName(bubbles, dark) : wallpaperName(wallpaper));
-    return isLiveWallpaper(wallpaper) ? `${label}, ${_t("gua|chat_theme|live_badge")}` : label;
+    if (isLiveWallpaper(wallpaper)) return `${label}, ${_t("gua|chat_theme|live_badge")}`;
+    const credit = photoCredit(wallpaper);
+    return credit ? `${label}, ${photoCreditText(credit)}` : label;
 }
 
 export function ChatThemeTile(props: TileProps): JSX.Element {
     const { group, wallpaper, bubbles, name, selected, checked, current, disabled, appearance, onSelect } = props;
     const label = tileLabel(wallpaper, bubbles, appearance.dark, name);
-    return (
+    const inputId = useId();
+    const credit = photoCredit(wallpaper);
+    const tile = (
         <label
             className={classNames("mx_GuaThemeTile", {
                 mx_GuaThemeTile_selected: selected,
@@ -113,6 +117,7 @@ export function ChatThemeTile(props: TileProps): JSX.Element {
             })}
         >
             <input
+                id={inputId}
                 type="radio"
                 className="mx_GuaThemeTile_input"
                 name={group}
@@ -129,5 +134,15 @@ export function ChatThemeTile(props: TileProps): JSX.Element {
             )}
             {selected && <CheckCircleSolidIcon className="mx_GuaThemeTile_check" aria-hidden={true} />}
         </label>
+    );
+    if (!credit) return tile;
+    return (
+        <div className="mx_GuaThemeTile_photo">
+            {tile}
+            <label htmlFor={inputId} className="mx_GuaThemeTile_caption" aria-hidden={true}>
+                <span className="mx_GuaThemeTile_captionName">{wallpaperName(wallpaper)}</span>
+                {photoCreditText(credit)}
+            </label>
+        </div>
     );
 }

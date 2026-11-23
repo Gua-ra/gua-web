@@ -16,6 +16,7 @@ import { SECTION_NAMES } from "../model/names";
 import { baseTheme, canSavePickerChoice, shownTheme, themeWithWallpaper } from "../model/screenModel";
 import { NO_WALLPAPER, type Wallpaper, wallpapersEqual } from "../model/types";
 import { useAppearance } from "../state/useAppearance";
+import { SectionHeading, usePhotoCredits } from "./ChatPhotoCredits";
 import { ChatThemePreview } from "./ChatThemePreview";
 import { ChatThemeActions, ChatThemeSubView } from "./ChatThemeSubView";
 import { ChatThemeTile, TileGroup } from "./ChatThemeTile";
@@ -38,6 +39,7 @@ export function ChatWallpaperPicker({ screen, onBack, onSaved, onPhoto }: Props)
     const [chosen, setChosen] = useState<Wallpaper | null>(null);
     const [preparing, setPreparing] = useState(false);
     const { saving, error, run, setError } = useThemeSave(save);
+    const credits = usePhotoCredits();
     const fileRef = useRef<HTMLInputElement>(null);
     const group = useId();
     const headingIds = useId();
@@ -72,60 +74,71 @@ export function ChatWallpaperPicker({ screen, onBack, onSaved, onPhoto }: Props)
     ];
 
     return (
-        <ChatThemeSubView title={_t("gua|chat_theme|wallpaper")} onBack={onBack}>
-            <ChatThemePreview theme={shownTheme(state, choice)} appearance={appearance} />
-            <Button
-                className="mx_Dialog_nonDialogButton mx_GuaThemeSubView_photo"
-                kind="secondary"
-                size="sm"
-                Icon={ImageIcon}
-                disabled={saving || preparing || !state.canChange}
-                onClick={() => fileRef.current?.click()}
-            >
-                {_t("gua|chat_theme|choose_photo")}
-            </Button>
-            <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="mx_GuaThemeSubView_file"
-                tabIndex={-1}
-                aria-hidden={true}
-                onChange={onPhotoChosen}
-            />
-            <ChatThemeActions
-                setLabel={_t("gua|chat_theme|set")}
-                saving={saving}
-                disabled={chosen === null || !canSavePickerChoice(state, choice)}
-                error={error}
-                onCancel={onBack}
-                onSet={() => run(choice, onSaved)}
-            />
-            {groups.map((section) => {
-                // The No wallpaper tile names itself, so its section has no heading.
-                const headingId = section.id === "none" ? undefined : `${headingIds}-${section.id}`;
-                return (
-                    <section key={section.id} className="mx_GuaThemePanel_section">
-                        {headingId && <h3 id={headingId}>{section.label}</h3>}
-                        <TileGroup labelledBy={headingId} label={section.label}>
-                            {section.wallpapers.map((w, index) => (
-                                <ChatThemeTile
-                                    key={index}
-                                    group={group}
-                                    wallpaper={w}
-                                    bubbles={themeWithWallpaper(state, w)}
-                                    name={w.kind === "none" ? section.label : undefined}
-                                    selected={wallpapersEqual(w, wallpaper)}
-                                    current={chosen !== null && wallpapersEqual(w, base.wallpaper)}
-                                    disabled={saving || !state.canChange}
-                                    appearance={appearance}
-                                    onSelect={() => setChosen(w)}
-                                />
-                            ))}
-                        </TileGroup>
-                    </section>
-                );
-            })}
-        </ChatThemeSubView>
+        <>
+            <ChatThemeSubView title={_t("gua|chat_theme|wallpaper")} onBack={onBack} hidden={credits.shown}>
+                <ChatThemePreview
+                    theme={shownTheme(state, choice)}
+                    appearance={appearance}
+                    onPhotoCredits={credits.open}
+                />
+                <Button
+                    className="mx_Dialog_nonDialogButton mx_GuaThemeSubView_photo"
+                    kind="secondary"
+                    size="sm"
+                    Icon={ImageIcon}
+                    disabled={saving || preparing || !state.canChange}
+                    onClick={() => fileRef.current?.click()}
+                >
+                    {_t("gua|chat_theme|choose_photo")}
+                </Button>
+                <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    className="mx_GuaThemeSubView_file"
+                    tabIndex={-1}
+                    aria-hidden={true}
+                    onChange={onPhotoChosen}
+                />
+                <ChatThemeActions
+                    setLabel={_t("gua|chat_theme|set")}
+                    saving={saving}
+                    disabled={chosen === null || !canSavePickerChoice(state, choice)}
+                    error={error}
+                    onCancel={onBack}
+                    onSet={() => run(choice, onSaved)}
+                />
+                {groups.map((section) => {
+                    // The No wallpaper tile names itself, so its section has no heading.
+                    const headingId = section.id === "none" ? undefined : `${headingIds}-${section.id}`;
+                    return (
+                        <section key={section.id} className="mx_GuaThemePanel_section">
+                            {headingId && (
+                                <SectionHeading section={section.id} id={headingId} onPhotoCredits={credits.open}>
+                                    {section.label}
+                                </SectionHeading>
+                            )}
+                            <TileGroup labelledBy={headingId} label={section.label}>
+                                {section.wallpapers.map((w, index) => (
+                                    <ChatThemeTile
+                                        key={index}
+                                        group={group}
+                                        wallpaper={w}
+                                        bubbles={themeWithWallpaper(state, w)}
+                                        name={w.kind === "none" ? section.label : undefined}
+                                        selected={wallpapersEqual(w, wallpaper)}
+                                        current={chosen !== null && wallpapersEqual(w, base.wallpaper)}
+                                        disabled={saving || !state.canChange}
+                                        appearance={appearance}
+                                        onSelect={() => setChosen(w)}
+                                    />
+                                ))}
+                            </TileGroup>
+                        </section>
+                    );
+                })}
+            </ChatThemeSubView>
+            {credits.view}
+        </>
     );
 }

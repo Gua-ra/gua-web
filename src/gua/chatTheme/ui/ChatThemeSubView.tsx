@@ -18,10 +18,12 @@ import { _t } from "../../../languageHandler";
 export function ChatThemeSubView({
     title,
     onBack,
+    hidden,
     children,
 }: {
     title: string;
     onBack: () => void;
+    hidden?: boolean;
     children: ReactNode;
 }): JSX.Element {
     const headerRef = useRef<HTMLDivElement>(null);
@@ -29,7 +31,7 @@ export function ChatThemeSubView({
         headerRef.current?.querySelector("button")?.focus();
     }, []);
     return (
-        <div className="mx_GuaThemePanel mx_GuaThemeSubView">
+        <div className="mx_GuaThemePanel mx_GuaThemeSubView" hidden={hidden}>
             <div ref={headerRef} className="mx_GuaThemeSubView_header">
                 <Button
                     className="mx_Dialog_nonDialogButton"

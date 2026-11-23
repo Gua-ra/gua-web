@@ -99,6 +99,44 @@ import guaraLight from "../../../../res/img/gua/wallpapers/guara-light.webp";
 import guaraLightThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/guara-light.webp";
 import guaraDark from "../../../../res/img/gua/wallpapers/guara-dark.webp";
 import guaraDarkThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/guara-dark.webp";
+import photoLencoisLagoon from "../../../../res/img/gua/wallpapers/photo-lencois-lagoon.webp";
+import photoLencoisLagoonThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-lencois-lagoon.webp";
+import photoLencoisDunes from "../../../../res/img/gua/wallpapers/photo-lencois-dunes.webp";
+import photoLencoisDunesThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-lencois-dunes.webp";
+import photoGrutaAzul from "../../../../res/img/gua/wallpapers/photo-gruta-azul.webp";
+import photoGrutaAzulThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-gruta-azul.webp";
+import photoIpe from "../../../../res/img/gua/wallpapers/photo-ipe.webp";
+import photoIpeThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-ipe.webp";
+import photoAraucaria from "../../../../res/img/gua/wallpapers/photo-araucaria.webp";
+import photoAraucariaThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-araucaria.webp";
+import photoManedWolf from "../../../../res/img/gua/wallpapers/photo-maned-wolf.webp";
+import photoManedWolfThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-maned-wolf.webp";
+import photoManedWolfStanding from "../../../../res/img/gua/wallpapers/photo-maned-wolf-standing.webp";
+import photoManedWolfStandingThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-maned-wolf-standing.webp";
+import photoYukonTrail from "../../../../res/img/gua/wallpapers/photo-yukon-trail.webp";
+import photoYukonTrailThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-yukon-trail.webp";
+import photoYukonSun from "../../../../res/img/gua/wallpapers/photo-yukon-sun.webp";
+import photoYukonSunThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-yukon-sun.webp";
+import photoYukonForest from "../../../../res/img/gua/wallpapers/photo-yukon-forest.webp";
+import photoYukonForestThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-yukon-forest.webp";
+import photoYukonSled from "../../../../res/img/gua/wallpapers/photo-yukon-sled.webp";
+import photoYukonSledThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-yukon-sled.webp";
+import photoYukonSled2 from "../../../../res/img/gua/wallpapers/photo-yukon-sled-2.webp";
+import photoYukonSled2Thumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-yukon-sled-2.webp";
+import photoPeytoLake from "../../../../res/img/gua/wallpapers/photo-peyto-lake.webp";
+import photoPeytoLakeThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-peyto-lake.webp";
+import photoLoneCanoe from "../../../../res/img/gua/wallpapers/photo-lone-canoe.webp";
+import photoLoneCanoeThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-lone-canoe.webp";
+import photoJasperAurora from "../../../../res/img/gua/wallpapers/photo-jasper-aurora.webp";
+import photoJasperAuroraThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-jasper-aurora.webp";
+import photoNunavikAurora from "../../../../res/img/gua/wallpapers/photo-nunavik-aurora.webp";
+import photoNunavikAuroraThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-nunavik-aurora.webp";
+import photoLacDelage from "../../../../res/img/gua/wallpapers/photo-lac-delage.webp";
+import photoLacDelageThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-lac-delage.webp";
+import photoQuebecIce from "../../../../res/img/gua/wallpapers/photo-quebec-ice.webp";
+import photoQuebecIceThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-quebec-ice.webp";
+import photoQuebecLeaves from "../../../../res/img/gua/wallpapers/photo-quebec-leaves.webp";
+import photoQuebecLeavesThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-quebec-leaves.webp";
 import currentsLight from "../../../../res/img/gua/wallpapers/currents-light.webp";
 import currentsLightThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/currents-light.webp";
 import currentsDark from "../../../../res/img/gua/wallpapers/currents-dark.webp";
@@ -158,6 +196,25 @@ const STILLS: Record<ArtworkId, { light: string; dark: string }> = {
     "polar-ice": { light: polarIceLight, dark: polarIceDark },
     "moon-tide": { light: moonTideLight, dark: moonTideDark },
     "guara": { light: guaraLight, dark: guaraDark },
+    "photo-lencois-lagoon": { light: photoLencoisLagoon, dark: photoLencoisLagoon },
+    "photo-lencois-dunes": { light: photoLencoisDunes, dark: photoLencoisDunes },
+    "photo-gruta-azul": { light: photoGrutaAzul, dark: photoGrutaAzul },
+    "photo-ipe": { light: photoIpe, dark: photoIpe },
+    "photo-araucaria": { light: photoAraucaria, dark: photoAraucaria },
+    "photo-maned-wolf": { light: photoManedWolf, dark: photoManedWolf },
+    "photo-maned-wolf-standing": { light: photoManedWolfStanding, dark: photoManedWolfStanding },
+    "photo-yukon-trail": { light: photoYukonTrail, dark: photoYukonTrail },
+    "photo-yukon-sun": { light: photoYukonSun, dark: photoYukonSun },
+    "photo-yukon-forest": { light: photoYukonForest, dark: photoYukonForest },
+    "photo-yukon-sled": { light: photoYukonSled, dark: photoYukonSled },
+    "photo-yukon-sled-2": { light: photoYukonSled2, dark: photoYukonSled2 },
+    "photo-peyto-lake": { light: photoPeytoLake, dark: photoPeytoLake },
+    "photo-lone-canoe": { light: photoLoneCanoe, dark: photoLoneCanoe },
+    "photo-jasper-aurora": { light: photoJasperAurora, dark: photoJasperAurora },
+    "photo-nunavik-aurora": { light: photoNunavikAurora, dark: photoNunavikAurora },
+    "photo-lac-delage": { light: photoLacDelage, dark: photoLacDelage },
+    "photo-quebec-ice": { light: photoQuebecIce, dark: photoQuebecIce },
+    "photo-quebec-leaves": { light: photoQuebecLeaves, dark: photoQuebecLeaves },
     "currents": { light: currentsLight, dark: currentsDark },
     "azulejo": { light: azulejoLight, dark: azulejoDark },
     "calcadao": { light: calcadaoLight, dark: calcadaoDark },
@@ -193,6 +250,25 @@ const THUMBNAILS: Record<ArtworkId, { light: string; dark: string }> = {
     "polar-ice": { light: polarIceLightThumbnail, dark: polarIceDarkThumbnail },
     "moon-tide": { light: moonTideLightThumbnail, dark: moonTideDarkThumbnail },
     "guara": { light: guaraLightThumbnail, dark: guaraDarkThumbnail },
+    "photo-lencois-lagoon": { light: photoLencoisLagoonThumbnail, dark: photoLencoisLagoonThumbnail },
+    "photo-lencois-dunes": { light: photoLencoisDunesThumbnail, dark: photoLencoisDunesThumbnail },
+    "photo-gruta-azul": { light: photoGrutaAzulThumbnail, dark: photoGrutaAzulThumbnail },
+    "photo-ipe": { light: photoIpeThumbnail, dark: photoIpeThumbnail },
+    "photo-araucaria": { light: photoAraucariaThumbnail, dark: photoAraucariaThumbnail },
+    "photo-maned-wolf": { light: photoManedWolfThumbnail, dark: photoManedWolfThumbnail },
+    "photo-maned-wolf-standing": { light: photoManedWolfStandingThumbnail, dark: photoManedWolfStandingThumbnail },
+    "photo-yukon-trail": { light: photoYukonTrailThumbnail, dark: photoYukonTrailThumbnail },
+    "photo-yukon-sun": { light: photoYukonSunThumbnail, dark: photoYukonSunThumbnail },
+    "photo-yukon-forest": { light: photoYukonForestThumbnail, dark: photoYukonForestThumbnail },
+    "photo-yukon-sled": { light: photoYukonSledThumbnail, dark: photoYukonSledThumbnail },
+    "photo-yukon-sled-2": { light: photoYukonSled2Thumbnail, dark: photoYukonSled2Thumbnail },
+    "photo-peyto-lake": { light: photoPeytoLakeThumbnail, dark: photoPeytoLakeThumbnail },
+    "photo-lone-canoe": { light: photoLoneCanoeThumbnail, dark: photoLoneCanoeThumbnail },
+    "photo-jasper-aurora": { light: photoJasperAuroraThumbnail, dark: photoJasperAuroraThumbnail },
+    "photo-nunavik-aurora": { light: photoNunavikAuroraThumbnail, dark: photoNunavikAuroraThumbnail },
+    "photo-lac-delage": { light: photoLacDelageThumbnail, dark: photoLacDelageThumbnail },
+    "photo-quebec-ice": { light: photoQuebecIceThumbnail, dark: photoQuebecIceThumbnail },
+    "photo-quebec-leaves": { light: photoQuebecLeavesThumbnail, dark: photoQuebecLeavesThumbnail },
     "currents": { light: currentsLightThumbnail, dark: currentsDarkThumbnail },
     "azulejo": { light: azulejoLightThumbnail, dark: azulejoDarkThumbnail },
     "calcadao": { light: calcadaoLightThumbnail, dark: calcadaoDarkThumbnail },

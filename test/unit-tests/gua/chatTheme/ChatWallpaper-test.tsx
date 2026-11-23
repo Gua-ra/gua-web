@@ -6,7 +6,7 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React, { createRef } from "react";
-import { render, waitFor } from "jest-matrix-react";
+import { cleanup, render, waitFor } from "jest-matrix-react";
 import { type MatrixClient, MatrixEvent, Room } from "matrix-js-sdk/src/matrix";
 
 import ThemedChat from "../../../../src/gua/chatTheme/render/ChatWallpaper";
@@ -67,7 +67,11 @@ describe("ChatWallpaper", () => {
         }));
     });
 
-    afterEach(() => jest.restoreAllMocks());
+    afterEach(() => {
+        cleanup();
+        document.body.classList.remove("cpd-theme-dark");
+        jest.restoreAllMocks();
+    });
 
     it("leaves a chat without a theme untouched", () => {
         const { container, body, roomView } = renderWallpaper();
@@ -105,6 +109,27 @@ describe("ChatWallpaper", () => {
         const still = container.querySelector<HTMLImageElement>(".mx_GuaWallpaper_still")!;
         expect(still.style.objectPosition).toBe("78% 19%");
         expect(container.querySelector(".mx_GuaWallpaper_grain")).not.toBeNull();
+    });
+
+    it("dims a built-in photo in dark mode like a user's own photo, over the grain", () => {
+        setState("global.gua.room.background", { v: 1, kind: "art", art: "photo-ipe", fallback_preset: "graphite" });
+        const light = renderWallpaper();
+        expect(light.container.querySelector(".mx_GuaWallpaper_scrim")).toBeNull();
+        light.unmount();
+
+        document.body.classList.add("cpd-theme-dark");
+        const { container } = renderWallpaper();
+        const scrim = container.querySelector<HTMLElement>(".mx_GuaWallpaper_scrim")!;
+        expect(scrim.style.opacity).toBe("0.35");
+        expect(scrim.previousElementSibling).toHaveClass("mx_GuaWallpaper_grain");
+    });
+
+    it("leaves other artworks undimmed in dark mode", () => {
+        document.body.classList.add("cpd-theme-dark");
+        setState("global.gua.room.background", { v: 1, kind: "art", art: "guara", fallback_preset: "mint" });
+        const { container } = renderWallpaper();
+        expect(container.querySelector(".mx_GuaWallpaper_still")).not.toBeNull();
+        expect(container.querySelector(".mx_GuaWallpaper_scrim")).toBeNull();
     });
 
     it("follows the default when the chat has no theme", () => {

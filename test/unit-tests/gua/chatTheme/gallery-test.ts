@@ -19,11 +19,19 @@ describe("chat theme gallery", () => {
             "featured",
             "live",
             "nature",
+            "photos",
             "patterns",
             "minimal",
             "gradients",
         ]);
-        expect(WALLPAPER_GALLERY.map((s) => s.id)).toEqual(["live", "nature", "patterns", "minimal", "gradients"]);
+        expect(WALLPAPER_GALLERY.map((s) => s.id)).toEqual([
+            "live",
+            "nature",
+            "photos",
+            "patterns",
+            "minimal",
+            "gradients",
+        ]);
     });
 
     it("features the picked artworks with their bubble pairs", () => {
@@ -81,6 +89,34 @@ describe("chat theme gallery", () => {
         expect(THEME_GALLERY.find((s) => s.id === "nature")!.themes.at(-1)).toEqual(
             makeTheme({ kind: "art", art: "guara" }, "green"),
         );
+    });
+
+    it("holds the photos in catalog order with their paired bubbles", () => {
+        expect(ids(section("photos"))).toEqual([
+            "photo-lencois-lagoon",
+            "photo-lencois-dunes",
+            "photo-gruta-azul",
+            "photo-ipe",
+            "photo-araucaria",
+            "photo-maned-wolf",
+            "photo-maned-wolf-standing",
+            "photo-yukon-trail",
+            "photo-yukon-sun",
+            "photo-yukon-forest",
+            "photo-yukon-sled",
+            "photo-yukon-sled-2",
+            "photo-peyto-lake",
+            "photo-lone-canoe",
+            "photo-jasper-aurora",
+            "photo-nunavik-aurora",
+            "photo-lac-delage",
+            "photo-quebec-ice",
+            "photo-quebec-leaves",
+        ]);
+        const photos = THEME_GALLERY.find((s) => s.id === "photos")!.themes;
+        expect(photos).toContainEqual(makeTheme({ kind: "art", art: "photo-lencois-lagoon" }, "teal", "purple"));
+        expect(photos).toContainEqual(makeTheme({ kind: "art", art: "photo-lac-delage" }, "blue"));
+        expect(ids(WALLPAPER_GALLERY.find((s) => s.id === "photos")!.wallpapers)).toEqual(ids(section("photos")));
     });
 
     it("pairs the minimal and gradient presets with their bubbles", () => {

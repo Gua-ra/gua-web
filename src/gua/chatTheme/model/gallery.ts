@@ -10,7 +10,7 @@ import { type BubbleId } from "./bubbles";
 import { GRADIENTS, type PresetId, SOLIDS } from "./presets";
 import { artworkTheme, type ChatTheme, presetTheme, type Wallpaper } from "./types";
 
-export type GallerySectionId = "featured" | "live" | "nature" | "patterns" | "minimal" | "gradients";
+export type GallerySectionId = "featured" | "live" | "nature" | "photos" | "patterns" | "minimal" | "gradients";
 
 export interface ThemeGallerySection {
     id: GallerySectionId;
@@ -61,6 +61,7 @@ export const THEME_GALLERY: ThemeGallerySection[] = [
     { id: "featured", themes: FEATURED.map(artworkTheme) },
     { id: "live", themes: artworkThemes("live") },
     { id: "nature", themes: artworkThemes("nature") },
+    { id: "photos", themes: artworkThemes("photos") },
     { id: "patterns", themes: artworkThemes("patterns") },
     {
         id: "minimal",
@@ -78,6 +79,7 @@ const presetWallpapers = (presets: readonly PresetId[]): Wallpaper[] =>
 export const WALLPAPER_GALLERY: WallpaperGallerySection[] = [
     { id: "live", wallpapers: artworkWallpapers("live") },
     { id: "nature", wallpapers: artworkWallpapers("nature") },
+    { id: "photos", wallpapers: artworkWallpapers("photos") },
     { id: "patterns", wallpapers: artworkWallpapers("patterns") },
     { id: "minimal", wallpapers: [...artworkWallpapers("minimal"), ...presetWallpapers(SOLIDS)] },
     { id: "gradients", wallpapers: presetWallpapers(GRADIENTS) },
