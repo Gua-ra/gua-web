@@ -3688,5 +3688,78 @@
     },
     "expected" : "ACTIVE_MATCH",
     "expectedEntryId" : "hs-no-issuer"
+  } ],
+  "ed25519Cases" : [ {
+    "name" : "valid signature",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCw==",
+    "verifies" : true
+  }, {
+    "name" : "S plus the group order",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVMjHhyqgZOBJ27MBP78pOA0lv18FlbviRlUUFDjnoQGw==",
+    "verifies" : false
+  }, {
+    "name" : "S with the top bit set",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQiw==",
+    "verifies" : false
+  }, {
+    "name" : "R encoded with y = p + 1, under the identity key with S = 0",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+    "messageHex" : "",
+    "signatureB64" : "7v///////////////////////////////////////38AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "verifies" : false
+  }, {
+    "name" : "R with x = 0 and the sign bit set",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA97rexbir6vaZWDmSIZt7Ij8d8/u+qRmETj98VUpD3UM=",
+    "messageHex" : "9bedc267423725d473888631ebf45988bad3db83851ee85c85e241a07d148b41",
+    "signatureB64" : "7P/////////////////////////////////////////KjFtkzSCJgqo41JNmIaR3WqIzqgUFcR2P3P2qlD1JCA==",
+    "verifies" : false
+  }, {
+    "name" : "signature of 63 bytes",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQ",
+    "verifies" : false
+  }, {
+    "name" : "signature of 65 bytes",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCwA=",
+    "verifies" : false
+  }, {
+    "name" : "signature in the URL-safe alphabet",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc-bRr0lv18FlbviRlUUFDjnoQCw==",
+    "verifies" : false
+  }, {
+    "name" : "signature with a line break",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVf\nuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCw==",
+    "verifies" : false
+  }, {
+    "name" : "signature with one padding character",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCw=",
+    "verifies" : false
+  }, {
+    "name" : "public key with a trailing byte",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURoA",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCw==",
+    "verifies" : false
+  }, {
+    "name" : "public key with the X25519 algorithm identifier",
+    "publicKeySpkiB64" : "MCowBQYDK2VuAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCw==",
+    "verifies" : false
   } ]
 }

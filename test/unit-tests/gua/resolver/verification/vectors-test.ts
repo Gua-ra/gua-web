@@ -23,6 +23,7 @@ import {
     concatBytes,
     decodeEd25519Spki,
     ED25519_SPKI_PREFIX_HEX,
+    hexToBytes,
     type TrustedKey,
     TrustedKeySet,
     VerifierCrypto,
@@ -184,6 +185,14 @@ interface ResolveAnswerVector {
     expectedEntryId: string | null;
 }
 
+interface Ed25519CaseVector {
+    name: string;
+    publicKeySpkiB64: string;
+    messageHex: string;
+    signatureB64: string;
+    verifies: boolean;
+}
+
 interface ClientVectors {
     vectors: string;
     protocol: string;
@@ -204,6 +213,7 @@ interface ClientVectors {
     policyLog: PolicyLogVector[];
     placements: PlacementVector[];
     resolveAnswers: ResolveAnswerVector[];
+    ed25519Cases: Ed25519CaseVector[];
 }
 
 interface MemberEntryVector {
@@ -365,6 +375,7 @@ describe("gua-client-verification.v1 vectors", () => {
                 "policyLog",
                 "placements",
                 "resolveAnswers",
+                "ed25519Cases",
             ].sort(),
         );
         expect(Object.keys(vectors.log).sort()).toEqual(
@@ -587,6 +598,15 @@ describe("gua-client-verification.v1 vectors", () => {
             const located = locateHomeserver({ serverName, baseUrl, masIssuer: masIssuer ?? null }, roster);
             expect(located.match).toBe(vector.expected);
             expect(located.entry?.homeserver.id ?? null).toBe(vector.expectedEntryId);
+        });
+    });
+
+    describe("ed25519Cases", () => {
+        it.each(vectors.ed25519Cases)("$name", async (vector) => {
+            const key = await crypto.importPublicKey(vector.publicKeySpkiB64);
+            const verified =
+                key !== null && (await crypto.verify(key, hexToBytes(vector.messageHex)!, vector.signatureB64));
+            expect(verified).toBe(vector.verifies);
         });
     });
 });
