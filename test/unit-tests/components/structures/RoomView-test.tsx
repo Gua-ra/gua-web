@@ -20,6 +20,7 @@ import {
     RoomEvent,
     RoomMember,
     RoomStateEvent,
+    RoomVersionStability,
     SearchResult,
 } from "matrix-js-sdk/src/matrix";
 import { type CryptoApi, UserVerificationStatus, CryptoEvent } from "matrix-js-sdk/src/crypto-api";
@@ -575,10 +576,10 @@ describe("RoomView", () => {
         });
 
         it("should render the »waiting for third-party« view", () => {
-            expect(screen.getByText("Waiting for users to join Element")).toBeInTheDocument();
+            expect(screen.getByText("Waiting for users to join Gua")).toBeInTheDocument();
             expect(
                 screen.getByText(
-                    "Once invited users have joined Element, you will be able to chat and the room will be end-to-end encrypted",
+                    "Once invited users have joined Gua, you will be able to chat and the room will be end-to-end encrypted",
                 ),
             ).toBeInTheDocument();
 
@@ -818,6 +819,35 @@ describe("RoomView", () => {
 
         // It should now force a reload
         expect(onRoomViewUpdateMock).toHaveBeenCalledWith(true);
+    });
+
+    describe("room upgrade warning", () => {
+        const upgradeButton = { name: "Upgrade this room to the recommended room version" };
+
+        beforeEach(() => {
+            jest.spyOn(room, "getMyMembership").mockReturnValue(KnownMembership.Join);
+            jest.spyOn(room, "getVersion").mockReturnValue("12");
+            jest.spyOn(room, "userMayUpgradeRoom").mockReturnValue(true);
+        });
+
+        it("is hidden when the server's room versions cannot be loaded", async () => {
+            cli.getCapabilities.mockRejectedValue(new Error("offline"));
+            await mountRoomView();
+
+            expect(screen.queryByRole("button", upgradeButton)).not.toBeInTheDocument();
+        });
+
+        it("is shown when the server marks the room version unstable", async () => {
+            cli.getCapabilities.mockResolvedValue({
+                "m.room_versions": {
+                    default: "10",
+                    available: { "10": RoomVersionStability.Stable, "12": RoomVersionStability.Unstable },
+                },
+            });
+            await mountRoomView();
+
+            expect(await screen.findByRole("button", upgradeButton)).toBeInTheDocument();
+        });
     });
 
     describe("when there is a RoomView", () => {

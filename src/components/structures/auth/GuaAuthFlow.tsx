@@ -6,13 +6,12 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React, { type JSX, useMemo, useState } from "react";
+import { logger } from "matrix-js-sdk/src/logger";
 
 import { _t, getUserLanguage } from "../../../languageHandler";
 import { type IMatrixClientCreds } from "../../../MatrixClientPeg";
 import SdkConfig from "../../../SdkConfig";
 import { type ValidatedServerConfig } from "../../../utils/ValidatedServerConfig";
-import { logger } from "matrix-js-sdk/src/logger";
-
 import { getOidcClientId } from "../../../utils/oidc/registerClient";
 import { startGuaPhoneOidcLogin } from "../../../gua/oidc/startPhoneOidcLogin";
 import AutoDiscoveryUtils from "../../../utils/AutoDiscoveryUtils";

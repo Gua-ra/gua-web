@@ -11028,7 +11028,7 @@ matrix-events-sdk@0.0.1:
 
 "matrix-js-sdk@github:matrix-org/matrix-js-sdk#develop":
   version "38.0.0"
-  resolved "https://codeload.github.com/matrix-org/matrix-js-sdk/tar.gz/ed607c48b0743ddf0fe4e0301d6155e823d2caf6"
+  resolved "https://codeload.github.com/matrix-org/matrix-js-sdk/tar.gz/ccd825fb39477b8340946907e6977078f01f879c"
   dependencies:
     "@babel/runtime" "^7.12.5"
     "@matrix-org/matrix-sdk-crypto-wasm" "^15.1.0"

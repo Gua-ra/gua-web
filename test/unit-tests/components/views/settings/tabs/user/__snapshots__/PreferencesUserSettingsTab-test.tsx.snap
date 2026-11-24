@@ -1404,13 +1404,13 @@ exports[`PreferencesUserSettingsTab should render 1`] = `
                   <span
                     class="mx_SettingsFlag_labelText"
                   >
-                    Prompt before sending invites to potentially invalid matrix IDs
+                    Prompt before sending invites to potentially invalid usernames
                   </span>
                 </label>
                 <div
                   aria-checked="true"
                   aria-disabled="true"
-                  aria-label="Prompt before sending invites to potentially invalid matrix IDs"
+                  aria-label="Prompt before sending invites to potentially invalid usernames"
                   class="mx_AccessibleButton mx_ToggleSwitch mx_ToggleSwitch_on"
                   id="mx_SettingsFlag_SBSSOZDRlzlA"
                   role="switch"

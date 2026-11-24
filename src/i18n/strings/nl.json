@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Gastlink kopiëren",
+            "join_before_admitting": "Neem deel aan de oproep om deze persoon binnen te laten."
+        },
         "footer": {
             "developed_by": "Ontwikkeld door %(name)s"
         }

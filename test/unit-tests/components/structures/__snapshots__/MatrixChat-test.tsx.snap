@@ -125,7 +125,7 @@ exports[`<MatrixChat /> Multi-tab lockout waits for other tab to stop during sta
         style="display: flex; z-index: 1; background: rgba(255, 255, 255, 0.59); border-radius: 8px;"
       >
         <div
-          class="mx_Welcome"
+          class="mx_Welcome mx_WelcomePage_registrationDisabled"
           data-testid="mx_welcome_screen"
         >
           <div
@@ -173,21 +173,14 @@ exports[`<MatrixChat /> Multi-tab lockout waits for other tab to stop during sta
       role="contentinfo"
     >
       <a
-        href="https://element.io/blog"
+        href="https://github.com/sarah-lacerda"
         rel="noreferrer noopener"
         target="_blank"
       >
-        Blog
+        Developed by Sarah L.S.
       </a>
       <a
-        href="https://mastodon.matrix.org/@Element"
-        rel="noreferrer noopener"
-        target="_blank"
-      >
-        Mastodon
-      </a>
-      <a
-        href="https://github.com/element-hq/element-web"
+        href="https://github.com/Gua-ra/gua-web"
         rel="noreferrer noopener"
         target="_blank"
       >
@@ -249,8 +242,8 @@ exports[`<MatrixChat /> with a soft-logged-out session should show the soft-logo
             class="mx_AuthHeaderLogo"
           >
             <img
-              alt="Element"
-              src="themes/element/img/logos/element-logo.svg"
+              alt="Test"
+              src="themes/gua/img/logos/logo.svg"
             />
           </aside>
           <div
@@ -349,21 +342,14 @@ exports[`<MatrixChat /> with a soft-logged-out session should show the soft-logo
       role="contentinfo"
     >
       <a
-        href="https://element.io/blog"
+        href="https://github.com/sarah-lacerda"
         rel="noreferrer noopener"
         target="_blank"
       >
-        Blog
+        Developed by Sarah L.S.
       </a>
       <a
-        href="https://mastodon.matrix.org/@Element"
-        rel="noreferrer noopener"
-        target="_blank"
-      >
-        Mastodon
-      </a>
-      <a
-        href="https://github.com/element-hq/element-web"
+        href="https://github.com/Gua-ra/gua-web"
         rel="noreferrer noopener"
         target="_blank"
       >

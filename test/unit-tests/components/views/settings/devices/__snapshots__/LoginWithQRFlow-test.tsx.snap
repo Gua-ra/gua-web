@@ -824,7 +824,7 @@ exports[`<LoginWithQRFlow /> renders QR code 1`] = `
       </div>
       <ol>
         <li>
-          Open Element on your other device
+          Open Gua on your other device
         </li>
         <li>
           <span>

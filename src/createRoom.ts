@@ -39,7 +39,7 @@ import { findDMForUser } from "./utils/dm/findDMForUser";
 import { privateShouldBeEncrypted } from "./utils/rooms";
 import { shouldForceDisableEncryption } from "./utils/crypto/shouldForceDisableEncryption";
 import { waitForMember } from "./utils/membership";
-import { PreferredRoomVersions } from "./utils/PreferredRoomVersions";
+import { doesRoomVersionSupport, PreferredRoomVersions } from "./utils/PreferredRoomVersions";
 import SettingsStore from "./settings/SettingsStore";
 import { MEGOLM_ENCRYPTION_ALGORITHM } from "./utils/crypto";
 import { ElementCallEventType, ElementCallMemberEventType } from "./call-types";
@@ -74,6 +74,15 @@ const DEFAULT_EVENT_POWER_LEVELS = {
     [EventType.RoomServerAcl]: 100,
     [EventType.RoomEncryption]: 100,
 };
+
+async function defaultRoomVersionSupportsKnock(client: MatrixClient): Promise<boolean> {
+    try {
+        const defaultVersion = (await client.getCapabilities())["m.room_versions"]?.default;
+        return !!defaultVersion && doesRoomVersionSupport(defaultVersion, PreferredRoomVersions.KnockRooms);
+    } catch {
+        return false;
+    }
+}
 
 /**
  * Create a new room, and switch to it.
@@ -218,7 +227,7 @@ export default async function createRoom(client: MatrixClient, opts: IOpts): Pro
         });
     }
 
-    if (opts.joinRule === JoinRule.Knock) {
+    if (opts.joinRule === JoinRule.Knock && !(await defaultRoomVersionSupportsKnock(client))) {
         createOpts.room_version = PreferredRoomVersions.KnockRooms;
     }
 

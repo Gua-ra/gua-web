@@ -30,6 +30,10 @@ describe("ModalWidgetDialog", () => {
         const settingsSpy = jest
             .spyOn(SettingsStore, "getValue")
             .mockImplementation((name) => (name === "theme" ? theme : null));
+        // Gua's config sets default_theme, so the theme in effect comes from the explicit setting levels.
+        const settingsAtSpy = jest
+            .spyOn(SettingsStore, "getValueAt")
+            .mockImplementation((_level, name) => (name === "theme" ? theme : null));
         try {
             render(
                 <TooltipProvider>
@@ -51,6 +55,7 @@ describe("ModalWidgetDialog", () => {
             expect(messaging.updateTheme).toHaveBeenLastCalledWith({ name: "dark" });
         } finally {
             settingsSpy.mockRestore();
+            settingsAtSpy.mockRestore();
         }
     });
 });

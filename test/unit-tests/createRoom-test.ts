@@ -7,7 +7,14 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import { mocked, type Mocked } from "jest-mock";
-import { type MatrixClient, type Device, Preset, RoomType } from "matrix-js-sdk/src/matrix";
+import {
+    type MatrixClient,
+    type Device,
+    JoinRule,
+    Preset,
+    RoomType,
+    RoomVersionStability,
+} from "matrix-js-sdk/src/matrix";
 import { type CryptoApi } from "matrix-js-sdk/src/crypto-api";
 import { MatrixRTCSession } from "matrix-js-sdk/src/matrixrtc";
 
@@ -119,6 +126,36 @@ describe("createRoom", () => {
 
         expect(callPower).toBe(100);
         expect(callMemberPower).toBe(0);
+    });
+
+    describe("Ask to join rooms", () => {
+        const roomVersions = (defaultVersion: string) => ({
+            "m.room_versions": {
+                default: defaultVersion,
+                available: { [defaultVersion]: RoomVersionStability.Stable },
+            },
+        });
+
+        it("keeps the server's default room version when it supports knocking", async () => {
+            client.getCapabilities.mockResolvedValue(roomVersions("12"));
+            await createRoom(client, { joinRule: JoinRule.Knock });
+
+            expect(client.createRoom.mock.calls[0][0].room_version).toBeUndefined();
+        });
+
+        it("uses version 7 when the server's default room version cannot knock", async () => {
+            client.getCapabilities.mockResolvedValue(roomVersions("6"));
+            await createRoom(client, { joinRule: JoinRule.Knock });
+
+            expect(client.createRoom.mock.calls[0][0].room_version).toBe("7");
+        });
+
+        it("uses version 7 when the server's capabilities are unavailable", async () => {
+            client.getCapabilities.mockRejectedValue(new Error("offline"));
+            await createRoom(client, { joinRule: JoinRule.Knock });
+
+            expect(client.createRoom.mock.calls[0][0].room_version).toBe("7");
+        });
     });
 
     it("should upload avatar if one is passed", async () => {

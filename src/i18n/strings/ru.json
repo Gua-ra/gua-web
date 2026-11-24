@@ -1,5 +1,9 @@
 {
     "gua": {
+        "call": {
+            "copy_guest_link": "Копировать ссылку для гостей",
+            "join_before_admitting": "Присоединитесь к звонку, чтобы разрешить вход."
+        },
         "footer": {
             "developed_by": "Разработано %(name)s"
         }

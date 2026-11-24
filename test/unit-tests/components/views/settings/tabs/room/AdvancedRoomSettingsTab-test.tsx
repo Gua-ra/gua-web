@@ -8,7 +8,7 @@ Please see LICENSE files in the repository root for full details.
 
 import React from "react";
 import { fireEvent, render, type RenderResult, screen } from "jest-matrix-react";
-import { type MatrixClient, type Room, EventType, MatrixEvent } from "matrix-js-sdk/src/matrix";
+import { type MatrixClient, type Room, EventType, MatrixEvent, RoomVersionStability } from "matrix-js-sdk/src/matrix";
 import { mocked } from "jest-mock";
 
 import AdvancedRoomSettingsTab from "../../../../../../../src/components/views/settings/tabs/room/AdvancedRoomSettingsTab";
@@ -125,6 +125,34 @@ describe("AdvancedRoomSettingsTab", () => {
             room_id: "old_room_id",
             metricsTrigger: "WebPredecessorSettings",
             metricsViaKeyboard: false,
+        });
+    });
+
+    describe("room upgrade", () => {
+        const upgradeButton = { name: "Upgrade this room to the recommended room version" };
+
+        beforeEach(() => {
+            mocked(room.getRecommendedVersion).mockResolvedValue({ version: "10", needsUpgrade: true, urgent: true });
+        });
+
+        it("is not offered when the server's room versions cannot be loaded", async () => {
+            mocked(cli.getCapabilities).mockRejectedValue(new Error("offline"));
+            renderTab();
+
+            await screen.findByText("View older messages in test room.");
+            expect(screen.queryByRole("button", upgradeButton)).not.toBeInTheDocument();
+        });
+
+        it("is offered when the server marks the room version unstable", async () => {
+            mocked(cli.getCapabilities).mockResolvedValue({
+                "m.room_versions": {
+                    default: "10",
+                    available: { "10": RoomVersionStability.Stable, "12": RoomVersionStability.Unstable },
+                },
+            });
+            renderTab();
+
+            expect(await screen.findByRole("button", upgradeButton)).toBeInTheDocument();
         });
     });
 
