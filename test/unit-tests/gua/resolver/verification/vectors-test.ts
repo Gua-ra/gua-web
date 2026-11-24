@@ -323,7 +323,7 @@ async function expectKeyVector(key: KeyVector): Promise<void> {
     }
 }
 
-// No signed object the app checks uses these gua-lp.v1 primitives; they are encoded here only to pin the vectors.
+// No checked object uses these gua-lp.v1 primitives; they are encoded only to pin the vectors.
 function encodeBool(value: boolean): Uint8Array {
     return new Uint8Array([value ? 1 : 0]);
 }

@@ -571,7 +571,7 @@ describe("ResolverVerification", () => {
         });
 
         it("reports a member window bound that does not parse as parse_error", async () => {
-            // The member block is outside the authority's signature, so the roster stays valid.
+            // Member blocks are outside the authority signature.
             const roster = copy(r2.roster);
             roster.entries.find((e: Json) => e.homeserver.id === "hs-br").member.notBefore = "2026-09-01";
             const report = await run({ transport: stubTransport({ fetchRoster: async () => roster }) });

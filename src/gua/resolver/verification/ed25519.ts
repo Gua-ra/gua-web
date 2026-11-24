@@ -42,7 +42,7 @@ export function hexToBytes(hex: string): Uint8Array | null {
     return out;
 }
 
-/** Standard padded base64 only; anything else yields null rather than a best-effort decode. */
+/** Strict standard padded base64; anything else yields null. */
 export function decodeBase64(text: string): Uint8Array | null {
     if (typeof text !== "string" || text.length % 4 !== 0 || !BASE64_PATTERN.test(text)) return null;
     const padding = text.endsWith("==") ? 2 : text.endsWith("=") ? 1 : 0;

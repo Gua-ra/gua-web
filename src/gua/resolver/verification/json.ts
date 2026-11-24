@@ -24,7 +24,7 @@ export class ParseError extends Error {}
 
 export type JsonObject = Record<string, unknown>;
 
-/** Checks size and depth before decoding, so a hostile body exhausts neither memory nor the parser's stack. */
+/** Size and depth are checked before decoding to bound memory and parser stack on hostile bodies. */
 export async function readJsonBody(body: ReadableStream<Uint8Array> | null): Promise<unknown> {
     const bytes = await readAtMost(body, MAX_BODY_BYTES);
     if (nestingExceeds(bytes, MAX_DEPTH)) throw new ParseError("nested too deeply");

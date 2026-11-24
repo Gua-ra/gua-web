@@ -179,7 +179,7 @@ describe("GuaAuthFlow", () => {
 
         const lines = await submitPhoneAndReadReport();
 
-        // jsdom has no Web Locks, so the pin is left alone.
+        // Without Web Locks in jsdom the pin is untouched.
         expect(lines).toEqual([
             expect.stringContaining(
                 "rosterSignature=valid homeserverMatch=ACTIVE_MATCH memberEntry=valid " +

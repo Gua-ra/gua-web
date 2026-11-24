@@ -52,7 +52,7 @@ import {
 } from "./report";
 
 const DEFAULT_BUDGET_MS = 10_000;
-// The resolver re-signs the roster as its log grows, so prepare() refreshes a run older than this.
+// prepare() refreshes older runs: the resolver re-signs the roster as its log grows.
 const MAX_ARTIFACT_AGE_MS = 5 * 60_000;
 // An older roster can disagree with a fresh answer and report a false NOT_IN_ROSTER or FIELD_MISMATCH.
 const MAX_FALLBACK_AGE_MS = 2 * MAX_ARTIFACT_AGE_MS;
@@ -97,7 +97,7 @@ function trustedKeys(list?: readonly { id: string; public_key: string }[]): Trus
         .map((k) => ({ id: k.id, publicKey: k.public_key }));
 }
 
-/** A missing or malformed threshold counts as 1, so zero valid signatures never meet it. */
+/** Defaults to 1 when missing or malformed: a threshold of 0 would pass with no valid signatures. */
 function threshold(value: unknown): number {
     return typeof value === "number" && Number.isInteger(value) && value >= 1 ? value : 1;
 }
@@ -217,7 +217,7 @@ class ArtifactsRun {
         if (this.roster) this.checks.settle("policy", await this.checkPolicy(this.roster.logCheckpoint));
     }
 
-    /** One lock from the roster fetch to the pin write, so no run can pin from a stale roster or move the pin back. */
+    /** Spans roster fetch to pin write: concurrent runs must not pin a stale roster or move the pin back. */
     private async verifyRosterAndPin(authority: TrustedKeySet): Promise<void> {
         await this.verifyRoster(authority);
         if (this.roster) {
@@ -364,7 +364,7 @@ class AnswerRun {
             this.artifacts.whenSettled(),
         ]);
         clearTimeout(timer);
-        // Every check has settled by now, so a check without a result can only be a bug.
+        // Any check still unsettled here is a bug.
         return this.finish(Reason.InternalError);
     }
 
@@ -403,7 +403,7 @@ class AnswerRun {
         }
         const located = locateHomeserver(this.answer, roster);
         this.checks.settle("homeserverMatch", { outcome: located.match });
-        // A directory lookup cannot be reproduced, so an existing account's placement is never compared.
+        // An existing account's placement came from a directory lookup, which cannot be reproduced.
         if (this.resolution.exists !== false) this.checks.settle("placement", indeterminate(Reason.ExistingAccount));
         this.checks.settle("memberEntry", await this.checkMember(located));
         if (this.resolution.exists === false) this.checks.settle("placement", await this.checkPlacement(roster));
@@ -432,14 +432,14 @@ class AnswerRun {
         if (placement.decision && hasAnswerFields(placement.decision.homeserver, this.answer)) {
             return { outcome: "match" };
         }
-        // The resolver may have decided against another roster; only an answer naming this one can be a mismatch.
+        // Only an answer naming this roster version can be a mismatch.
         return this.resolution.rosterVersion === roster.version
             ? { outcome: "mismatch" }
             : indeterminate(Reason.Unattributed);
     }
 }
 
-/** Report-only: none of it delays or changes sign-in. */
+/** Report-only verification of resolver responses, without affecting sign-in. */
 export class ResolverVerification {
     private readonly context: Context;
     private artifacts: ArtifactsRun | null = null;
@@ -484,8 +484,8 @@ export class ResolverVerification {
         return newest;
     }
 
-    // Only a timeout or a failed fetch before the roster verified is retried; any other outcome is a result. Age is
-    // left to prepare(), since a restart here rarely settles before the redirect.
+    // Only a timeout or a failed fetch before the roster verified is retried. Age is left to prepare(), since a
+    // restart here rarely settles before the redirect.
     private needsNewRun(run: ArtifactsRun): boolean {
         return run.isSettled && run.rosterVersion === null && run.failedTransiently;
     }

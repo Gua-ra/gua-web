@@ -1131,7 +1131,7 @@ export async function clearStorage(opts?: { deleteEverything?: boolean }): Promi
         const pendingInvites = ThreepidInviteStore.instance.getWireInvites();
         const registrationTime = window.localStorage.getItem("mx_registration_time");
 
-        // GUA FORK: the resolver log pins outlive sign-in and sign-out.
+        // GUA FORK: resolver log pins survive sign-in and sign-out so a log rollback stays detectable.
         clearLocalStorageKeepingPins();
 
         try {

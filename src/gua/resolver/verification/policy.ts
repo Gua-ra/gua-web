@@ -137,7 +137,7 @@ export function parseRoutingPolicy(document: unknown): RoutingPolicyBundle {
     };
 }
 
-/** A bound at the epoch is open like a missing one, because the signed bytes write both as 0. */
+/** A bound at the epoch is open, like a missing one: the canonical text encodes both as 0. */
 export function inEffect(notBefore: string | null, expiresAt: string | null, atEpochMs: number): boolean {
     const from = epoch(notBefore);
     const until = epoch(expiresAt);

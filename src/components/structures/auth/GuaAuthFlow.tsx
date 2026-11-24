@@ -44,11 +44,6 @@ type Step =
     | { kind: "pinRequired"; phone: string; challengeToken: string }
     | { kind: "finishing" };
 
-/**
- * GUA: ask the resolver which homeserver a phone belongs to (or should be created on) and discover its
- * full config. Falls back to the configured default server config when the resolver is unset or the lookup
- * fails, so the app keeps working before the resolver is deployed. Mirrors the iOS `resolveHomeserver`.
- */
 async function resolveServerConfig(
     e164: string,
     fallback: ValidatedServerConfig,
@@ -59,9 +54,7 @@ async function resolveServerConfig(
     try {
         const resolution = await resolver.resolve(e164);
         void verification?.verify(resolution, e164);
-        // Use the homeserver base URL the resolver returned directly (it is the source of truth), rather
-        // than re-discovering via HTTPS well-known on the server name — that is redundant and fails for
-        // http/localhost homeservers. The homeserver's own auth metadata still yields the MAS config.
+        // The resolver's base URL is used as is: well-known discovery fails for http and localhost homeservers.
         return await AutoDiscoveryUtils.validateServerConfigWithStaticUrls(resolution.homeserver.baseUrl);
     } catch (e) {
         logger.warn("Gua resolver lookup failed; falling back to the default server config", e);
@@ -87,7 +80,7 @@ export default function GuaAuthFlow({ onLoggedIn, serverConfig }: Props): JSX.El
     const [resendNonce, setResendNonce] = useState(0);
     const [pinResetNonce, setPinResetNonce] = useState(0);
 
-    // Verify while the phone step is shown, so the redirect after the answer does not cut the checks off.
+    // Prepared on the phone step to finish before the redirect that follows the answer.
     const showsPhoneEntry = (!!client || hasDelegatedOidc) && step.kind === "phone";
     useEffect(() => {
         if (!showsPhoneEntry || !verification) return;
@@ -117,14 +110,13 @@ export default function GuaAuthFlow({ onLoggedIn, serverConfig }: Props): JSX.El
         setBusy(true);
         setError(undefined);
         try {
-            // GUA: route to the homeserver this phone belongs to, instead of always the configured default.
             const effectiveConfig = await resolveServerConfig(e164, serverConfig, verification);
             if (effectiveConfig.delegatedAuthentication) {
                 const clientId = await getOidcClientId(
                     effectiveConfig.delegatedAuthentication,
                     SdkConfig.get().oidc_static_clients,
                 );
-                // Leaving the page drops any verification still running, so its report is logged before the redirect.
+                // Logged now: the redirect drops checks still running.
                 verification?.flush();
                 await startGuaPhoneOidcLogin(
                     effectiveConfig.delegatedAuthentication,

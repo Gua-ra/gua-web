@@ -22,7 +22,7 @@ export function localStorageCheckpointStore(resolverBaseUrl: string): Checkpoint
         load(): LogCheckpoint | null {
             const raw = window.localStorage.getItem(key);
             if (raw === null) return null;
-            // A pin that does not read back throws: read as no pin, it would let any checkpoint be pinned over it.
+            // A corrupt pin throws: treated as absent, it would let any checkpoint replace it.
             const pin = object(JSON.parse(raw));
             return { merkleRoot: string(pin.merkleRoot), size: uint31(pin.size) };
         },

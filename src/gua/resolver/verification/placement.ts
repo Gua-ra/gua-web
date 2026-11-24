@@ -23,7 +23,7 @@ import {
     sortedRules,
 } from "./policy";
 
-/** Affiliations and attributes count only in a verified claims envelope, which a public client never has. */
+/** No affiliations or attributes: they need a verified claims envelope, which public clients lack. */
 export interface PlacementContext {
     phone: string | null;
     country: string | null;
@@ -69,7 +69,7 @@ export function placementCandidates(roster: SignedRoster): RosterHomeserver[] {
 }
 
 export function fallbackTotalWeight(candidates: RosterHomeserver[]): number {
-    // Weights are int32, so this sum is exact in a double, as Java's 64-bit sum is: it never wraps.
+    // int32 weights sum exactly in a double, matching Java's 64-bit sum without wrapping.
     return candidates.reduce((sum, hs) => sum + Math.max(0, hs.weight), 0);
 }
 
@@ -110,7 +110,7 @@ function isRemote(claim: RosterClaim): boolean {
     return claim.remoteClaimUrl !== null && claim.remoteClaimUrl.trim() !== "";
 }
 
-/** Institution and OIDC rules need signature-verified claims, which a public client never carries. */
+/** Institution and OIDC rules need verified claims, which public clients lack. */
 function ruleMatches(rule: RoutingPolicyRule, ctx: PlacementContext): boolean {
     return (
         rule.matchType === "PHONE_PREFIX" &&
@@ -177,7 +177,7 @@ function claimRule(ctx: PlacementContext, roster: SignedRoster): PlacementDecisi
     };
 }
 
-// Above this total the 32-bit hash skews the split, so weighted-fallback.v1 decides nothing.
+// Above this total the 32-bit hash skews the split; weighted-fallback.v1 then makes no decision.
 const MAX_FALLBACK_TOTAL_WEIGHT = 2 ** 24;
 
 async function weightedFallback(
