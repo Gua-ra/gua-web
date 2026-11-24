@@ -1,17 +1,5 @@
 <!-- Read CONTRIBUTING.md first. Keep the pull request to one concern. -->
 
-## Summary
+<!-- What changes and why, in a short paragraph or a few bullets. -->
 
-<!-- One to three sentences: what changes and why. -->
-
-## Changes
-
-<!-- The material changes, one line each. -->
-
-## Validation
-
-<!-- What was observed working: tests run, browsers checked, screenshots for UI changes. -->
-
-## Rollout
-
-<!-- Only when it is not obvious: config keys, ordering with other repositories. Delete otherwise. -->
+<!-- Validation: what was observed working, such as tests run, browsers checked or screenshots for UI changes. Add compatibility or rollout notes only when they matter. -->
