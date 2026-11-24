@@ -3761,5 +3761,119 @@
     "messageHex" : "",
     "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCw==",
     "verifies" : false
+  }, {
+    "name" : "signature without padding",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCw",
+    "verifies" : false
+  }, {
+    "name" : "signature with an extra padding character",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCw===",
+    "verifies" : false
+  }, {
+    "name" : "signature with non-zero trailing bits",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCx==",
+    "verifies" : false
+  }, {
+    "name" : "public key without padding",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCw==",
+    "verifies" : false
+  }, {
+    "name" : "public key with non-zero trailing bits",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURp=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCw==",
+    "verifies" : false
+  }, {
+    "name" : "public key that is not a curve point",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCw==",
+    "verifies" : false
+  }, {
+    "name" : "public key with NULL algorithm parameters",
+    "publicKeySpkiB64" : "MCwwBwYDK2VwBQADIQDXWpgBgrEKt9VL/tPJZAc6DuFy89qmIyWvAhpo9wdRGg==",
+    "messageHex" : "",
+    "signatureB64" : "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc+bRr0lv18FlbviRlUUFDjnoQCw==",
+    "verifies" : false
+  }, {
+    "name" : "forgery under the identity key (order 1)",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+    "messageHex" : "6775612d617564697420666f726765642073746174656d656e7400",
+    "signatureB64" : "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "verifies" : false
+  }, {
+    "name" : "forgery under the key of order 2",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA7P///////////////////////////////////////38=",
+    "messageHex" : "6775612d617564697420666f726765642073746174656d656e7400",
+    "signatureB64" : "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "verifies" : false
+  }, {
+    "name" : "forgery under the all-zero key (order 4)",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+    "messageHex" : "6775612d617564697420666f726765642073746174656d656e7400",
+    "signatureB64" : "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "verifies" : false
+  }, {
+    "name" : "forgery under the key of order 4 with x negative",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIA=",
+    "messageHex" : "6775612d617564697420666f726765642073746174656d656e7400",
+    "signatureB64" : "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "verifies" : false
+  }, {
+    "name" : "forgery under the key of order 8",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEAJuiVj8KyJ7BFw/SJ8u+Y8NXfrAXTxjM5sTgCiG1T/AU=",
+    "messageHex" : "6775612d617564697420666f726765642073746174656d656e7400",
+    "signatureB64" : "JuiVj8KyJ7BFw/SJ8u+Y8NXfrAXTxjM5sTgCiG1T/AUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "verifies" : false
+  }, {
+    "name" : "forgery under the key of order 8 with x negative",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEAJuiVj8KyJ7BFw/SJ8u+Y8NXfrAXTxjM5sTgCiG1T/IU=",
+    "messageHex" : "6775612d617564697420666f726765642073746174656d656e7402",
+    "signatureB64" : "JuiVj8KyJ7BFw/SJ8u+Y8NXfrAXTxjM5sTgCiG1T/AUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "verifies" : false
+  }, {
+    "name" : "forgery under the key of order 8, second y",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEAxxdqcD1N2E+6PAt2DRBnDyogU/osOczGTsf9d5KsA3o=",
+    "messageHex" : "6775612d617564697420666f726765642073746174656d656e7400",
+    "signatureB64" : "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "verifies" : false
+  }, {
+    "name" : "forgery under the key of order 8, second y, x positive",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEAxxdqcD1N2E+6PAt2DRBnDyogU/osOczGTsf9d5KsA/o=",
+    "messageHex" : "6775612d617564697420666f726765642073746174656d656e7400",
+    "signatureB64" : "7P///////////////////////////////////////38AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "verifies" : false
+  }, {
+    "name" : "forgery under the non-canonical key with y = p",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA7f///////////////////////////////////////38=",
+    "messageHex" : "6775612d617564697420666f726765642073746174656d656e7400",
+    "signatureB64" : "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "verifies" : false
+  }, {
+    "name" : "forgery under the non-canonical key with y = p and the sign bit set",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA7f////////////////////////////////////////8=",
+    "messageHex" : "6775612d617564697420666f726765642073746174656d656e7401",
+    "signatureB64" : "7P///////////////////////////////////////38AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "verifies" : false
+  }, {
+    "name" : "forgery under the non-canonical key with y = p + 1",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEA7v///////////////////////////////////////38=",
+    "messageHex" : "6775612d617564697420666f726765642073746174656d656e7400",
+    "signatureB64" : "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "verifies" : false
+  }, {
+    "name" : "forgery under the non-canonical key with x = 0 and the sign bit set",
+    "publicKeySpkiB64" : "MCowBQYDK2VwAyEAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIA=",
+    "messageHex" : "6775612d617564697420666f726765642073746174656d656e74",
+    "signatureB64" : "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+    "verifies" : false
   } ]
 }
