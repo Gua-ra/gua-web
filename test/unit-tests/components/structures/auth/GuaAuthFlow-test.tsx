@@ -171,9 +171,21 @@ describe("GuaAuthFlow", () => {
             "https://vector.im",
             makeDelegatedAuthConfig("https://account.evil.test/"),
         );
-        jest.spyOn(AutoDiscoveryUtils, "validateServerConfigWithStaticUrls").mockImplementation(
-            () => new Promise((resolve) => setTimeout(() => resolve(discovered), 50)),
-        );
+        // Discovery resolves only after verification, so runner speed cannot decide the race with the redirect.
+        const verify = ResolverVerification.prototype.verify;
+        let verifying: Promise<unknown> = Promise.resolve();
+        jest.spyOn(ResolverVerification.prototype, "verify").mockImplementation(function (
+            this: ResolverVerification,
+            ...args: Parameters<ResolverVerification["verify"]>
+        ) {
+            const report = verify.apply(this, args);
+            verifying = report;
+            return report;
+        });
+        jest.spyOn(AutoDiscoveryUtils, "validateServerConfigWithStaticUrls").mockImplementation(async () => {
+            await verifying;
+            return discovered;
+        });
         renderFlow();
         await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledWith(`${RESOLVER}/roster/log`, expect.anything()));
 
