@@ -44,6 +44,7 @@ type Step =
     | { kind: "pinRequired"; phone: string; challengeToken: string }
     | { kind: "finishing" };
 
+// Without a resolver, or when its lookup fails, sign-in uses the configured default server. iOS refuses instead.
 async function resolveServerConfig(
     e164: string,
     fallback: ValidatedServerConfig,
