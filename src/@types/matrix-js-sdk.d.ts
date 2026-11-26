@@ -95,6 +95,10 @@ declare module "matrix-js-sdk/src/types" {
 
         // Indicate whether recovery is enabled or disabled
         "io.element.recovery": { enabled: boolean };
+
+        // Gua's sticker and GIF libraries, kept as raw JSON so unknown keys survive rewrites
+        "global.gua.stickers": Record<string, unknown>;
+        "global.gua.gifs": Record<string, unknown>;
     }
 
     export interface AudioContent {

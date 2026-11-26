@@ -1,0 +1,1579 @@
+{
+  "gifLibrary": [
+    {
+      "expected": {
+        "favourites": [
+          {
+            "id": "2",
+            "p": "klipy"
+          },
+          {
+            "id": "1",
+            "p": "klipy"
+          }
+        ],
+        "v": 1
+      },
+      "name": "favourite prepends",
+      "op": {
+        "id": "2",
+        "type": "favourite"
+      },
+      "start": {
+        "favourites": [
+          {
+            "id": "1",
+            "p": "klipy"
+          }
+        ],
+        "v": 1
+      }
+    },
+    {
+      "expected": {
+        "favourites": [
+          {
+            "id": "2",
+            "p": "klipy"
+          },
+          {
+            "id": "1",
+            "p": "klipy"
+          }
+        ],
+        "v": 1
+      },
+      "name": "favourite again moves to the front",
+      "op": {
+        "id": "2",
+        "type": "favourite"
+      },
+      "start": {
+        "favourites": [
+          {
+            "id": "1",
+            "p": "klipy"
+          },
+          {
+            "id": "2",
+            "p": "klipy"
+          }
+        ],
+        "v": 1
+      }
+    },
+    {
+      "expected": {
+        "favourites": [
+          {
+            "id": "x",
+            "p": "klipy"
+          },
+          {
+            "id": "0",
+            "p": "klipy"
+          },
+          {
+            "id": "1",
+            "p": "klipy"
+          }
+        ],
+        "v": 1
+      },
+      "limit": 3,
+      "name": "favourite past 50 drops the oldest",
+      "op": {
+        "id": "x",
+        "type": "favourite"
+      },
+      "start": {
+        "favourites": [
+          {
+            "id": "0",
+            "p": "klipy"
+          },
+          {
+            "id": "1",
+            "p": "klipy"
+          },
+          {
+            "id": "2",
+            "p": "klipy"
+          }
+        ],
+        "v": 1
+      }
+    },
+    {
+      "expected": {
+        "favourites": [
+          {
+            "id": "1",
+            "p": "other"
+          }
+        ],
+        "v": 1
+      },
+      "name": "unfavourite keeps other providers",
+      "op": {
+        "id": "1",
+        "type": "unfavourite"
+      },
+      "start": {
+        "favourites": [
+          {
+            "id": "1",
+            "p": "klipy"
+          },
+          {
+            "id": "1",
+            "p": "other"
+          }
+        ],
+        "v": 1
+      }
+    },
+    {
+      "expected": {
+        "favourites": [
+          {
+            "id": "7",
+            "p": "klipy"
+          }
+        ],
+        "v": 1
+      },
+      "name": "from empty",
+      "op": {
+        "id": "7",
+        "type": "favourite"
+      },
+      "start": {}
+    }
+  ],
+  "gifRendition": [
+    {
+      "expected": {
+        "body": "Hello",
+        "height": 280,
+        "rendition": "hd",
+        "size": 900000,
+        "thumbnailUrl": "https://static.klipy.com/hd.jpg",
+        "url": "https://static.klipy.com/hd.webp",
+        "width": 498
+      },
+      "item": {
+        "file": {
+          "hd": {
+            "jpg": {
+              "height": 280,
+              "size": 16000,
+              "url": "https://static.klipy.com/hd.jpg",
+              "width": 498
+            },
+            "webp": {
+              "height": 280,
+              "size": 900000,
+              "url": "https://static.klipy.com/hd.webp",
+              "width": 498
+            }
+          },
+          "md": {
+            "jpg": {
+              "height": 180,
+              "size": 16000,
+              "url": "https://static.klipy.com/md.jpg",
+              "width": 320
+            },
+            "webp": {
+              "height": 180,
+              "size": 300000,
+              "url": "https://static.klipy.com/md.webp",
+              "width": 320
+            }
+          }
+        },
+        "id": 42,
+        "slug": "hello-42",
+        "title": "Hello",
+        "type": "gif"
+      },
+      "name": "hd within 1.5 MB"
+    },
+    {
+      "expected": {
+        "body": "Hello",
+        "height": 280,
+        "rendition": "hd",
+        "size": 1500000,
+        "thumbnailUrl": "https://static.klipy.com/hd.jpg",
+        "url": "https://static.klipy.com/hd.webp",
+        "width": 498
+      },
+      "item": {
+        "file": {
+          "hd": {
+            "jpg": {
+              "height": 280,
+              "size": 16000,
+              "url": "https://static.klipy.com/hd.jpg",
+              "width": 498
+            },
+            "webp": {
+              "height": 280,
+              "size": 1500000,
+              "url": "https://static.klipy.com/hd.webp",
+              "width": 498
+            }
+          },
+          "md": {
+            "jpg": {
+              "height": 180,
+              "size": 16000,
+              "url": "https://static.klipy.com/md.jpg",
+              "width": 320
+            },
+            "webp": {
+              "height": 180,
+              "size": 300000,
+              "url": "https://static.klipy.com/md.webp",
+              "width": 320
+            }
+          }
+        },
+        "id": 42,
+        "slug": "hello-42",
+        "title": "Hello",
+        "type": "gif"
+      },
+      "name": "hd exactly 1.5 MB"
+    },
+    {
+      "expected": {
+        "body": "Hello",
+        "height": 180,
+        "rendition": "md",
+        "size": 300000,
+        "thumbnailUrl": "https://static.klipy.com/md.jpg",
+        "url": "https://static.klipy.com/md.webp",
+        "width": 320
+      },
+      "item": {
+        "file": {
+          "hd": {
+            "jpg": {
+              "height": 280,
+              "size": 16000,
+              "url": "https://static.klipy.com/hd.jpg",
+              "width": 498
+            },
+            "webp": {
+              "height": 280,
+              "size": 1500001,
+              "url": "https://static.klipy.com/hd.webp",
+              "width": 498
+            }
+          },
+          "md": {
+            "jpg": {
+              "height": 180,
+              "size": 16000,
+              "url": "https://static.klipy.com/md.jpg",
+              "width": 320
+            },
+            "webp": {
+              "height": 180,
+              "size": 300000,
+              "url": "https://static.klipy.com/md.webp",
+              "width": 320
+            }
+          }
+        },
+        "id": 42,
+        "slug": "hello-42",
+        "title": "Hello",
+        "type": "gif"
+      },
+      "name": "hd too big"
+    },
+    {
+      "expected": {
+        "body": "Hello",
+        "height": 180,
+        "rendition": "md",
+        "size": 300000,
+        "thumbnailUrl": "https://static.klipy.com/md.jpg",
+        "url": "https://static.klipy.com/md.webp",
+        "width": 320
+      },
+      "item": {
+        "file": {
+          "md": {
+            "jpg": {
+              "height": 180,
+              "size": 16000,
+              "url": "https://static.klipy.com/md.jpg",
+              "width": 320
+            },
+            "webp": {
+              "height": 180,
+              "size": 300000,
+              "url": "https://static.klipy.com/md.webp",
+              "width": 320
+            }
+          }
+        },
+        "id": 42,
+        "slug": "hello-42",
+        "title": "Hello",
+        "type": "gif"
+      },
+      "name": "no hd"
+    },
+    {
+      "expected": {
+        "body": "GIF",
+        "height": 112,
+        "rendition": "sm",
+        "size": 90000,
+        "thumbnailUrl": "https://static.klipy.com/sm.jpg",
+        "url": "https://static.klipy.com/sm.webp",
+        "width": 200
+      },
+      "item": {
+        "file": {
+          "sm": {
+            "jpg": {
+              "height": 112,
+              "size": 16000,
+              "url": "https://static.klipy.com/sm.jpg",
+              "width": 200
+            },
+            "webp": {
+              "height": 112,
+              "size": 90000,
+              "url": "https://static.klipy.com/sm.webp",
+              "width": 200
+            }
+          }
+        },
+        "id": 42,
+        "slug": "hello-42",
+        "title": "  ",
+        "type": "gif"
+      },
+      "name": "only sm, empty title"
+    },
+    {
+      "expected": null,
+      "item": {
+        "file": {},
+        "id": 42,
+        "slug": "hello-42",
+        "title": "Hello",
+        "type": "gif"
+      },
+      "name": "nothing usable"
+    }
+  ],
+  "library": {
+    "decode": [
+      {
+        "expected": {
+          "favourites": [
+            {
+              "body": "Dog",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/dog"
+            }
+          ],
+          "images": [
+            {
+              "added": 1762905660000,
+              "body": "Fox",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "shortcode": "smhv8igyo",
+              "url": "mxc://gua.global/fox"
+            },
+            {
+              "added": 1762905600000,
+              "body": "Cat",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "shortcode": "smhv8h6o0",
+              "url": "mxc://gua.global/cat"
+            }
+          ]
+        },
+        "input": {
+          "favourites": [
+            {
+              "body": "Dog",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/dog"
+            }
+          ],
+          "images": {
+            "smhv8h6o0": {
+              "body": "Cat",
+              "global.gua.added": 1762905600000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            },
+            "smhv8igyo": {
+              "body": "Fox",
+              "global.gua.added": 1762905660000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/fox"
+            }
+          },
+          "v": 1
+        },
+        "name": "valid, newest first"
+      },
+      {
+        "expected": {
+          "favourites": [],
+          "images": []
+        },
+        "input": {},
+        "name": "empty object"
+      },
+      {
+        "expected": {
+          "favourites": [],
+          "images": [
+            {
+              "added": 1762905600000,
+              "body": "Fox",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "shortcode": "smhv8h6o0",
+              "url": "mxc://gua.global/fox"
+            },
+            {
+              "added": null,
+              "body": null,
+              "info": null,
+              "shortcode": "a",
+              "url": "mxc://gua.global/dog"
+            },
+            {
+              "added": null,
+              "body": "Cat",
+              "info": null,
+              "shortcode": "b",
+              "url": "mxc://gua.global/cat"
+            }
+          ]
+        },
+        "input": {
+          "images": {
+            "a": {
+              "url": "mxc://gua.global/dog"
+            },
+            "b": {
+              "body": "Cat",
+              "url": "mxc://gua.global/cat"
+            },
+            "smhv8h6o0": {
+              "body": "Fox",
+              "global.gua.added": 1762905600000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/fox"
+            }
+          }
+        },
+        "name": "missing v and missing added sort last by shortcode"
+      },
+      {
+        "expected": {
+          "favourites": [
+            {
+              "body": "Dog",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/dog"
+            }
+          ],
+          "images": [
+            {
+              "added": 1762905600000,
+              "body": "Cat",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "shortcode": "smhv8h6o0",
+              "url": "mxc://gua.global/cat"
+            }
+          ]
+        },
+        "input": {
+          "favourites": [
+            "nope",
+            {
+              "url": "https://example.com/x.png"
+            },
+            {
+              "body": "Dog",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/dog"
+            }
+          ],
+          "images": {
+            "smhv8h6o0": {
+              "body": "Cat",
+              "global.gua.added": 1762905600000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            },
+            "x": 3,
+            "y": {
+              "url": "https://example.com/y.png"
+            },
+            "z": {
+              "body": "no url"
+            }
+          }
+        },
+        "name": "drops non-objects and non-mxc urls"
+      },
+      {
+        "expected": {
+          "favourites": [],
+          "images": [
+            {
+              "added": 1762905600000,
+              "body": "Cat",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "shortcode": "not valid:shortcode",
+              "url": "mxc://gua.global/cat"
+            }
+          ]
+        },
+        "input": {
+          "images": {
+            "not valid:shortcode": {
+              "body": "Cat",
+              "global.gua.added": 1762905600000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            }
+          }
+        },
+        "name": "keeps an invalid shortcode"
+      },
+      {
+        "expected": {
+          "favourites": [],
+          "images": []
+        },
+        "input": {
+          "favourites": {
+            "a": 1
+          },
+          "images": [
+            1,
+            2
+          ],
+          "v": "one"
+        },
+        "name": "wrong types read as absent"
+      }
+    ],
+    "operations": [
+      {
+        "expected": {
+          "images": {
+            "smhv8h6o0": {
+              "body": "Cat",
+              "global.gua.added": 1762905600000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            }
+          },
+          "v": 1
+        },
+        "name": "add to empty",
+        "op": {
+          "body": "Cat",
+          "info": {
+            "h": 256,
+            "mimetype": "image/png",
+            "size": 120034,
+            "w": 256
+          },
+          "now": 1762905600000,
+          "type": "add",
+          "url": "mxc://gua.global/cat"
+        },
+        "start": {}
+      },
+      {
+        "expected": {
+          "images": {
+            "smhv8h6o0": {
+              "body": "Cat",
+              "global.gua.added": 1762905600000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            },
+            "smhv8h6o0-2": {
+              "body": "Dog",
+              "global.gua.added": 1762905600000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/dog"
+            }
+          },
+          "v": 1
+        },
+        "name": "add with a shortcode collision",
+        "op": {
+          "body": "Dog",
+          "info": {
+            "h": 256,
+            "mimetype": "image/png",
+            "size": 120034,
+            "w": 256
+          },
+          "now": 1762905600000,
+          "type": "add",
+          "url": "mxc://gua.global/dog"
+        },
+        "start": {
+          "images": {
+            "smhv8h6o0": {
+              "body": "Cat",
+              "global.gua.added": 1762905600000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            }
+          },
+          "v": 1
+        }
+      },
+      {
+        "expected": {
+          "future": {
+            "x": 1
+          },
+          "images": {
+            "smhv8h6o0": {
+              "body": "Cat",
+              "global.gua.added": 1762905600000,
+              "global.gua.other": true,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            },
+            "smhv8igyo": {
+              "body": "Dog",
+              "global.gua.added": 1762905660000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/dog"
+            }
+          },
+          "v": 1
+        },
+        "name": "add keeps unknown keys",
+        "op": {
+          "body": "Dog",
+          "info": {
+            "h": 256,
+            "mimetype": "image/png",
+            "size": 120034,
+            "w": 256
+          },
+          "now": 1762905660000,
+          "type": "add",
+          "url": "mxc://gua.global/dog"
+        },
+        "start": {
+          "future": {
+            "x": 1
+          },
+          "images": {
+            "smhv8h6o0": {
+              "body": "Cat",
+              "global.gua.added": 1762905600000,
+              "global.gua.other": true,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            }
+          },
+          "v": 1
+        }
+      },
+      {
+        "expectedError": "limitReached",
+        "name": "add past 120 is refused",
+        "op": {
+          "body": "Cat",
+          "info": {
+            "h": 256,
+            "mimetype": "image/png",
+            "size": 120034,
+            "w": 256
+          },
+          "now": 1762905720000,
+          "type": "add",
+          "url": "mxc://gua.global/cat"
+        },
+        "start": {
+          "generate": {
+            "favourites": 0,
+            "images": 120
+          }
+        }
+      },
+      {
+        "expected": {
+          "favourites": [
+            {
+              "body": "Cat",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            },
+            {
+              "body": "Dog",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/dog"
+            }
+          ],
+          "v": 1
+        },
+        "name": "favourite prepends",
+        "op": {
+          "image": {
+            "body": "Cat",
+            "info": {
+              "h": 256,
+              "mimetype": "image/png",
+              "size": 120034,
+              "w": 256
+            },
+            "url": "mxc://gua.global/cat"
+          },
+          "type": "favourite"
+        },
+        "start": {
+          "favourites": [
+            {
+              "body": "Dog",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/dog"
+            }
+          ],
+          "v": 1
+        }
+      },
+      {
+        "expected": {
+          "favourites": [
+            {
+              "body": "Cat",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            },
+            {
+              "body": "Dog",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/dog"
+            }
+          ],
+          "v": 1
+        },
+        "name": "favourite again moves to the front",
+        "op": {
+          "image": {
+            "body": "Cat",
+            "info": {
+              "h": 256,
+              "mimetype": "image/png",
+              "size": 120034,
+              "w": 256
+            },
+            "url": "mxc://gua.global/cat"
+          },
+          "type": "favourite"
+        },
+        "start": {
+          "favourites": [
+            {
+              "body": "Dog",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/dog"
+            },
+            {
+              "body": "Cat",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            }
+          ],
+          "v": 1
+        }
+      },
+      {
+        "expectedFavouritesCount": 50,
+        "expectedFirstFavourite": {
+          "body": "Cat",
+          "info": {
+            "h": 256,
+            "mimetype": "image/png",
+            "size": 120034,
+            "w": 256
+          },
+          "url": "mxc://gua.global/cat"
+        },
+        "expectedLastFavourite": {
+          "body": "F48",
+          "info": {
+            "h": 256,
+            "mimetype": "image/png",
+            "size": 120034,
+            "w": 256
+          },
+          "url": "mxc://gua.global/f48"
+        },
+        "name": "favourite past 50 drops the oldest",
+        "op": {
+          "image": {
+            "body": "Cat",
+            "info": {
+              "h": 256,
+              "mimetype": "image/png",
+              "size": 120034,
+              "w": 256
+            },
+            "url": "mxc://gua.global/cat"
+          },
+          "type": "favourite"
+        },
+        "start": {
+          "generate": {
+            "favourites": 50,
+            "images": 0
+          }
+        }
+      },
+      {
+        "expected": {
+          "favourites": [
+            {
+              "body": "Cat",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            }
+          ],
+          "v": 1
+        },
+        "name": "favourite stores only body, info and url",
+        "op": {
+          "image": {
+            "body": "Cat",
+            "global.gua.added": 1762905600000,
+            "info": {
+              "h": 256,
+              "mimetype": "image/png",
+              "size": 120034,
+              "w": 256
+            },
+            "url": "mxc://gua.global/cat",
+            "x": 1
+          },
+          "type": "favourite"
+        },
+        "start": {}
+      },
+      {
+        "expected": {
+          "favourites": [
+            {
+              "body": "Cat",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            }
+          ],
+          "v": 1
+        },
+        "name": "unfavourite",
+        "op": {
+          "type": "unfavourite",
+          "url": "mxc://gua.global/dog"
+        },
+        "start": {
+          "favourites": [
+            {
+              "body": "Dog",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/dog"
+            },
+            {
+              "body": "Cat",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            }
+          ],
+          "v": 1
+        }
+      },
+      {
+        "expected": {
+          "favourites": [
+            {
+              "body": "Dog",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/dog"
+            }
+          ],
+          "images": {
+            "smhv8igyo": {
+              "body": "Fox",
+              "global.gua.added": 1762905660000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/fox"
+            }
+          },
+          "v": 1
+        },
+        "name": "delete also unfavourites",
+        "op": {
+          "shortcode": "smhv8h6o0",
+          "type": "delete"
+        },
+        "start": {
+          "favourites": [
+            {
+              "body": "Cat",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            },
+            {
+              "body": "Dog",
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/dog"
+            }
+          ],
+          "images": {
+            "smhv8h6o0": {
+              "body": "Cat",
+              "global.gua.added": 1762905600000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            },
+            "smhv8igyo": {
+              "body": "Fox",
+              "global.gua.added": 1762905660000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/fox"
+            }
+          },
+          "v": 1
+        }
+      },
+      {
+        "expected": {
+          "images": {},
+          "v": 2
+        },
+        "name": "delete keeps a higher v",
+        "op": {
+          "shortcode": "smhv8h6o0",
+          "type": "delete"
+        },
+        "start": {
+          "images": {
+            "smhv8h6o0": {
+              "body": "Cat",
+              "global.gua.added": 1762905600000,
+              "info": {
+                "h": 256,
+                "mimetype": "image/png",
+                "size": 120034,
+                "w": 256
+              },
+              "url": "mxc://gua.global/cat"
+            }
+          },
+          "v": 2
+        }
+      }
+    ]
+  },
+  "notes": "A start of {\"generate\": {\"images\": n, \"favourites\": m}} means v 1, images i = 0..n-1 at shortcode s + base36(1762905600000 + i) with url mxc://gua.global/s<i>, body S<i>, the shared info and added 1762905600000 + i, and favourites i = 0..m-1 with url mxc://gua.global/f<i>, body F<i> and the shared info. The shared info is {\"h\": 256, \"mimetype\": \"image/png\", \"size\": 120034, \"w\": 256}. A gifLibrary case with limit overrides the favourites limit of 50.",
+  "packs": [
+    {
+      "content": {
+        "images": {
+          "blep": {
+            "url": "mxc://gua.global/dog"
+          },
+          "wave": {
+            "body": "Waving cat",
+            "info": {
+              "h": 512,
+              "mimetype": "image/webp",
+              "size": 40000,
+              "w": 512
+            },
+            "url": "mxc://gua.global/cat"
+          }
+        },
+        "pack": {
+          "avatar_url": "mxc://gua.global/fox",
+          "display_name": "Cats",
+          "usage": [
+            "sticker"
+          ]
+        }
+      },
+      "eventType": "m.room.image_pack",
+      "expected": {
+        "avatarUrl": "mxc://gua.global/fox",
+        "displayName": "Cats",
+        "stickers": [
+          {
+            "body": "blep",
+            "info": null,
+            "shortcode": "blep",
+            "url": "mxc://gua.global/dog"
+          },
+          {
+            "body": "Waving cat",
+            "info": {
+              "h": 512,
+              "mimetype": "image/webp",
+              "size": 40000,
+              "w": 512
+            },
+            "shortcode": "wave",
+            "url": "mxc://gua.global/cat"
+          }
+        ]
+      },
+      "name": "stable pack with metadata",
+      "roomName": "Family",
+      "stateKey": "cats"
+    },
+    {
+      "content": {
+        "images": {
+          "wave": {
+            "url": "mxc://gua.global/cat"
+          }
+        },
+        "pack": {
+          "usage": [
+            "emoticon"
+          ]
+        }
+      },
+      "eventType": "m.room.image_pack",
+      "expected": {
+        "avatarUrl": null,
+        "displayName": "Family",
+        "stickers": []
+      },
+      "name": "emoticon-only pack has no stickers",
+      "roomName": "Family",
+      "stateKey": ""
+    },
+    {
+      "content": {
+        "images": {
+          "wave": {
+            "url": "mxc://gua.global/cat"
+          }
+        }
+      },
+      "eventType": "m.room.image_pack",
+      "expected": {
+        "avatarUrl": null,
+        "displayName": "Family",
+        "stickers": [
+          {
+            "body": "wave",
+            "info": null,
+            "shortcode": "wave",
+            "url": "mxc://gua.global/cat"
+          }
+        ]
+      },
+      "name": "no usage means every usage, name falls back to the room",
+      "roomName": "Family",
+      "stateKey": ""
+    },
+    {
+      "content": {
+        "images": {
+          "a": {
+            "url": "mxc://gua.global/cat",
+            "usage": [
+              "sticker"
+            ]
+          },
+          "b": {
+            "url": "mxc://gua.global/dog",
+            "usage": [
+              "emoticon"
+            ]
+          },
+          "c": {
+            "url": "mxc://gua.global/fox"
+          }
+        },
+        "pack": {
+          "display_name": "Old pack",
+          "usage": [
+            "emoticon"
+          ]
+        }
+      },
+      "eventType": "im.ponies.room_emotes",
+      "expected": {
+        "avatarUrl": null,
+        "displayName": "Old pack",
+        "stickers": [
+          {
+            "body": "a",
+            "info": null,
+            "shortcode": "a",
+            "url": "mxc://gua.global/cat"
+          }
+        ]
+      },
+      "name": "unstable pack with image-level usage",
+      "roomName": "Family",
+      "stateKey": "old"
+    },
+    {
+      "content": {
+        "images": {
+          "a": {
+            "url": "https://example.com/a.png"
+          },
+          "b": "nope",
+          "c": {
+            "url": "mxc://gua.global/cat"
+          }
+        }
+      },
+      "eventType": "m.room.image_pack",
+      "expected": {
+        "avatarUrl": null,
+        "displayName": "Family",
+        "stickers": [
+          {
+            "body": "c",
+            "info": null,
+            "shortcode": "c",
+            "url": "mxc://gua.global/cat"
+          }
+        ]
+      },
+      "name": "drops invalid images",
+      "roomName": "Family",
+      "stateKey": ""
+    }
+  ],
+  "shortcodes": [
+    {
+      "existing": [],
+      "expected": "smhv8h6o0",
+      "now": 1762905600000
+    },
+    {
+      "existing": [
+        "smhv8h6o0"
+      ],
+      "expected": "smhv8h6o0-2",
+      "now": 1762905600000
+    },
+    {
+      "existing": [
+        "smhv8h6o0",
+        "smhv8h6o0-2"
+      ],
+      "expected": "smhv8h6o0-3",
+      "now": 1762905600000
+    },
+    {
+      "existing": [],
+      "expected": "s0",
+      "now": 0
+    }
+  ],
+  "stickerContent": [
+    {
+      "expected": {
+        "body": "Cat",
+        "info": {
+          "h": 256,
+          "mimetype": "image/png",
+          "size": 120034,
+          "w": 256
+        },
+        "url": "mxc://gua.global/cat"
+      },
+      "input": {
+        "body": "Cat",
+        "height": 512,
+        "mimetype": "image/png",
+        "size": 120034,
+        "url": "mxc://gua.global/cat",
+        "width": 512
+      },
+      "name": "square png"
+    },
+    {
+      "expected": {
+        "body": "Dog",
+        "info": {
+          "h": 151,
+          "mimetype": "image/webp",
+          "size": 50000,
+          "w": 256
+        },
+        "url": "mxc://gua.global/dog"
+      },
+      "input": {
+        "body": "Dog",
+        "height": 301,
+        "mimetype": "image/webp",
+        "size": 50000,
+        "url": "mxc://gua.global/dog",
+        "width": 511
+      },
+      "name": "wide webp halves and rounds up"
+    },
+    {
+      "expected": {
+        "body": "Fox",
+        "info": {
+          "h": 41,
+          "mimetype": "image/png",
+          "size": 4000,
+          "w": 50
+        },
+        "url": "mxc://gua.global/fox"
+      },
+      "input": {
+        "body": "Fox",
+        "height": 81,
+        "mimetype": "image/png",
+        "size": 4000,
+        "url": "mxc://gua.global/fox",
+        "width": 100
+      },
+      "name": "small image"
+    },
+    {
+      "expected": {
+        "body": "Cat",
+        "info": {
+          "h": 192,
+          "mimetype": "image/png",
+          "size": 400000,
+          "w": 256
+        },
+        "url": "mxc://gua.global/cat"
+      },
+      "input": {
+        "body": "Cat",
+        "height": 768,
+        "mimetype": "image/png",
+        "size": 400000,
+        "url": "mxc://gua.global/cat",
+        "width": 1024
+      },
+      "name": "oversized file is capped at 256"
+    },
+    {
+      "expected": {
+        "body": "Dance",
+        "info": {
+          "h": 160,
+          "is_animated": true,
+          "mimetype": "image/gif",
+          "size": 300000,
+          "w": 160
+        },
+        "url": "mxc://gua.global/dog"
+      },
+      "input": {
+        "body": "Dance",
+        "height": 320,
+        "isAnimated": true,
+        "mimetype": "image/gif",
+        "size": 300000,
+        "url": "mxc://gua.global/dog",
+        "width": 320
+      },
+      "name": "animated"
+    },
+    {
+      "expected": {
+        "body": "Cat",
+        "info": {
+          "h": 256,
+          "mimetype": "image/png",
+          "size": 120034,
+          "w": 256
+        },
+        "m.relates_to": {
+          "m.in_reply_to": {
+            "event_id": "$reply:gua.global"
+          }
+        },
+        "url": "mxc://gua.global/cat"
+      },
+      "input": {
+        "body": "Cat",
+        "height": 512,
+        "mimetype": "image/png",
+        "replyTo": "$reply:gua.global",
+        "size": 120034,
+        "url": "mxc://gua.global/cat",
+        "width": 512
+      },
+      "name": "reply"
+    },
+    {
+      "expected": {
+        "body": "Cat",
+        "info": {
+          "h": 256,
+          "mimetype": "image/png",
+          "size": 120034,
+          "w": 256
+        },
+        "m.relates_to": {
+          "event_id": "$root:gua.global",
+          "is_falling_back": true,
+          "m.in_reply_to": {
+            "event_id": "$latest:gua.global"
+          },
+          "rel_type": "m.thread"
+        },
+        "url": "mxc://gua.global/cat"
+      },
+      "input": {
+        "body": "Cat",
+        "height": 512,
+        "mimetype": "image/png",
+        "replyTo": "$latest:gua.global",
+        "size": 120034,
+        "threadRoot": "$root:gua.global",
+        "url": "mxc://gua.global/cat",
+        "width": 512
+      },
+      "name": "thread"
+    },
+    {
+      "expected": {
+        "body": "Olá, mundo 😺",
+        "info": {
+          "h": 256,
+          "mimetype": "image/png",
+          "size": 120034,
+          "w": 256
+        },
+        "url": "mxc://gua.global/cat"
+      },
+      "input": {
+        "body": "Olá, mundo 😺",
+        "height": 512,
+        "mimetype": "image/png",
+        "size": 120034,
+        "url": "mxc://gua.global/cat",
+        "width": 512
+      },
+      "name": "unicode body"
+    }
+  ],
+  "version": 1
+}

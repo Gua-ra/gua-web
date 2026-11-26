@@ -15,6 +15,7 @@ import { type IRoomState } from "../../../../../src/components/structures/RoomVi
 import { MatrixClientPeg } from "../../../../../src/MatrixClientPeg";
 import MessageComposerButtons from "../../../../../src/components/views/rooms/MessageComposerButtons";
 import { ScopedRoomContextProvider } from "../../../../../src/contexts/ScopedRoomContext.tsx";
+import SettingsStore from "../../../../../src/settings/SettingsStore";
 
 describe("MessageComposerButtons", () => {
     // @ts-ignore - we're deliberately not implementing the whole interface here, but
@@ -87,15 +88,18 @@ describe("MessageComposerButtons", () => {
         );
 
         // The location code is lazy loaded, so the button will take a little while
-        // to appear, so we need to wait.
-        await waitFor(() => {
-            expect(getButtonLabels()).toEqual([
-                "Emoji",
-                "Attachment",
-                "More options",
-                ["Sticker", "Voice Message", "Poll", "Location"],
-            ]);
-        });
+        // to appear, so we need to wait. Loaded CI runners can take over a second.
+        await waitFor(
+            () => {
+                expect(getButtonLabels()).toEqual([
+                    "Emoji",
+                    "Attachment",
+                    "More options",
+                    ["Sticker", "Voice Message", "Poll", "Location"],
+                ]);
+            },
+            { timeout: 5000 },
+        );
     });
 
     it("Renders only some buttons in narrow mode", () => {
@@ -166,6 +170,35 @@ describe("MessageComposerButtons", () => {
                     "Location",
                 ],
             ]);
+        });
+    });
+
+    describe("with Gua stickers and GIFs", () => {
+        let getValue: jest.SpyInstance;
+
+        beforeEach(() => {
+            const original = SettingsStore.getValue.bind(SettingsStore);
+            getValue = jest
+                .spyOn(SettingsStore, "getValue")
+                .mockImplementation(((name: string, ...rest: never[]) =>
+                    name === "feature_gua_expressions" ? true : original(name as never, ...rest)) as never);
+        });
+
+        afterEach(() => getValue.mockRestore());
+
+        it("replaces the emoji button with the expression button", () => {
+            wrapAndRender(
+                <MessageComposerButtons
+                    {...mockProps}
+                    isMenuOpen={false}
+                    showLocationButton={true}
+                    showPollsButton={true}
+                    showStickersButton={true}
+                />,
+                false,
+            );
+
+            expect(getButtonLabels()).toEqual(["Emoji, stickers and GIFs", "Attachment", "More options"]);
         });
     });
 });
