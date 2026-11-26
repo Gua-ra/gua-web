@@ -7,7 +7,7 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React, { type JSX, createRef, type SyntheticEvent, type MouseEvent } from "react";
-import { MsgType } from "matrix-js-sdk/src/matrix";
+import { MsgType, RelationType } from "matrix-js-sdk/src/matrix";
 
 import EventContentBody from "./EventContentBody.tsx";
 import { formatDate } from "../../../DateUtils";
@@ -29,6 +29,8 @@ import { options as linkifyOpts } from "../../../linkify-matrix";
 import { getParentEventId } from "../../../utils/Reply";
 import { EditWysiwygComposer } from "../rooms/wysiwyg_composer";
 import { type IEventTileOps } from "../rooms/EventTile";
+import { getGuaMessage } from "../../../gua/messages/messageActions";
+import { MessageActionButtons } from "../../../gua/messages/MessageActionButtons";
 
 interface IState {
     // the URLs (if any) to be previewed with a LinkPreviewWidget inside this TextualBody.
@@ -319,6 +321,15 @@ export default class TextualBody extends React.Component<IBodyProps, IState> {
             content.msgtype as MsgType,
         );
 
+        // An edit's own tile shows its top-level fallback, not the m.new_content the actions belong to.
+        const hidesActions =
+            this.props.forExport ||
+            this.props.inhibitInteraction ||
+            isEmote ||
+            isCaption ||
+            mxEvent.isRelation(RelationType.Replace);
+        const { actions, shown } = hidesActions ? { actions: [], shown: content } : getGuaMessage(content);
+
         const willHaveWrapper =
             this.props.replacingEventId || this.props.isSeeingThroughMessageHiddenForModeration || isEmote;
         // only strip reply if this is the original replying event, edits thereafter do not have the fallback
@@ -328,7 +339,7 @@ export default class TextualBody extends React.Component<IBodyProps, IState> {
                 as={willHaveWrapper ? "span" : "div"}
                 includeDir={false}
                 mxEvent={mxEvent}
-                content={content}
+                content={shown}
                 stripReply={stripReply}
                 linkify
                 highlights={this.props.highlights}
@@ -400,10 +411,13 @@ export default class TextualBody extends React.Component<IBodyProps, IState> {
                 </div>
             );
         }
+        const guaActions = actions.length > 0 && <MessageActionButtons actions={actions} />;
+
         if (isNotice) {
             return (
                 <div id={this.props.id} className="mx_MNoticeBody mx_EventTile_content" onClick={this.onBodyLinkClick}>
                     {body}
+                    {guaActions}
                     {widgets}
                 </div>
             );
@@ -419,6 +433,7 @@ export default class TextualBody extends React.Component<IBodyProps, IState> {
         return (
             <div id={this.props.id} className="mx_MTextBody mx_EventTile_content" onClick={this.onBodyLinkClick}>
                 {body}
+                {guaActions}
                 {widgets}
             </div>
         );
