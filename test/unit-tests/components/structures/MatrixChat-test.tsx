@@ -201,16 +201,18 @@ describe("<MatrixChat />", () => {
      * including waiting for initial sync
      */
     const waitForSyncAndLoad = async (client: MatrixClient, withoutSecuritySetup?: boolean): Promise<void> => {
+        // Sign-in reaches these screens after the fake-indexeddb storage checks, which can pass 1 s on a busy runner.
+        const loginWait = { timeout: 3000 };
         // need to wait for different elements depending on which flow
         // without security setup we go to a loading page
         if (withoutSecuritySetup) {
             // wait for logged in view to load
-            await screen.findByLabelText("User menu");
+            await screen.findByLabelText("User menu", undefined, loginWait);
 
             // otherwise we stay on login and load from there for longer
         } else {
             // we are logged in, but are still waiting for the /sync to complete
-            await screen.findByText("Syncing…");
+            await screen.findByText("Syncing…", undefined, loginWait);
             // initial sync
             await act(() => client.emit(ClientEvent.Sync, SyncState.Prepared, null));
         }
