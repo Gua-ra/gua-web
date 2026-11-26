@@ -14,8 +14,10 @@ import {
     type Artwork,
     ARTWORKS,
     darkDim,
+    getArtwork,
     isLive,
     PHOTO_LICENCE_URLS,
+    type PhotoLicence,
     photoCredits,
 } from "../../../../src/gua/chatTheme/model/artworks";
 import { BUBBLE_IDS } from "../../../../src/gua/chatTheme/model/bubbles";
@@ -23,6 +25,9 @@ import { ARTWORK_NAMES, BUBBLE_NAMES, PRESET_NAMES } from "../../../../src/gua/c
 import { ORIGINAL_TEN, PRESET_IDS } from "../../../../src/gua/chatTheme/model/presets";
 import { LIVE_SHADERS } from "../../../../src/gua/chatTheme/live/liveShaders";
 import en from "../../../../src/i18n/strings/en_EN.json";
+import es from "../../../../src/i18n/strings/es.json";
+import fr from "../../../../src/i18n/strings/fr.json";
+import ptBR from "../../../../src/i18n/strings/pt_BR.json";
 
 const ROOT = path.resolve(__dirname, "../../../..");
 const WALLPAPERS = path.join(ROOT, "res/img/gua/wallpapers");
@@ -30,8 +35,8 @@ const SHADERS = path.join(ROOT, "src/gua/chatTheme/live/shaders");
 
 const sha256 = (file: string): string => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 
-function lookup(key: string): unknown {
-    return key.split("|").reduce<unknown>((node, part) => (node as Record<string, unknown>)?.[part], en);
+function lookup(key: string, strings: object = en): unknown {
+    return key.split("|").reduce<unknown>((node, part) => (node as Record<string, unknown>)?.[part], strings);
 }
 
 describe("artworks", () => {
@@ -76,6 +81,8 @@ describe("artworks", () => {
         expect(PHOTO_LICENCE_URLS).toEqual({
             "CC0 1.0": "https://creativecommons.org/publicdomain/zero/1.0/",
             "CC BY 4.0": "https://creativecommons.org/licenses/by/4.0/",
+            "All rights reserved":
+                "https://github.com/Gua-ra/gua-android/blob/develop/tools/wallpapers/licenses/LicenseRef-Gabriel-Bonfa-Photo.txt",
         });
     });
 
@@ -94,7 +101,7 @@ describe("artworks", () => {
         expect(photoCredits().map((p) => p.id)).toEqual(
             ARTWORKS.filter((a) => a.section === "photos").map((a) => a.id),
         );
-        expect(photoCredits()).toHaveLength(19);
+        expect(photoCredits()).toHaveLength(20);
     });
 
     it("dim a photo in dark mode like a user's own photo, and no other artwork", () => {
@@ -125,14 +132,42 @@ describe("artworks", () => {
         expect(fs.readdirSync(path.join(WALLPAPERS, "thumbnails")).sort()).toEqual([...stills].sort());
     });
 
-    it("list every photo in the notices, next to both licence texts", () => {
+    it("list every photo in the notices, next to its licence text", () => {
         const notices = fs.readFileSync(path.join(WALLPAPERS, "THIRD_PARTY_NOTICES.md"), "utf8");
+        const terms = (licence: PhotoLicence): string =>
+            licence === "All rights reserved"
+                ? "licenses/LicenseRef-Gabriel-Bonfa-Photo.txt"
+                : PHOTO_LICENCE_URLS[licence];
         for (const { id, credit } of photoCredits()) {
             const row = notices.split("\n").find((line) => line.startsWith(`| \`${id}.webp\``));
             expect([id, row]).toEqual([id, expect.stringContaining(`| ${credit.author} `)]);
-            expect(row).toContain(`[${credit.licence}](${PHOTO_LICENCE_URLS[credit.licence]})`);
+            expect(row).toContain(`[${credit.licence}](${terms(credit.licence)})`);
         }
-        expect(fs.readdirSync(path.join(WALLPAPERS, "licenses")).sort()).toEqual(["CC-BY-4.0.txt", "CC0-1.0.txt"]);
+        expect(fs.readdirSync(path.join(WALLPAPERS, "licenses")).sort()).toEqual([
+            "CC-BY-4.0.txt",
+            "CC0-1.0.txt",
+            "LicenseRef-Gabriel-Bonfa-Photo.txt",
+        ]);
+    });
+
+    it("credit Smiling Maned Wolf in the words its licence requires", () => {
+        expect(getArtwork("photo-maned-wolf-smiling").credit).toEqual({
+            author: "Gabriel Bonfa",
+            licence: "All rights reserved",
+        });
+        const credit = (strings: object): unknown =>
+            (lookup("gua|chat_theme|photo_credit", strings) as string).replace("%(author)s", "Gabriel Bonfa");
+        expect(credit(en)).toBe("Photo: Gabriel Bonfa");
+        expect(credit(ptBR)).toBe("Foto: Gabriel Bonfa");
+        for (const strings of [en, ptBR, es, fr]) {
+            expect(lookup("gua|chat_theme|photo_licence_all_rights_reserved", strings)).toEqual(expect.any(String));
+            expect(lookup(ARTWORK_NAMES["photo-maned-wolf-smiling"], strings)).toEqual(expect.any(String));
+        }
+        const notice = fs.readFileSync(path.join(WALLPAPERS, "licenses/LicenseRef-Gabriel-Bonfa-Photo.txt"), "utf8");
+        expect(notice).toContain('Credit: "Foto: Gabriel Bonfa"');
+        expect(notice).toContain(
+            "Anyone distributing a modified version of this software must remove or replace this photo.",
+        );
     });
 
     it("fall back to one of the presets every build knows", () => {

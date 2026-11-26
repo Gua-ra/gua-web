@@ -40,6 +40,7 @@
                 "photo_lencois_lagoon": "Lagoa dos Lençóis",
                 "photo_lone_canoe": "Canoa solitária",
                 "photo_maned_wolf": "Lobo-guará dormindo",
+                "photo_maned_wolf_smiling": "Lobo-guará sorrindo",
                 "photo_maned_wolf_standing": "Lobo-guará",
                 "photo_nunavik_aurora": "Aurora em Nunavik",
                 "photo_peyto_lake": "Lago Peyto",
@@ -106,6 +107,7 @@
             "photo_credit": "Foto: %(author)s",
             "photo_credit_licence": "Foto: %(author)s · %(licence)s",
             "photo_credits": "Créditos das fotos",
+            "photo_licence_all_rights_reserved": "Todos os direitos reservados",
             "photo_source": "Fonte",
             "photo_value": "Foto",
             "preset": {

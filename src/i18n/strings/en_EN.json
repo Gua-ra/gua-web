@@ -1303,6 +1303,7 @@
                 "photo_lencois_lagoon": "Lençóis Lagoon",
                 "photo_lone_canoe": "Lone Canoe",
                 "photo_maned_wolf": "Sleeping Maned Wolf",
+                "photo_maned_wolf_smiling": "Smiling Maned Wolf",
                 "photo_maned_wolf_standing": "Maned Wolf",
                 "photo_nunavik_aurora": "Nunavik Aurora",
                 "photo_peyto_lake": "Peyto Lake",
@@ -1369,6 +1370,7 @@
             "photo_credit": "Photo: %(author)s",
             "photo_credit_licence": "Photo: %(author)s · %(licence)s",
             "photo_credits": "Photo credits",
+            "photo_licence_all_rights_reserved": "All rights reserved",
             "photo_source": "Source",
             "photo_value": "Photo",
             "preset": {

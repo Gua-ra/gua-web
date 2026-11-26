@@ -11,7 +11,7 @@ import { Button } from "@vector-im/compound-web";
 import { _t } from "../../../languageHandler";
 import ExternalLink from "../../../components/views/elements/ExternalLink";
 import { PHOTO_LICENCE_URLS, type PhotoCredit, photoCredits } from "../model/artworks";
-import { ARTWORK_NAMES, photoCreditText, photoCreditWithLicence } from "../model/names";
+import { ARTWORK_NAMES, photoCreditText, photoCreditWithLicence, photoLicenceName } from "../model/names";
 import { WallpaperThumbnail } from "../render/WallpaperLayer";
 import { useAppearance } from "../state/useAppearance";
 import { ChatThemeSubView } from "./ChatThemeSubView";
@@ -79,7 +79,9 @@ export function ChatPhotoCredits({ onBack }: { onBack: () => void }): JSX.Elemen
                             <span className="mx_GuaPhotoCredits_name">{_t(ARTWORK_NAMES[id])}</span>
                             <span>{photoCreditText(credit)}</span>
                             <span className="mx_GuaPhotoCredits_links">
-                                <ExternalLink href={PHOTO_LICENCE_URLS[credit.licence]}>{credit.licence}</ExternalLink>
+                                <ExternalLink href={PHOTO_LICENCE_URLS[credit.licence]}>
+                                    {photoLicenceName(credit.licence)}
+                                </ExternalLink>
                                 {credit.sourceUrl && (
                                     <ExternalLink href={credit.sourceUrl}>
                                         {_t("gua|chat_theme|photo_source")}

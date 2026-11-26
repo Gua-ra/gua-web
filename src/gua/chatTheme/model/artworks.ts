@@ -11,10 +11,12 @@ import { type PresetId } from "./presets";
 
 export type ArtworkSection = "live" | "nature" | "photos" | "patterns" | "minimal";
 
-/** Each photo licence's deed, which the credits link to. */
+/** Each photo licence's deed, which the credits link to. A photo licensed to Gua alone links to its notice. */
 export const PHOTO_LICENCE_URLS = {
     "CC0 1.0": "https://creativecommons.org/publicdomain/zero/1.0/",
     "CC BY 4.0": "https://creativecommons.org/licenses/by/4.0/",
+    "All rights reserved":
+        "https://github.com/Gua-ra/gua-android/blob/develop/tools/wallpapers/licenses/LicenseRef-Gabriel-Bonfa-Photo.txt",
 } as const;
 
 export type PhotoLicence = keyof typeof PHOTO_LICENCE_URLS;
@@ -279,6 +281,15 @@ export const ARTWORKS = [
             licence: "CC0 1.0",
             sourceUrl: "https://nationalzoo.si.edu/object/nzp_NZP-20160729-011GM",
         },
+    },
+    {
+        id: "photo-maned-wolf-smiling",
+        section: "photos",
+        bubble: "blue",
+        bubbleDark: "purple",
+        anchor: { x: 0.38, y: 0.32 },
+        fallback: "mint",
+        credit: { author: "Gabriel Bonfa", licence: "All rights reserved" },
     },
     {
         id: "photo-yukon-trail",

@@ -40,6 +40,7 @@
                 "photo_lencois_lagoon": "Lagune des Lençóis",
                 "photo_lone_canoe": "Canot solitaire",
                 "photo_maned_wolf": "Loup à crinière endormi",
+                "photo_maned_wolf_smiling": "Loup à crinière souriant",
                 "photo_maned_wolf_standing": "Loup à crinière",
                 "photo_nunavik_aurora": "Aurore au Nunavik",
                 "photo_peyto_lake": "Lac Peyto",
@@ -106,6 +107,7 @@
             "photo_credit": "Photo : %(author)s",
             "photo_credit_licence": "Photo : %(author)s · %(licence)s",
             "photo_credits": "Crédits photo",
+            "photo_licence_all_rights_reserved": "Tous droits réservés",
             "photo_source": "Source",
             "photo_value": "Photo",
             "preset": {

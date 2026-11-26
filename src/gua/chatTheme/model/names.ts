@@ -6,7 +6,7 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import { _t, _td, type TranslationKey } from "../../../languageHandler";
-import { type ArtworkId, type PhotoCredit } from "./artworks";
+import { type ArtworkId, type PhotoCredit, type PhotoLicence } from "./artworks";
 import { type BubbleId } from "./bubbles";
 import { type GallerySectionId } from "./gallery";
 import { type PresetId } from "./presets";
@@ -72,6 +72,7 @@ export const ARTWORK_NAMES: Record<ArtworkId, TranslationKey> = {
     "photo-araucaria": _td("gua|chat_theme|art|photo_araucaria"),
     "photo-maned-wolf": _td("gua|chat_theme|art|photo_maned_wolf"),
     "photo-maned-wolf-standing": _td("gua|chat_theme|art|photo_maned_wolf_standing"),
+    "photo-maned-wolf-smiling": _td("gua|chat_theme|art|photo_maned_wolf_smiling"),
     "photo-yukon-trail": _td("gua|chat_theme|art|photo_yukon_trail"),
     "photo-yukon-sun": _td("gua|chat_theme|art|photo_yukon_sun"),
     "photo-yukon-forest": _td("gua|chat_theme|art|photo_yukon_forest"),
@@ -121,8 +122,16 @@ export function photoCreditText(credit: PhotoCredit): string {
     return _t("gua|chat_theme|photo_credit", { author: credit.author });
 }
 
+/** Creative Commons licence names stay untranslated. */
+export function photoLicenceName(licence: PhotoLicence): string {
+    return licence === "All rights reserved" ? _t("gua|chat_theme|photo_licence_all_rights_reserved") : licence;
+}
+
 export function photoCreditWithLicence(credit: PhotoCredit): string {
-    return _t("gua|chat_theme|photo_credit_licence", { author: credit.author, licence: credit.licence });
+    return _t("gua|chat_theme|photo_credit_licence", {
+        author: credit.author,
+        licence: photoLicenceName(credit.licence),
+    });
 }
 
 export function bubbleName(theme: ChatTheme, dark: boolean): string {

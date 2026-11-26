@@ -775,6 +775,34 @@
       }
     },
     {
+      "id": "photo-maned-wolf-smiling",
+      "section": "photos",
+      "live": false,
+      "files": {
+        "light": "photo-maned-wolf-smiling.webp",
+        "dark": "photo-maned-wolf-smiling.webp"
+      },
+      "sha256": {
+        "photo-maned-wolf-smiling.webp": "e6cd22ce4495baec73642ec648a19297525c251b054e5cf747051a37757b6ccd"
+      },
+      "anchor": {
+        "x": 0.38,
+        "y": 0.32
+      },
+      "fallback_preset": "mint",
+      "bubble": {
+        "light": "blue",
+        "dark": "purple"
+      },
+      "credit": {
+        "author": "Gabriel Bonfa",
+        "licence": "All rights reserved",
+        "licence_url": "https://github.com/Gua-ra/gua-android/blob/develop/tools/wallpapers/licenses/LicenseRef-Gabriel-Bonfa-Photo.txt",
+        "source_url": null,
+        "modified": "cropped and resized"
+      }
+    },
+    {
       "id": "photo-yukon-trail",
       "section": "photos",
       "live": false,

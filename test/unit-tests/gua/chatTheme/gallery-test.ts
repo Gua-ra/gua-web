@@ -100,6 +100,7 @@ describe("chat theme gallery", () => {
             "photo-araucaria",
             "photo-maned-wolf",
             "photo-maned-wolf-standing",
+            "photo-maned-wolf-smiling",
             "photo-yukon-trail",
             "photo-yukon-sun",
             "photo-yukon-forest",

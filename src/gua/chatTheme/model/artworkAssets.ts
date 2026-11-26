@@ -113,6 +113,8 @@ import photoManedWolf from "../../../../res/img/gua/wallpapers/photo-maned-wolf.
 import photoManedWolfThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-maned-wolf.webp";
 import photoManedWolfStanding from "../../../../res/img/gua/wallpapers/photo-maned-wolf-standing.webp";
 import photoManedWolfStandingThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-maned-wolf-standing.webp";
+import photoManedWolfSmiling from "../../../../res/img/gua/wallpapers/photo-maned-wolf-smiling.webp";
+import photoManedWolfSmilingThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-maned-wolf-smiling.webp";
 import photoYukonTrail from "../../../../res/img/gua/wallpapers/photo-yukon-trail.webp";
 import photoYukonTrailThumbnail from "../../../../res/img/gua/wallpapers/thumbnails/photo-yukon-trail.webp";
 import photoYukonSun from "../../../../res/img/gua/wallpapers/photo-yukon-sun.webp";
@@ -203,6 +205,7 @@ const STILLS: Record<ArtworkId, { light: string; dark: string }> = {
     "photo-araucaria": { light: photoAraucaria, dark: photoAraucaria },
     "photo-maned-wolf": { light: photoManedWolf, dark: photoManedWolf },
     "photo-maned-wolf-standing": { light: photoManedWolfStanding, dark: photoManedWolfStanding },
+    "photo-maned-wolf-smiling": { light: photoManedWolfSmiling, dark: photoManedWolfSmiling },
     "photo-yukon-trail": { light: photoYukonTrail, dark: photoYukonTrail },
     "photo-yukon-sun": { light: photoYukonSun, dark: photoYukonSun },
     "photo-yukon-forest": { light: photoYukonForest, dark: photoYukonForest },
@@ -257,6 +260,7 @@ const THUMBNAILS: Record<ArtworkId, { light: string; dark: string }> = {
     "photo-araucaria": { light: photoAraucariaThumbnail, dark: photoAraucariaThumbnail },
     "photo-maned-wolf": { light: photoManedWolfThumbnail, dark: photoManedWolfThumbnail },
     "photo-maned-wolf-standing": { light: photoManedWolfStandingThumbnail, dark: photoManedWolfStandingThumbnail },
+    "photo-maned-wolf-smiling": { light: photoManedWolfSmilingThumbnail, dark: photoManedWolfSmilingThumbnail },
     "photo-yukon-trail": { light: photoYukonTrailThumbnail, dark: photoYukonTrailThumbnail },
     "photo-yukon-sun": { light: photoYukonSunThumbnail, dark: photoYukonSunThumbnail },
     "photo-yukon-forest": { light: photoYukonForestThumbnail, dark: photoYukonForestThumbnail },

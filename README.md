@@ -130,3 +130,5 @@ Public License (version 3 or later), or under a paid-for Element Commercial Lice
 The photo wallpapers (`res/img/gua/wallpapers/photo-*.webp` and their thumbnails) are not under
 these licenses. Each keeps its own license; see
 [res/img/gua/wallpapers/THIRD_PARTY_NOTICES.md](res/img/gua/wallpapers/THIRD_PARTY_NOTICES.md).
+`photo-maned-wolf-smiling.webp` is licensed to Gua for its official apps only, so a modified version
+must remove or replace it.
