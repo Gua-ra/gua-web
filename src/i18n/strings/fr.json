@@ -69,7 +69,6 @@
                 "yellow": "Jaune"
             },
             "bubble_label": "Bulle : %(name)s",
-            "bubble_layout_note": "Les thèmes de conversation s’affichent avec la disposition Message en bulles.",
             "chat_bubble": "Bulle de conversation",
             "chat_note": "Tous les participants de la conversation voient ce thème.",
             "choose_photo": "Choisir une photo",
@@ -80,6 +79,7 @@
             "error_generic": "Impossible de modifier l’arrière-plan. Veuillez réessayer.",
             "labs_description": "Des bulles et des fonds d’écran pour chaque conversation, partagés avec tous ses participants, et un thème par défaut pour toutes vos conversations.",
             "labs_name": "Thèmes de conversation",
+            "layout_note": "Les thèmes de conversation s’affichent avec les dispositions Moderne et Message en bulles.",
             "live_badge": "Animé",
             "no_permission": "Seuls les administrateurs et les modérateurs peuvent le modifier",
             "no_wallpaper": "Aucun fond d’écran",

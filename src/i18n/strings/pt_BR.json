@@ -69,7 +69,6 @@
                 "yellow": "Amarelo"
             },
             "bubble_label": "Balão: %(name)s",
-            "bubble_layout_note": "Os temas de conversa aparecem no layout Balões de mensagem.",
             "chat_bubble": "Balão da conversa",
             "chat_note": "Todos na conversa veem este tema.",
             "choose_photo": "Escolher uma foto",
@@ -80,6 +79,7 @@
             "error_generic": "Não foi possível alterar o fundo. Tente novamente.",
             "labs_description": "Balões e papéis de parede para cada conversa, compartilhados com todos nela, e um padrão para todas as suas conversas.",
             "labs_name": "Temas de conversa",
+            "layout_note": "Os temas de conversa aparecem nos layouts Moderno e Balões de mensagem.",
             "live_badge": "Animado",
             "no_permission": "Somente administradores e moderadores podem alterá-lo",
             "no_wallpaper": "Sem papel de parede",

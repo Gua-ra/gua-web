@@ -10,7 +10,7 @@ import { type Room } from "matrix-js-sdk/src/matrix";
 
 import Spinner from "../../components/views/elements/Spinner";
 import { useFeatureEnabled } from "../../hooks/useSettings";
-import { useIsBubbleLayout } from "./state/flags";
+import { useLayoutShowsChatThemes } from "./state/flags";
 
 // Upstream code imports only these wrappers, notice.ts and model/constants.ts, so the rest stays in one lazy chunk.
 
@@ -23,8 +23,8 @@ export function ChatThemeWallpaper(props: {
     bodyRef: RefObject<HTMLDivElement | null>;
 }): JSX.Element | null {
     const enabled = useFeatureEnabled("feature_gua_chat_themes");
-    const bubbleLayout = useIsBubbleLayout();
-    if (!enabled || !bubbleLayout) return null;
+    const shown = useLayoutShowsChatThemes();
+    if (!enabled || !shown) return null;
     return (
         <Suspense fallback={null}>
             <ThemedChat {...props} />

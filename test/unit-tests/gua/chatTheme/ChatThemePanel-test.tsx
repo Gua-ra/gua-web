@@ -255,8 +255,14 @@ describe("ChatThemePanel", () => {
         expect(Modal.createDialog).not.toHaveBeenCalled();
     });
 
-    it("offers the message bubbles layout outside it", () => {
+    it("needs no other layout in Modern", () => {
         layout = Layout.Group;
+        renderPanel();
+        expect(screen.queryByRole("button", { name: "Use message bubbles" })).toBeNull();
+    });
+
+    it("offers the message bubbles layout in IRC", () => {
+        layout = Layout.IRC;
         const setValue = jest.spyOn(SettingsStore, "setValue").mockResolvedValue();
         renderPanel();
         fireEvent.click(screen.getByRole("button", { name: "Use message bubbles" }));

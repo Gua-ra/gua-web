@@ -8,7 +8,7 @@ Please see LICENSE files in the repository root for full details.
 import { useSettingValue } from "../../../hooks/useSettings";
 import { Layout } from "../../../settings/enums/Layout";
 
-/** Themes draw only in the bubble layout, the only one with outgoing bubbles to colour. */
-export function useIsBubbleLayout(): boolean {
-    return useSettingValue("layout") === Layout.Bubble;
+/** IRC rows run edge to edge with no message shape to back, so a wallpaper there would need a veil hiding it. */
+export function useLayoutShowsChatThemes(): boolean {
+    return useSettingValue("layout") !== Layout.IRC;
 }

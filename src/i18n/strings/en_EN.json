@@ -1332,7 +1332,6 @@
                 "yellow": "Yellow"
             },
             "bubble_label": "%(name)s bubble",
-            "bubble_layout_note": "Chat themes show in the Message bubbles layout.",
             "chat_bubble": "Chat bubble",
             "chat_note": "Everyone in the chat sees this theme.",
             "choose_photo": "Choose a photo",
@@ -1343,6 +1342,7 @@
             "error_generic": "Couldn’t change the background. Try again.",
             "labs_description": "Chat bubbles and wallpapers for each chat, shared with everyone in it, and a default for all your chats.",
             "labs_name": "Chat themes",
+            "layout_note": "Chat themes show in the Modern and Message bubbles layouts.",
             "live_badge": "Live",
             "no_permission": "Only admins and moderators can change it",
             "no_wallpaper": "No wallpaper",

@@ -29,7 +29,7 @@ import {
 } from "../model/screenModel";
 import { type ChatTheme, isStock, shownBubble, STOCK, themesEqual } from "../model/types";
 import { WallpaperThumbnail } from "../render/WallpaperLayer";
-import { useIsBubbleLayout } from "../state/flags";
+import { useLayoutShowsChatThemes } from "../state/flags";
 import { type Appearance, useAppearance } from "../state/useAppearance";
 import { ChatBubblePicker } from "./ChatBubblePicker";
 import { SectionHeading, usePhotoCredits } from "./ChatPhotoCredits";
@@ -184,7 +184,7 @@ function ThemeGallery({
 }): JSX.Element {
     const { state, save } = screen;
     const appearance = useAppearance();
-    const bubbleLayout = useIsBubbleLayout();
+    const layoutShowsThemes = useLayoutShowsChatThemes();
     const [preview, setPreview] = useState<Preview | null>(null);
     const { saving, error, run, setError } = useThemeSave(save);
     const credits = usePhotoCredits();
@@ -259,9 +259,9 @@ function ThemeGallery({
     return (
         <>
             <div ref={rootRef} className="mx_GuaThemePanel" hidden={credits.shown}>
-                {!bubbleLayout && (
+                {!layoutShowsThemes && (
                     <div className="mx_GuaThemePanel_layoutNote">
-                        <span>{_t("gua|chat_theme|bubble_layout_note")}</span>
+                        <span>{_t("gua|chat_theme|layout_note")}</span>
                         <Button
                             className="mx_Dialog_nonDialogButton"
                             kind="secondary"

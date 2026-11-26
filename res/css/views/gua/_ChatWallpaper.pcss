@@ -101,17 +101,21 @@ Please see LICENSE files in the repository root for full details.
     --gua-bubble: var(--gua-bubble-dark, $eventbubble-self-bg);
 }
 
-/* Only real bubbles. The palette colours have less contrast with text than the stock bubble, so secondary text and
-   links take the next step of their ramp to keep 4.5:1. The timestamp colour is resolved on the root, so it is set
-   again here. */
+/* Only real bubbles, and in Modern the cards of your own messages over a wallpaper. The palette colours have less
+   contrast with text than the stock bubble, so secondary text and links take the next step of their ramp to keep
+   4.5:1. The timestamp colour is resolved on the root, so it is set again here. */
 .mx_RoomView[data-gua-bubble]
     .mx_EventTile[data-layout="bubble"][data-self="true"]:not(
         .mx_EventTile_info,
         .mx_EventTile_noBubble,
         .mx_EventTile_bubbleContainer,
         .mx_EventTile_leftAlignedBubble
-    ) {
+    ),
+.mx_RoomView[data-gua-bubble]
+    .mx_RoomView_body[data-gua-wallpaper]
+    .mx_EventTile[data-layout="group"][data-self="true"]:not(.mx_EventTile_info) {
     --backgroundColor: var(--gua-bubble);
+    --gua-card-background: var(--gua-bubble);
     --cpd-color-text-secondary: var(--cpd-color-gray-1100);
     --MessageTimestamp-color: var(--cpd-color-gray-1100);
     --cpd-color-text-link-external: var(--cpd-color-blue-1000);
@@ -129,8 +133,27 @@ Please see LICENSE files in the repository root for full details.
             .mx_EventTile_noBubble,
             .mx_EventTile_bubbleContainer,
             .mx_EventTile_leftAlignedBubble
-        ) {
+        ),
+    .mx_RoomView[data-gua-bubble]
+        .mx_RoomView_body[data-gua-wallpaper]
+        .mx_EventTile[data-layout="group"][data-self="true"]:not(.mx_EventTile_info) {
         --cpd-color-text-link-external: var(--cpd-color-blue-1100);
+    }
+}
+
+/* The stock hover and selection band is grey, which shows as a cut-out on a coloured card, so it takes a shade of
+   the card instead. */
+.mx_RoomView[data-gua-bubble]
+    .mx_RoomView_body[data-gua-wallpaper]
+    .mx_EventTile[data-layout="group"][data-self="true"]:not(.mx_EventTile_info) {
+    &:hover,
+    &:focus-visible:focus-within,
+    &.mx_EventTile_actionBarFocused,
+    &.mx_EventTile_isEditing,
+    &.mx_EventTile_selected {
+        .mx_EventTile_line {
+            background-color: color-mix(in srgb, var(--gua-bubble), var(--cpd-color-text-primary) 8%);
+        }
     }
 }
 
@@ -162,9 +185,9 @@ Please see LICENSE files in the repository root for full details.
 
     /* Small chrome on the wallpaper sits on a capsule of the page colour. */
     .mx_TimelineSeparator > div,
-    .mx_EventTile[data-layout="bubble"] .mx_TextualEvent,
-    .mx_GenericEventListSummary[data-layout="bubble"] .mx_GenericEventListSummary_summary,
-    .mx_GenericEventListSummary[data-layout="bubble"] .mx_GenericEventListSummary_toggle,
+    .mx_EventTile .mx_TextualEvent,
+    .mx_GenericEventListSummary .mx_GenericEventListSummary_summary,
+    .mx_GenericEventListSummary .mx_GenericEventListSummary_toggle,
     .mx_EventTile[data-layout="bubble"][data-self="false"] > .mx_DisambiguatedProfile,
     .mx_EventTile.mx_EventTile_noBubble[data-layout="bubble"] .mx_MessageTimestamp,
     .mx_ReactionsRow_showAll,
@@ -199,6 +222,37 @@ Please see LICENSE files in the repository root for full details.
         padding: 16px;
         border-radius: 12px;
         background-color: var(--gua-legibility-background);
+    }
+
+    /* Modern has no message shape to back, so each run of one sender's tiles forms one card under its name,
+       replies, reactions and receipts, with the wallpaper in the gap above it. Each tile draws its own slice, so the
+       card is opaque and a continuation overlaps the tile above by a pixel to leave no seam at fractional heights. */
+    .mx_EventTile[data-layout="group"]:not(.mx_EventTile_info) {
+        --gua-card-background: var(--cpd-color-bg-canvas-default);
+
+        &::before {
+            content: "";
+            position: absolute;
+            inset: 8px 0 0;
+            z-index: -1;
+            border-radius: 12px 12px 0 0;
+            background-color: var(--gua-card-background);
+            pointer-events: none;
+        }
+
+        &.mx_EventTile_continuation::before {
+            inset-block-start: -1px;
+            border-radius: 0;
+        }
+
+        &.mx_EventTile_lastInSection {
+            padding-bottom: 6px;
+
+            &::before {
+                border-end-start-radius: 12px;
+                border-end-end-radius: 12px;
+            }
+        }
     }
 }
 

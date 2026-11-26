@@ -69,7 +69,6 @@
                 "yellow": "Amarillo"
             },
             "bubble_label": "Burbuja: %(name)s",
-            "bubble_layout_note": "Los temas de chat se muestran en el diseño Burbujas de mensaje.",
             "chat_bubble": "Burbuja del chat",
             "chat_note": "Todos en el chat ven este tema.",
             "choose_photo": "Elegir una foto",
@@ -80,6 +79,7 @@
             "error_generic": "No se pudo cambiar el fondo. Inténtalo de nuevo.",
             "labs_description": "Burbujas y fondos de pantalla para cada chat, compartidos con todos sus participantes, y un tema predeterminado para todos tus chats.",
             "labs_name": "Temas de chat",
+            "layout_note": "Los temas de chat se muestran en los diseños Moderno y Burbujas de mensaje.",
             "live_badge": "Animado",
             "no_permission": "Solo los administradores y moderadores pueden cambiarlo",
             "no_wallpaper": "Sin fondo de pantalla",

@@ -195,14 +195,15 @@ describe("ChatWallpaper", () => {
         expect(roomElement.getAttributeNames()).toEqual(["class"]);
     });
 
-    it("loads the theme only with chat themes on and the bubble layout", async () => {
+    it.each([Layout.Bubble, Layout.Group])("loads the theme with chat themes on in the %s layout", async (shown) => {
+        layout = shown;
         setState("global.gua.room.background", { v: 1, kind: "preset", preset: "mint", bubble: "green" });
         const { container } = renderWallpaper(ChatThemeWallpaper);
         await waitFor(() => expect(container.querySelector(".mx_GuaChatWallpaper")).not.toBeNull());
     });
 
-    it("draws nothing outside the bubble layout", () => {
-        layout = Layout.Group;
+    it("draws nothing in the IRC layout", () => {
+        layout = Layout.IRC;
         setState("global.gua.room.background", { v: 1, kind: "preset", preset: "mint", bubble: "green" });
         const { container, body } = renderWallpaper(ChatThemeWallpaper);
         expect(container.querySelector(".mx_GuaWallpaper")).toBeNull();
