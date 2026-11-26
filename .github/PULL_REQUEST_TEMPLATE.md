@@ -1,9 +1,5 @@
-<!-- Thanks for submitting a PR! Please ensure the following requirements are met in order for us to review your PR -->
+<!-- Read CONTRIBUTING.md first. Keep the pull request to one concern. -->
 
-## Checklist
+<!-- What changes and why, in a short paragraph or a few bullets. -->
 
-- [ ] I have read through [review guidelines](../docs/review.md) and [CONTRIBUTING.md](../CONTRIBUTING.md).
-- [ ] Tests written for new code (and old code if feasible).
-- [ ] New or updated `public`/`exported` symbols have accurate [TSDoc](https://tsdoc.org/) documentation.
-- [ ] Linter and other CI checks pass.
-- [ ] I have licensed the changes to Element by completing the [Contributor License Agreement (CLA)](https://cla-assistant.io/element-hq/element-web)
+<!-- Validation: what was observed working, such as tests run, browsers checked or screenshots for UI changes. Add compatibility or rollout notes only when they matter. -->
