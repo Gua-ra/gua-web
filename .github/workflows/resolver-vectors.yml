@@ -1,0 +1,33 @@
+name: Resolver vectors
+
+# The vector copies must equal gua-resolver's files at RESOLVER_COMMIT. Update both together.
+
+on:
+    pull_request:
+        paths:
+            - "test/unit-tests/gua/resolver/verification/fixtures/gua-*-vectors.json"
+            - ".github/workflows/resolver-vectors.yml"
+    push:
+        branches: [gua/main]
+        paths:
+            - "test/unit-tests/gua/resolver/verification/fixtures/gua-*-vectors.json"
+            - ".github/workflows/resolver-vectors.yml"
+
+permissions:
+    contents: read
+
+jobs:
+    compare:
+        runs-on: ubuntu-latest
+        env:
+            RESOLVER_COMMIT: 82088ab68aa231553bcdef8983c0a091d19e6dd8
+        steps:
+            - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+              with:
+                  persist-credentials: false
+            - name: Compare with gua-resolver
+              run: |
+                  for file in gua-client-verification-v1-vectors.json gua-lp-v1-vectors.json; do
+                    curl -fsSL "https://raw.githubusercontent.com/Gua-ra/gua-resolver/$RESOLVER_COMMIT/docs/specs/$file" \
+                      | cmp - "test/unit-tests/gua/resolver/verification/fixtures/$file"
+                  done
