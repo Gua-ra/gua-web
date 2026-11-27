@@ -1,0 +1,268 @@
+/*
+Copyright 2026 Gua
+
+SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only
+Please see LICENSE files in the repository root for full details.
+*/
+
+/* Never mirrored for right-to-left layouts. */
+.mx_GuaWallpaper {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    direction: ltr;
+    contain: strict;
+}
+
+.mx_GuaWallpaper_layer {
+    position: absolute;
+    inset: 0;
+}
+
+.mx_GuaWallpaper_layer_entering {
+    animation: mx_GuaWallpaper_fadeIn 200ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mx_GuaWallpaper_layer_entering {
+        animation: none;
+    }
+}
+
+@keyframes mx_GuaWallpaper_fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.mx_GuaWallpaper_fill,
+.mx_GuaWallpaper_still,
+.mx_GuaWallpaper_liveFrame,
+.mx_GuaWallpaper_live,
+.mx_GuaWallpaper_grain,
+.mx_GuaWallpaper_scrim {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.mx_GuaWallpaper_none {
+    background-color: var(--cpd-color-bg-canvas-default);
+}
+
+.mx_GuaWallpaper_still {
+    object-fit: cover;
+    user-select: none;
+}
+
+.mx_GuaWallpaper_live {
+    display: block;
+}
+
+/* Breaks up banding in smooth fills by about one or two levels. */
+.mx_GuaWallpaper_grain {
+    background-image: url("$(res)/img/gua/wallpapers/noise.webp");
+    background-repeat: repeat;
+    mix-blend-mode: soft-light;
+    opacity: 0.08;
+}
+
+.mx_GuaWallpaper_scrim {
+    background-color: #000;
+}
+
+.mx_GuaWallpaper_photo {
+    position: absolute;
+}
+
+/* Keeps the wallpaper's z-index -1 inside the timeline column, under every tile including the bubbles' own
+   z-index -1 hover backgrounds. */
+.mx_RoomView_body[data-gua-wallpaper] > .mx_RoomView_timeline {
+    isolation: isolate;
+}
+
+/* The column's right margin is part of the timeline's area. */
+.mx_GuaChatWallpaper {
+    z-index: -1;
+    right: calc(var(--container-gap-width) / -2);
+}
+
+.mx_RoomView[data-gua-bubble] {
+    --gua-bubble: var(--gua-bubble-light, $eventbubble-self-bg);
+}
+
+.cpd-theme-dark .mx_RoomView[data-gua-bubble],
+.cpd-theme-dark-hc .mx_RoomView[data-gua-bubble] {
+    --gua-bubble: var(--gua-bubble-dark, $eventbubble-self-bg);
+}
+
+/* Only real bubbles, and in Modern the cards of your own messages over a wallpaper. The palette colours have less
+   contrast with text than the stock bubble, so secondary text and links take the next step of their ramp to keep
+   4.5:1. The timestamp colour is resolved on the root, so it is set again here. */
+.mx_RoomView[data-gua-bubble]
+    .mx_EventTile[data-layout="bubble"][data-self="true"]:not(
+        .mx_EventTile_info,
+        .mx_EventTile_noBubble,
+        .mx_EventTile_bubbleContainer,
+        .mx_EventTile_leftAlignedBubble
+    ),
+.mx_RoomView[data-gua-bubble]
+    .mx_RoomView_body[data-gua-wallpaper]
+    .mx_EventTile[data-layout="group"][data-self="true"]:not(.mx_EventTile_info) {
+    --backgroundColor: var(--gua-bubble);
+    --gua-card-background: var(--gua-bubble);
+    --cpd-color-text-secondary: var(--cpd-color-gray-1100);
+    --MessageTimestamp-color: var(--cpd-color-gray-1100);
+    --cpd-color-text-link-external: var(--cpd-color-blue-1000);
+
+    .mx_MediaBody {
+        background: var(--gua-bubble);
+    }
+}
+
+.cpd-theme-dark,
+.cpd-theme-dark-hc {
+    .mx_RoomView[data-gua-bubble]
+        .mx_EventTile[data-layout="bubble"][data-self="true"]:not(
+            .mx_EventTile_info,
+            .mx_EventTile_noBubble,
+            .mx_EventTile_bubbleContainer,
+            .mx_EventTile_leftAlignedBubble
+        ),
+    .mx_RoomView[data-gua-bubble]
+        .mx_RoomView_body[data-gua-wallpaper]
+        .mx_EventTile[data-layout="group"][data-self="true"]:not(.mx_EventTile_info) {
+        --cpd-color-text-link-external: var(--cpd-color-blue-1100);
+    }
+}
+
+/* The stock hover and selection band is grey, which shows as a cut-out on a coloured card, so it takes a shade of
+   the card instead. */
+.mx_RoomView[data-gua-bubble]
+    .mx_RoomView_body[data-gua-wallpaper]
+    .mx_EventTile[data-layout="group"][data-self="true"]:not(.mx_EventTile_info) {
+    &:hover,
+    &:focus-visible:focus-within,
+    &.mx_EventTile_actionBarFocused,
+    &.mx_EventTile_isEditing,
+    &.mx_EventTile_selected {
+        .mx_EventTile_line {
+            background-color: color-mix(in srgb, var(--gua-bubble), var(--cpd-color-text-primary) 8%);
+        }
+    }
+}
+
+.mx_RoomView_body[data-gua-wallpaper] {
+    --gua-legibility-background: color-mix(in srgb, var(--cpd-color-bg-canvas-default) 88%, transparent);
+
+    /* Rings cut out of the page colour would show as halos on a wallpaper. */
+    .mx_EventTile[data-layout="bubble"] .mx_EventTile_avatar {
+        border-color: transparent;
+
+        img {
+            box-shadow: none;
+        }
+    }
+
+    .mx_TimelineSeparator > hr {
+        visibility: hidden;
+    }
+
+    /* Emotes, polls and locations have no bubble of their own, so they get one of the page colour. */
+    .mx_EventTile.mx_EventTile_noBubble[data-layout="bubble"] .mx_EventTile_line {
+        border-radius: var(--cornerRadius);
+        background-color: var(--gua-legibility-background);
+
+        &.mx_EventTile_emote {
+            padding-inline-start: 8px;
+        }
+    }
+
+    /* Small chrome on the wallpaper sits on a capsule of the page colour. */
+    .mx_TimelineSeparator > div,
+    .mx_EventTile .mx_TextualEvent,
+    .mx_GenericEventListSummary .mx_GenericEventListSummary_summary,
+    .mx_GenericEventListSummary .mx_GenericEventListSummary_toggle,
+    .mx_EventTile[data-layout="bubble"][data-self="false"] > .mx_DisambiguatedProfile,
+    .mx_EventTile.mx_EventTile_noBubble[data-layout="bubble"] .mx_MessageTimestamp,
+    .mx_ReactionsRow_showAll,
+    .mx_ReadReceiptGroup_remainder,
+    .mx_RoomView_topMarker,
+    .mx_WhoIsTypingTile_label {
+        width: fit-content;
+        padding: 3px 8px;
+        border-radius: 12px;
+        background-color: var(--gua-legibility-background);
+        color: var(--cpd-color-text-primary);
+    }
+
+    /* The capsule's padding hangs outside, so the name stays lined up with its bubble and avatar. */
+    .mx_EventTile[data-layout="bubble"][data-self="false"] > .mx_DisambiguatedProfile {
+        margin-inline-start: -8px;
+        margin-block: -3px;
+    }
+
+    .mx_EventTile_receiptSent,
+    .mx_EventTile_receiptSending,
+    .mx_ReactionsRow_addReactionButton {
+        border-radius: 50%;
+        background-color: var(--gua-legibility-background);
+
+        &::before {
+            background-color: var(--cpd-color-icon-secondary);
+        }
+    }
+
+    .mx_NewRoomIntro {
+        padding: 16px;
+        border-radius: 12px;
+        background-color: var(--gua-legibility-background);
+    }
+
+    /* Modern has no message shape to back, so each run of one sender's tiles forms one card under its name,
+       replies, reactions and receipts, with the wallpaper in the gap above it. Each tile draws its own slice, so the
+       card is opaque and a continuation overlaps the tile above by a pixel to leave no seam at fractional heights. */
+    .mx_EventTile[data-layout="group"]:not(.mx_EventTile_info) {
+        --gua-card-background: var(--cpd-color-bg-canvas-default);
+
+        &::before {
+            content: "";
+            position: absolute;
+            inset: 8px 0 0;
+            z-index: -1;
+            border-radius: 12px 12px 0 0;
+            background-color: var(--gua-card-background);
+            pointer-events: none;
+        }
+
+        &.mx_EventTile_continuation::before {
+            inset-block-start: -1px;
+            border-radius: 0;
+        }
+
+        &.mx_EventTile_lastInSection {
+            padding-bottom: 6px;
+
+            &::before {
+                border-end-start-radius: 12px;
+                border-end-end-radius: 12px;
+            }
+        }
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .mx_RoomView_body[data-gua-wallpaper] {
+        --gua-legibility-background: var(--cpd-color-bg-canvas-default);
+    }
+}
+
+.cpd-theme-light-hc .mx_RoomView_body[data-gua-wallpaper],
+.cpd-theme-dark-hc .mx_RoomView_body[data-gua-wallpaper] {
+    --gua-legibility-background: var(--cpd-color-bg-canvas-default);
+}

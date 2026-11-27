@@ -9,6 +9,7 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React from "react";
+import ImageIcon from "@vector-im/compound-design-tokens/assets/web/icons/image";
 import { RoomEvent, type Room, RoomStateEvent, type MatrixEvent, EventType } from "matrix-js-sdk/src/matrix";
 
 import TabbedView, { Tab } from "../../structures/TabbedView";
@@ -31,6 +32,7 @@ import { type NonEmptyArray } from "../../../@types/common";
 import { PollHistoryTab } from "../settings/tabs/room/PollHistoryTab";
 import ErrorBoundary from "../elements/ErrorBoundary";
 import { PeopleRoomSettingsTab } from "../settings/tabs/room/PeopleRoomSettingsTab";
+import { ChatThemeRoomSettingsTab } from "../../../gua/chatTheme/lazy";
 
 export const enum RoomSettingsTab {
     General = "ROOM_GENERAL_TAB",
@@ -42,6 +44,7 @@ export const enum RoomSettingsTab {
     Bridges = "ROOM_BRIDGES_TAB",
     Advanced = "ROOM_ADVANCED_TAB",
     PollHistory = "ROOM_POLL_HISTORY_TAB",
+    ChatTheme = "GUA_CHAT_THEME_TAB",
 }
 
 interface IProps {
@@ -134,6 +137,16 @@ class RoomSettingsDialog extends React.Component<IProps, IState> {
                 "RoomSettingsGeneral",
             ),
         );
+        if (SettingsStore.getValue("feature_gua_chat_themes") && !this.state.room.isSpaceRoom()) {
+            tabs.push(
+                new Tab(
+                    RoomSettingsTab.ChatTheme,
+                    _td("gua|chat_theme|title"),
+                    <ImageIcon />,
+                    <ChatThemeRoomSettingsTab room={this.state.room} />,
+                ),
+            );
+        }
         if (SettingsStore.getValue("feature_ask_to_join") && this.state.room.getJoinRule() === "knock") {
             tabs.push(
                 new Tab(

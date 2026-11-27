@@ -1,0 +1,13 @@
+Smiling Maned Wolf photo wallpaper
+
+Files: res/img/gua/wallpapers/photo-maned-wolf-smiling.webp and its thumbnail res/img/gua/wallpapers/thumbnails/photo-maned-wolf-smiling.webp in gua-web, libraries/matrixui/src/main/assets/wallpapers/photo-maned-wolf-smiling.webp in gua-android and ElementX/Resources/Wallpapers/photo-maned-wolf-smiling.webp in gua-ios.
+
+Copyright 2025 Gabriel Bonfa. All rights reserved.
+
+Gabriel Bonfa has licensed this photo to Gua for use in Gua's official iOS, Android and web apps only. Within those apps it may be cropped, resized, compressed and adjusted in colour or brightness for screens, and hosted and distributed as part of the app. It may not be used or distributed as a standalone product. Anyone else may use it only as needed to run and distribute Gua.
+
+The photo is not covered by the GNU Affero General Public License, the GNU General Public License or any other licence in this repository.
+
+Anyone distributing a modified version of this software must remove or replace this photo.
+
+Credit: "Foto: Gabriel Bonfa"

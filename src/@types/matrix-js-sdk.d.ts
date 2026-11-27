@@ -50,6 +50,9 @@ declare module "matrix-js-sdk/src/types" {
             status: string;
         };
         "m.room.bot.options": unknown;
+
+        // Gua chat theme, left raw for the codec to validate
+        "global.gua.room.background": Record<string, unknown>;
     }
 
     export interface TimelineEvents {
@@ -95,6 +98,9 @@ declare module "matrix-js-sdk/src/types" {
 
         // Indicate whether recovery is enabled or disabled
         "io.element.recovery": { enabled: boolean };
+
+        // Gua default chat theme, left raw for the codec to validate
+        "global.gua.chat_theme": Record<string, unknown>;
     }
 
     export interface AudioContent {

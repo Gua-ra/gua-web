@@ -148,6 +148,19 @@ describe("<RoomSettingsDialog />", () => {
             expect(screen.getByTestId("settings-tab-ROOM_VOIP_TAB")).toBeInTheDocument();
         });
 
+        it("renders the chat theme tab only with chat themes", () => {
+            getComponent();
+            expect(screen.queryByTestId("settings-tab-GUA_CHAT_THEME_TAB")).not.toBeInTheDocument();
+        });
+
+        it("renders the chat theme tab when chat themes are on", () => {
+            jest.spyOn(SettingsStore, "getValue").mockImplementation(
+                (settingName) => settingName === "feature_gua_chat_themes",
+            );
+            getComponent();
+            expect(screen.getByTestId("settings-tab-GUA_CHAT_THEME_TAB")).toBeInTheDocument();
+        });
+
         it("renders bridges settings tab when enabled", () => {
             jest.spyOn(SettingsStore, "getValue").mockImplementation(
                 (settingName) => settingName === "feature_bridge_state",

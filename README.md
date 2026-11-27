@@ -136,3 +136,9 @@ Gua's modifications are available under the GNU Affero General Public License ve
 or the GNU General Public License version 3 only (`AGPL-3.0-only OR GPL-3.0-only`). The Element
 Commercial License comes from Element and covers only code Element holds the copyright to. It
 does not extend to Gua's modifications.
+
+The photo wallpapers (`res/img/gua/wallpapers/photo-*.webp` and their thumbnails) are not under
+these licenses. Each keeps its own license; see
+[res/img/gua/wallpapers/THIRD_PARTY_NOTICES.md](res/img/gua/wallpapers/THIRD_PARTY_NOTICES.md).
+`photo-maned-wolf-smiling.webp` is licensed to Gua for its official apps only, so a modified version
+must remove or replace it.
